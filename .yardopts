@@ -1,0 +1,5 @@
+--readme README.md
+--title 'nice_http - NiceHttp -- simplest library for accessing and testing HTTP and REST resources.'
+--charset utf-8
+--markup markdown
+'lib/*.rb' - '*.md' - 'LICENSE'
