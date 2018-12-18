@@ -62,7 +62,7 @@ http3 = NiceHttp.new my_reqres_server
 ```
 
 
-You can specify all the defaults you will be using when creating connections by using the NiceHttp methods, in this example, http1 and http2 will be connecting to regres.in and http3 to example.com:
+You can specify all the defaults you will be using when creating connections by using the NiceHttp methods, in this example, http1 and http2 will be connecting to reqres.in and http3 to example.com:
 
 ```ruby
 

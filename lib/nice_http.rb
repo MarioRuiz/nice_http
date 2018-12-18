@@ -102,6 +102,13 @@ class NiceHttp
         @auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
       end
 
+      if @host.include?("http:") or @host.include?("https:")
+        uri = URI.parse(@host)
+        @host = uri.host unless uri.host.nil?
+        @port = uri.port unless uri.port.nil?
+        @ssl = true if !uri.scheme.nil? && (uri.scheme == 'https')
+      end
+
       if !@proxy_host.nil? && !@proxy_port.nil?
         @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)
         @http.use_ssl = @ssl
