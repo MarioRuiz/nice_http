@@ -219,6 +219,65 @@ resp = @http.get("/HTTP/Basic/")
 
 ```
 
+Remember for other kind of authentication systems NiceHttp take care of the redirections and cookies that are requested to be set. In case you need to add a header with a token you can add it by using your NiceHttp object and the key headers, for example:
+
+```ruby
+@http.headers.tokenuno = "xxx"
+# headers => {tokenuno: "xxx"}
+
+#another way:
+@http.headers[:tokendos] = "yyy"
+# headers => {tokenuno: "xxx", tokendos: "yyyy"}
+
+```
+
+In case you want or need to control the redirections by yourself instead of allowing NiceHttp to do it, then set ```@http.auto_redirect = false```
+
+An example using OpenID authentication:
+
+```ruby
+server = "https://samples.auth0.com/"
+path="/authorize?client_id=kbyuFDidLLm280LIwVFiazOqjO3ty8KH&response_type=code"
+
+@http = NiceHttp.new(server)
+
+
+resp = @http.get(path)
+
+p "With autoredirection:"
+p "Cookies: "
+p @http.cookies
+p "Code: #{resp.code} #{resp.message} "
+p "*"*40
+
+@http2 = NiceHttp.new(server)
+@http2.auto_redirect = false
+
+resp = @http2.get(path)
+
+p "Without autoredirection:"
+p "Cookies: "
+p @http2.cookies
+p "Code: #{resp.code} #{resp.message} "
+
+```
+
+The output:
+
+```
+"With autoredirection:"
+"Cookies: "
+{"/"=>{"auth0"=>"s%3A6vEEwmmIf-9YAG-NjvsOIyZAh-NS97jj.yFSXILdmCov6DRwXjEei3q3eHIrxZxHI4eg4%2BTpUaK4"}, "/usernamepassword/login"=>{"_csrf"=>"bboZ0koMScwXkISzWaAMTYdY"}}
+"Code: 200 OK "
+"****************************************"
+"Without autoredirection:"
+"Cookies: "
+{"/"=>{"auth0"=>"s%3AcKndc44gllWyJv8FLztUIctuH4b__g0V.QEF3SOobK8%2FvX89iUKzGbfSP4Vt2bRtY2WH7ygBUkg4"}}
+"Code: 302 Found "
+
+```
+
+
 ## Send multipart content
 
 Example posting a csv file:

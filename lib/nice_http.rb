@@ -205,7 +205,7 @@ class NiceHttp
             return @response
           end
           begin
-            if path.include?("http:") or path.include?("https:") then #server included on path problably because of a redirection to a different server
+            if path.start_with?("http:") or path.start_with?("https:") then #server included on path problably because of a redirection to a different server
               require 'uri'
               uri = URI.parse(path)
               ssl=false
