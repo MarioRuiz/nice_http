@@ -95,4 +95,19 @@ module NiceHttpUtils
     end
   end  
 
+  ##################################################
+  # returns the seed for Basic authentication
+  # input:
+  #   user
+  #   password
+  # output:
+  #   seed string to be used on Authorization key header on a get request
+  ####################################################
+  def self.basic_authentication(user: , password: )
+    require 'base64'
+    seed = "Basic " + Base64.encode64(user + ":" + password)
+    return seed
+  end
+
+
 end

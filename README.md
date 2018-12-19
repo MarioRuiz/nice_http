@@ -162,7 +162,6 @@ In case you want to modify the request before sending it, for example just chang
 
 ```ruby
 
-
 req = Requests::Example.create_user_hash
 req[:values] = {job: "developer"}
 
@@ -170,7 +169,6 @@ resp = http.post req
 
 pp resp.data.json
 #response: {:name=>"morpheus", :job=>"developer", :id=>"192", :createdAt=>"2018-12-14T14:41:54.371Z"}
-
 
 ```
 
@@ -203,7 +201,40 @@ Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many mo
 
 *auto_redirect*: (true or false) in case of true it will take care of the auto redirections.
 
+## Authentication requests
 
+All we need to do is to add to our request the correct authentication tokens, seeds, headers.
+
+For example for Basic Authentication we need to add to the authorization header a seed generated with the user and password we want ot authenticate
+
+```ruby
+
+@http = NiceHttp.new("https://jigsaw.w3.org/")
+
+@http.headers.authorization = NiceHttpUtils.basic_authentication(user: "guest", password: "guest")
+
+# headers will be in this example: {:authorization=>"Basic Z3Vlc3Q6Z3Vlc3Q=\n"}
+
+resp = @http.get("/HTTP/Basic/")
+
+```
+
+## Send multipart content
+
+Example posting a csv file:
+
+```ruby
+
+	require 'net/http/post/multipart'
+	request = {
+		path: "/customer/profile/",
+		headers: {'Content-Type' => 'multipart/form-data'},
+		data: (Net::HTTP::Post::Multipart.new "/customer/profile/",
+		  "file" => UploadIO.new("./path/to/my/file.csv", "text/csv"))
+	}
+	response=@http.post(request)
+
+```
 
 ## Contributing
 
