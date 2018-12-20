@@ -241,7 +241,6 @@ path="/authorize?client_id=kbyuFDidLLm280LIwVFiazOqjO3ty8KH&response_type=code"
 
 @http = NiceHttp.new(server)
 
-
 resp = @http.get(path)
 
 p "With autoredirection:"
@@ -267,7 +266,8 @@ The output:
 ```
 "With autoredirection:"
 "Cookies: "
-{"/"=>{"auth0"=>"s%3A6vEEwmmIf-9YAG-NjvsOIyZAh-NS97jj.yFSXILdmCov6DRwXjEei3q3eHIrxZxHI4eg4%2BTpUaK4"}, "/usernamepassword/login"=>{"_csrf"=>"bboZ0koMScwXkISzWaAMTYdY"}}
+{"/"=>{"auth0"=>"s%3A6vEEwmmIf-9YAG-NjvsOIyZAh-NS97jj.yFSXILdmCov6DRwXjEei3q3eHIrxZxHI4eg4%2BTpUaK4"}, 
+       "/usernamepassword/login"=>{"_csrf"=>"bboZ0koMScwXkISzWaAMTYdY"}}
 "Code: 200 OK "
 "****************************************"
 "Without autoredirection:"

@@ -109,5 +109,4 @@ module NiceHttpUtils
     return seed
   end
 
-
 end
