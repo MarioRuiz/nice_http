@@ -12,6 +12,8 @@ NiceHttp will take care of the redirections and the cookies, and for security te
 
 To be able to generate random requests take a look at the documentation for nice_hash gem: https://github.com/MarioRuiz/nice_hash
 
+Example that creates 1000 good random and unique requests to register an user and test that the validation of the fields are correct by the user was able to be registered. Send 800 requests where just one field is wrong and verify the user was not able to be created: https://gist.github.com/MarioRuiz/824d7a462b62fd85f02c1a09455deefb
+
 ## Installation
 
 Install it yourself as:
