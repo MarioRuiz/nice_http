@@ -102,11 +102,18 @@ class NiceHttp
         @auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
       end
 
-      if @host.include?("http:") or @host.include?("https:")
+      if @host.to_s!="" and (@host.include?("http:") or @host.include?("https:"))
         uri = URI.parse(@host)
         @host = uri.host unless uri.host.nil?
         @port = uri.port unless uri.port.nil?
         @ssl = true if !uri.scheme.nil? && (uri.scheme == 'https')
+      end
+
+      if @host.nil? or @host.to_s=="" or @port.nil? or @port.to_s==""
+        message = "It was not possible to create the http connection!!!\n"
+        message += "Wrong host or port, remember to supply http:// or https:// in case you specify an url to create the http connection, for example:\n"
+        message += "http = NiceHttp.new('http://example.com')"
+        raise message
       end
 
       if !@proxy_host.nil? && !@proxy_port.nil?
@@ -155,6 +162,7 @@ class NiceHttp
     rescue Exception => stack
       if @logger.nil?
         puts stack
+        @logger = Logger.new nil
       else
         @logger.fatal stack
       end
