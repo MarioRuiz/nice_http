@@ -1,4 +1,17 @@
 class NiceHttp
+  Error = Class.new StandardError
+
+  InfoMissing = Class.new Error do
+    attr_reader :attribute
+    def initialize(attribute)
+      @attribute = attribute
+      message = "It was not possible to create the http connection!!!\n"
+      message += "Wrong #{attribute}, remember to supply http:// or https:// in case you specify an url to create the http connection, for example:\n"
+      message += "http = NiceHttp.new('http://example.com')"
+      super message
+    end
+  end
+
   class << self
     attr_accessor :port
   end
@@ -28,12 +41,6 @@ class NiceHttp
       @port = args[:port] if args.keys.include?(:port)
     end
 
-    # if @host.nil? or @host.to_s=="" or @port.nil? or @port.to_s==""
-    #   message = "It was not possible to create the http connection!!!\n"
-    #   message += "Wrong host or port, remember to supply http:// or https:// in case you specify an url to create the http connection, for example:\n"
-    #   message += "http = NiceHttp.new('http://example.com')"
-    #   raise message
-    # end
+    raise InfoMissing, :port if @port.to_s == ""
   end
 end
-

@@ -1,4 +1,5 @@
 require 'nice_http'
+require 'English'
 
 RSpec.describe NiceHttp do
   let(:klass) { Class.new NiceHttp }
@@ -16,6 +17,12 @@ RSpec.describe NiceHttp do
     it 'can be provided an explicit port' do
       klass.port = 123
       expect(klass.new(port: 456).port).to eq 456
+    end
+    it 'raises an error when it can\'t figure out the port' do
+      klass.port = nil
+      klass.new rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :port
+      expect(err.message).to match /wrong port/i
     end
   end
 
