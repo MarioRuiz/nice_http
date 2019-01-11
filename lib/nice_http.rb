@@ -1,6 +1,6 @@
 require 'logger'
 require 'nice_hash'
-require 'nice_http_utils'
+require_relative 'nice_http/utils'
 
 class NiceHttp
   class << self
