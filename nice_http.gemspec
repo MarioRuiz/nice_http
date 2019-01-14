@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'nice_http'
-  s.version     = '1.0.3'
+  s.version     = '1.0.4'
   s.summary     = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources."
   s.description = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources. Manage different hosts on the fly. Easily get the value you want from the JSON strings. Use hashes on your requests."
   s.authors     = ["Mario Ruiz"]
@@ -10,5 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = 'https://github.com/MarioRuiz/nice_http'
   s.license       = 'MIT'
   s.add_runtime_dependency 'nice_hash', ['>= 1.7.2']
+  s.test_files    = s.files.grep(%r{^(test|spec|features)/})
+  s.require_paths = ["lib"]
 end
 

@@ -73,6 +73,7 @@ NiceHttp.ssl = true
 NiceHttp.port = 443
 NiceHttp.debug = false
 NiceHttp.log = "./my_logs.log"
+NiceHttp.headers = {"api-key": "the api key"}
 
 http1 = NiceHttp.new()
 

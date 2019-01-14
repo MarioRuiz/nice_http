@@ -41,26 +41,49 @@ class NiceHttp
   end
 
   ######################################################
-  #  input:
-  #    no parameters:
-  #         By default will access how is setup on defaults
-  #    one parameter:
-  #         String
-  #             "https://www.example.com"
-  #             "example.com:8999"
-  #             "localhost:8322"
-  #         Hash containing these possible keys
+  # Creates a new http connection. 
+  #
+  # @param args [] If no parameter supplied, by default will access how is setup on defaults
+  # @example 
+  #   http = NiceHttp.new()
+  # @param args [String]. The url to create the connection.
+  # @example 
+  #   http = NiceHttp.new("https://www.example.com")
+  # @example 
+  #   http = NiceHttp.new("example.com:8999")
+  # @example 
+  #   http = NiceHttp.new("localhost:8322")
+  # @param args [Hash] containing these possible keys:
+  #
   #             host -- example.com. (default blank screen)
+  #
   #             port -- port for the connection. 80 (default)
+  #
   #             ssl -- true, false (default)
+  #
   #             headers -- hash with the header key:values
+  #
   #             debug -- true, false (default)
+  #
   #             log -- :no, :screen, :file, :fix_file (default).
+  #
   #                 A string with a path can be supplied.
+  #
   #                 If :fix_file: nice_http.log
+  #
   #                 In case :file it will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log
+  #
   #             proxy_host
+  #
   #             proxy_port
+  # @example
+  #   http2 = NiceHttp.new( host: "reqres.in", port: 443, ssl: true )
+  # @example
+  #   my_server = {host: "example.com", 
+  #                port: 80, 
+  #                headers: {"api-key": "zdDDdjkck"}
+  #               } 
+  #   http3 = NiceHttp.new my_server
   ######################################################
   def initialize(args = {})
     require 'net/http'
@@ -175,20 +198,25 @@ class NiceHttp
 
       ######################################################
       # Get data from path
-      #  input:
-      #     1 argument
-      #       Hash containing at least key :path
-      #     1 argument
-      #       path (string)
-      #  output:
-      #    response -> Hash including at least the symbol keys:
-      #       :data = the response data body
-      #       :message = plain text response
-      #       :code = code response (200=ok,500=wrong...)
-      #     *All keys in response are lowercase
-      #     data, message and code can also be accessed as attributes like .message .code .data, for example:
-      #         resp=@http.get(Requests::Customer.get_profile)
-      #         assert resp.code==200
+      #
+      # @param arg [Hash] containing at least key :path 
+      # @param arg [String] the path 
+      #
+      # @return [Hash] response
+      #   Including at least the symbol keys:
+      #     :data = the response data body.
+      #     :message = plain text response.
+      #     :code = code response (200=ok,500=wrong...).
+      #   All keys in response are lowercase.
+      #   data, message and code can also be accessed as attributes like .message .code .data
+      # @return [Symbol] in case of error returns :error
+      #
+      # @example 
+      #   resp = @http.get(Requests::Customer.get_profile)
+      #   assert resp.code == 200
+      # @example 
+      #   resp = @http.get("/customers/1223")
+      #   assert resp.message == "OK"
       ######################################################
       def get(arg)
         begin
@@ -287,22 +315,28 @@ class NiceHttp
 
       ######################################################
       # Post data to path
-      #  input:
-      #     1 argument
-      #       Hash containing at least keys :data, :path
-      #     3 arguments
-      #       path (string)
-      #       data (json data for example)
-      #       additional_headers (Hash key=>value)
-      #  output:
-      #    response -> Hash including at least the symbol keys:
-      #       :data = the response data body
-      #       :message = plain text response
-      #       :code = code response (200=ok,500=wrong...)
-      #     *All keys in response are lowercase
-      #     data, message and code can also be accessed as attributes like .message .code .data, for example:
-      #         resp=@http.post(Requests::Customer.update_customer)
-      #         assert resp.code==201
+      # @param arguments [Hash] containing at least keys :data and :path
+      # @param arguments [Array<path, data ,additional_headers]
+      #   path (string)
+      #   data (json data for example)
+      #   additional_headers (Hash key=>value)
+      # @return [Hash] response
+      #   Including at least the symbol keys:
+      #     :data = the response data body.
+      #     :message = plain text response.
+      #     :code = code response (200=ok,500=wrong...).
+      #   All keys in response are lowercase.
+      #   data, message and code can also be accessed as attributes like .message .code .data
+      # @return [Symbol] in case of error returns :error
+      # @example
+      #   resp = @http.post(Requests::Customer.update_customer)
+      #   assert resp.code == 201
+      # @example
+      #   resp = http.post( {
+      #                       path: "/api/users",
+      #                       data: {name: "morpheus", job: "leader"} 
+      #                      } )
+      #   pp resp.data.json
       ######################################################
       def post(*arguments)
         begin
@@ -375,25 +409,23 @@ class NiceHttp
   
       end
 
-
       ######################################################
       # Put data to path
-      #  input:
-      #     1 argument
-      #       Hash containing at least keys :data, :path
-      #     3 arguments
-      #       path (string)
-      #       data (json data for example)
-      #       additional_headers (Hash key=>value)
-      #  output:
-      #    response -> Hash including at least the symbol keys:
-      #       :data = the response data body
-      #       :message = plain text response
-      #       :code = code response (200=ok,500=wrong...)
-      #     *All keys in response are lowercase
-      #     data, message and code can also be accessed as attributes like .message .code .data, for example:
-      #         resp=@http.put(Requests::Customer.remove_phone)
-      #         assert resp.code==200
+      # @param arguments [Hash] containing at least keys :data and :path
+      # @param arguments [Array<path, data ,additional_headers]
+      #   path (string)
+      #   data (json data for example)
+      #   additional_headers (Hash key=>value)
+      # @return [Hash] response
+      #   Including at least the symbol keys:
+      #     :data = the response data body.
+      #     :message = plain text response.
+      #     :code = code response (200=ok,500=wrong...).
+      #   All keys in response are lowercase.
+      #   data, message and code can also be accessed as attributes like .message .code .data
+      # @return [Symbol] in case of error returns :error
+      # @example
+      #   resp = @http.put(Requests::Customer.remove_phone)
       ######################################################
       def put(*arguments)
         begin
@@ -446,22 +478,21 @@ class NiceHttp
   
       ######################################################
       # Patch data to path
-      #  input:
-      #     1 argument
-      #       Hash containing at least keys :data, :path
-      #     3 arguments
-      #       path (string)
-      #       data (json data for example)
-      #       additional_headers (Hash key=>value)
-      #  output:
-      #    response -> Hash including at least the symbol keys:
-      #       :data = the response data body
-      #       :message = plain text response
-      #       :code = code response (200=ok,500=wrong...)
-      #     *All keys in response are lowercase
-      #     data, message and code can also be accessed as attributes like .message .code .data, for example:
-      #         resp=@http.patch(Requests::Customer.unrelease_account)
-      #         assert resp.code==200
+      # @param arguments [Hash] containing at least keys :data and :path
+      # @param arguments [Array<path, data ,additional_headers]
+      #   path (string)
+      #   data (json data for example)
+      #   additional_headers (Hash key=>value)
+      # @return [Hash] response
+      #   Including at least the symbol keys:
+      #     :data = the response data body.
+      #     :message = plain text response.
+      #     :code = code response (200=ok,500=wrong...).
+      #   All keys in response are lowercase.
+      #   data, message and code can also be accessed as attributes like .message .code .data
+      # @return [Symbol] in case of error returns :error
+      # @example
+      #   resp = @http.patch(Requests::Customer.unrelease_account)
       ######################################################
       def patch(*arguments)
         begin
@@ -526,23 +557,22 @@ class NiceHttp
   
       end
 
-
       ######################################################
       # Delete an existing resource
-      #  input:
-      #     1 argument
-      #       Hash containing at least key :path
-      #     1 argument
-      #       String giving the path
-      #  output:
-      #    response -> Hash including at least the symbol keys:
-      #       :data = the response data body
-      #       :message = plain text response
-      #       :code = code response (200=ok,500=wrong...)
-      #     *All keys in response are lowercase
-      #     data, message and code can also be accessed as attributes like .message .code .data, for example:
-      #         resp=@http.delete(Requests::Customer.remove_session)
-      #         assert resp.code==204
+      # @param arg [Hash] containing at least key :path 
+      # @param arg [String] the path 
+      #
+      # @return [Hash] response
+      #   Including at least the symbol keys:
+      #     :data = the response data body.
+      #     :message = plain text response.
+      #     :code = code response (200=ok,500=wrong...).
+      #   All keys in response are lowercase.
+      #   data, message and code can also be accessed as attributes like .message .code .data
+      # @return [Symbol] in case of error returns :error
+      # @example
+      #   resp = @http.delete(Requests::Customer.remove_session)
+      #   assert resp.code == 204
       ######################################################
       def delete(argument)
         begin
@@ -599,16 +629,16 @@ class NiceHttp
       # Implementation of the http HEAD method.
       # Asks for the response identical to the one that would correspond to a GET request, but without the response body. 
       # This is useful for retrieving meta-information written in response headers, without having to transport the entire content.
-      #  input:
-      #     1 argument
-      #       Hash containing at least key :path
-      #     1 argument
-      #       String giving the path
-      #  output:
-      #    response -> Hash including the symbol keys:
-      #       :message = plain text response
-      #       :code = code response (200=ok,500=wrong...)
-      #     *All keys in response are lowercase
+      # @param arg [Hash] containing at least key :path 
+      # @param arg [String] the path 
+      #
+      # @return [Hash] response
+      #   Including at least the symbol keys:
+      #     :message = plain text response.
+      #     :code = code response (200=ok,500=wrong...).
+      #   All keys in response are lowercase.
+      #   message and code can also be accessed as attributes like .message .code
+      # @return [Symbol] in case of error returns :error
       ######################################################
       def head(argument)
         begin
