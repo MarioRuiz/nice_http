@@ -2,7 +2,43 @@ require 'logger'
 require 'nice_hash'
 require_relative 'nice_http/utils'
 
-class NiceHttp
+  ######################################################
+  # Attributes you can access using NiceHttp.the_attribute: 
+  #   :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port, 
+  #   :last_request, :last_response, :request_id, :use_mocks, :connections,
+  #   :active, :auto_redirect  
+  #
+  # @attr [String] host The host to be accessed
+  # @attr [Integer] port  The port number
+  # @attr [Boolean] ssl  If you use ssl or not
+  # @attr [Hash] headers Contains the headers you will be using on your connection 
+  # @attr [Boolean] debug In case true shows all the details of the communication with the host
+  # @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".
+  #   :fix_file will log the communication on nice_http.log. (default).
+  #   :no will not generate any logs. 
+  #   :screen will print the logs on the screen.
+  #   :file will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.
+  #   String the path and file name where the logs will be stored.
+  # @attr [String] proxy_host the proxy host to be used
+  # @attr [Integer] proxy_port the proxy port to be used
+  # @attr [String] last_request The last request with all the content sent
+  # @attr [String] last_response Only in case :debug is true, the last response with all the content
+  # @attr [String] request_id If the response includes a requestId, will be stored here
+  # @attr [Boolean] use_mocks If true, in case the request hash includes a :mock_response key, it will be used as the response instead
+  # @attr [Array] connections It will include all the active connections (NiceHttp instances)
+  # @attr [Integer] active Number of active connections
+  # @attr [Boolean] auto_redirect If true, NiceHttp will take care of the auto redirections when required by the responses
+  # @attr [Hash] response Contains the full response hash
+  # @attr [Integer] num_redirects Number of consecutive redirections managed
+  # @attr [Hash] headers The updated headers of the communication 
+  # @attr [Hash] cookies Cookies set. The key is the path (String) where cookies are set and the value a Hash with pairs of cookie keys and values, example:
+  #   { '/' => { "cfid" => "d95adfas2550255", "amddom.settings" => "doom" } }
+  # @attr [Logger] logger An instance of the Logger class where logs will be stored. You can access on anytime to store specific data, for example: 
+  #   my_http.logger.info "add this to the log file"
+  #   @see https://ruby-doc.org/stdlib-2.5.0/libdoc/logger/rdoc/Logger.html
+  ######################################################
+  class NiceHttp
+
   class << self
     attr_accessor :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port, 
                   :last_request, :last_response, :request_id, :use_mocks, :connections,
@@ -27,6 +63,11 @@ class NiceHttp
   attr_reader :host, :port, :ssl, :debug, :log, :proxy_host, :proxy_port, :response, :num_redirects
   attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger
 
+  ######################################################
+  # Change the default values for NiceHttp supplying a Hash
+  #
+  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port, :use_mocks, :auto_redirect
+  ######################################################
   def self.defaults=(par = {})
     @host = par[:host] if par.key?(:host)
     @port = par[:port] if par.key?(:port)
@@ -36,7 +77,7 @@ class NiceHttp
     @log = par[:log] if par.key?(:log)
     @proxy_host = par[:proxy_host] if par.key?(:proxy_host)
     @proxy_port = par[:proxy_port] if par.key?(:proxy_port)
-    @proxy_port = par[:use_mocks] if par.key?(:use_mocks)
+    @use_mocks = par[:use_mocks] if par.key?(:use_mocks)
     @auto_redirect = par[:auto_redirect] if par.key?(:auto_redirect)
   end
 
@@ -61,7 +102,7 @@ class NiceHttp
   #
   #             ssl -- true, false (default)
   #
-  #             headers -- hash with the header key:values
+  #             headers -- hash with the headers
   #
   #             debug -- true, false (default)
   #
@@ -315,11 +356,12 @@ class NiceHttp
 
       ######################################################
       # Post data to path
-      # @param arguments [Hash] containing at least keys :data and :path
-      # @param arguments [Array<path, data ,additional_headers]
-      #   path (string)
-      #   data (json data for example)
-      #   additional_headers (Hash key=>value)
+      # @param arguments [Hash] containing at least keys :data and :path. 
+      #   In case :data not supplied and :data_examples array supplied, it will be taken the first example as :data.
+      # @param arguments [Array<path, data, additional_headers>]
+      #   path (string).
+      #   data (json data for example).
+      #   additional_headers (Hash key=>value).
       # @return [Hash] response
       #   Including at least the symbol keys:
       #     :data = the response data body.
@@ -411,11 +453,12 @@ class NiceHttp
 
       ######################################################
       # Put data to path
-      # @param arguments [Hash] containing at least keys :data and :path
-      # @param arguments [Array<path, data ,additional_headers]
-      #   path (string)
-      #   data (json data for example)
-      #   additional_headers (Hash key=>value)
+      # @param arguments [Hash] containing at least keys :data and :path.
+      #   In case :data not supplied and :data_examples array supplied, it will be taken the first example as :data.
+      # @param arguments [Array<path, data, additional_headers>]
+      #   path (string).
+      #   data (json data for example).
+      #   additional_headers (Hash key=>value).
       # @return [Hash] response
       #   Including at least the symbol keys:
       #     :data = the response data body.
@@ -478,11 +521,12 @@ class NiceHttp
   
       ######################################################
       # Patch data to path
-      # @param arguments [Hash] containing at least keys :data and :path
-      # @param arguments [Array<path, data ,additional_headers]
-      #   path (string)
-      #   data (json data for example)
-      #   additional_headers (Hash key=>value)
+      # @param arguments [Hash] containing at least keys :data and :path.
+      #   In case :data not supplied and :data_examples array supplied, it will be taken the first example as :data.
+      # @param arguments [Array<path, data, additional_headers>]
+      #   path (string).
+      #   data (json data for example).
+      #   additional_headers (Hash key=>value).
       # @return [Hash] response
       #   Including at least the symbol keys:
       #     :data = the response data body.
@@ -733,6 +777,7 @@ class NiceHttp
       #   input:
       #     3 args: path, data, headers
       #     1 arg:  Hash containg at least keys :path and :data
+      #             In case :data not supplied and :data_examples array supplied, it will be taken the first example as :data.
       #   output:
       #     path, data, headers
       ######################################################
@@ -814,20 +859,23 @@ class NiceHttp
               headers_t['Content-Type'] = 'application/json'
               content_type_included=true
             end
-            
+            # to be backwards compatible since before was :values
+            if arguments[0].include?(:values) and !arguments[0].include?(:values_at)
+              arguments[0][:values_at] = arguments[0][:values]
+            end
             if content_type_included and (!headers_t["Content-Type"][/text\/xml/].nil? or 
               !headers_t["Content-Type"]["application/soap+xml"].nil? or 
               !headers_t["Content-Type"][/application\/jxml/].nil?) then
-              if arguments[0].include?(:values) then
-                arguments[0][:values].each {|key, value|
+              if arguments[0].include?(:values_at) then
+                arguments[0][:values_at].each {|key, value|
                   data=NiceHttpUtils.set_value_xml_tag(key.to_s(), data, value.to_s(), true)
                 }
               end
             elsif content_type_included and !headers_t["Content-Type"][/application\/json/].nil? and data.to_s()!="" then
               require 'json'
               if data.kind_of?(String) then
-                if arguments[0].include?(:values) then
-                  arguments[0][:values].each {|key, value|
+                if arguments[0].include?(:values_at) then
+                  arguments[0][:values_at].each {|key, value|
                     data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *")(.*)(" *, *$)/, '\1' + value+ '\4') # "key":"value", or key:"value",
                     data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *")(.*)(" *$)/, '\1' + value+ '\4') # "key":"value" or key:"value"
                     data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *[^"])([^"].*)([^"] *, *$)/, '\1' + value+ '\4') # "key":456, or key:456,
@@ -839,10 +887,10 @@ class NiceHttp
                 data.each {|key, value|
                   data_n[key.to_s()]=value
                 }
-                if arguments[0].include?(:values) then
-                  #req[:values][:loginName] or req[:values]["loginName"]
+                if arguments[0].include?(:values_at) then
+                  #req[:values_at][:loginName] or req[:values_at]["loginName"]
                   new_values_hash=Hash.new()
-                  arguments[0][:values].each {|kv, vv|
+                  arguments[0][:values_at].each {|kv, vv|
                     if data_n.keys.include?(kv.to_s()) then
                       new_values_hash[kv.to_s()]=vv
                     end
@@ -861,18 +909,18 @@ class NiceHttp
                   row.each {|key, value|
                     data_n[key.to_s()]=value
                   }
-                  if arguments[0].include?(:values) then
-                    #req[:values][:loginName] or req[:values]["loginName"]
+                  if arguments[0].include?(:values_at) then
+                    #req[:values_at][:loginName] or req[:values_at]["loginName"]
                     new_values_hash=Hash.new()
-                    if arguments[0][:values].kind_of?(Hash) then #values[:mykey][3]
-                      arguments[0][:values].each {|kv, vv|
+                    if arguments[0][:values_at].kind_of?(Hash) then #values[:mykey][3]
+                      arguments[0][:values_at].each {|kv, vv|
                         if data_n.keys.include?(kv.to_s()) and !vv[indx].nil? then
                           new_values_hash[kv.to_s()]=vv[indx]
                         end
                       }
-                    elsif arguments[0][:values].kind_of?(Array) then #values[5][:mykey]
-                      if !arguments[0][:values][indx].nil? then
-                        arguments[0][:values][indx].each {|kv, vv|
+                    elsif arguments[0][:values_at].kind_of?(Array) then #values[5][:mykey]
+                      if !arguments[0][:values_at][indx].nil? then
+                        arguments[0][:values_at][indx].each {|kv, vv|
                           if data_n.keys.include?(kv.to_s()) then
                             new_values_hash[kv.to_s()]=vv
                           end
@@ -891,10 +939,10 @@ class NiceHttp
                 @logger.fatal("Wrong format on request application/json, be sure is a Hash, Array of Hashes or JSON string")
                 return :error, :error, :error
               end
-            elsif content_type_included and arguments[0].include?(:values) then
-              if arguments[0][:values].kind_of?(Hash) and arguments[0][:values].keys.size>0 then
+            elsif content_type_included and arguments[0].include?(:values_at) then
+              if arguments[0][:values_at].kind_of?(Hash) and arguments[0][:values_at].keys.size>0 then
                 if !headers_t.nil? and headers_t.kind_of?(Hash) and headers_t["Content-Type"]!="application/x-www-form-urlencoded" and headers_t["content-type"]!="application/x-www-form-urlencoded" then
-                  @logger.warn(":values key given without a valid content-type or data for request. No values modified on the request")
+                  @logger.warn(":values_at key given without a valid content-type or data for request. No values modified on the request")
                 end
               end
             end

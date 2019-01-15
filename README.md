@@ -64,10 +64,11 @@ http3 = NiceHttp.new my_reqres_server
 ```
 
 
-You can specify all the defaults you will be using when creating connections by using the NiceHttp methods, in this example, http1 and http2 will be connecting to reqres.in and http3 to example.com:
+You can specify all the defaults you will be using when creating connections by using the NiceHttp methods, in this example, http1 and http2 will be connecting to reqres.in with the default parameters and http3 to example.com:
 
 ```ruby
 
+# default parameters
 NiceHttp.host = 'reqres.in'
 NiceHttp.ssl = true
 NiceHttp.port = 443
@@ -82,6 +83,20 @@ http2 = NiceHttp.new()
 http3 = NiceHttp.new("https://example.com")
 
 ```
+
+If you prefer to supply a hash to change the default settings for NiceHttp:
+
+```ruby
+NiceHttp.defaults = {
+    host: 'reqres.in',
+    ssl: true,
+    port: 443,
+    debug: false,
+    log: "./my_logs.log",
+    headers: {"api-key": "the api key"}
+}
+```
+
 
 ## Creating requests
 
@@ -161,12 +176,12 @@ pp resp.data.json(:job)
 ```
 
 
-In case you want to modify the request before sending it, for example just changing one field but the rest will be the same, you can supply a new key :values in the request hash that will contain a hash with the keys to be changed and NiceHttp will perform the necessary changes at any level:
+In case you want to modify the request before sending it, for example just changing one field but the rest will be the same, you can supply a new key :values_at in the request hash that will contain a hash with the keys to be changed and NiceHttp will perform the necessary changes at any level:
 
 ```ruby
 
 req = Requests::Example.create_user_hash
-req[:values] = {job: "developer"}
+req.values_at = {job: "developer"}
 
 resp = http.post req
 
