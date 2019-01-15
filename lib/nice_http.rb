@@ -249,8 +249,8 @@ require_relative 'nice_http/utils'
       #     :message = plain text response.
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
-      #   data, message and code can also be accessed as attributes like .message .code .data
-      # @return [Symbol] in case of error returns :error
+      #   data, message and code can also be accessed as attributes like .message .code .data.
+      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
       #
       # @example 
       #   resp = @http.get(Requests::Customer.get_profile)
@@ -350,7 +350,7 @@ require_relative 'nice_http/utils'
           return @response
         rescue Exception => stack
           @logger.fatal stack
-          return :error
+          return {fatal_error: stack.to_s, code: nil, message: nil, data: ''}
         end
       end
 
@@ -368,8 +368,8 @@ require_relative 'nice_http/utils'
       #     :message = plain text response.
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
-      #   data, message and code can also be accessed as attributes like .message .code .data
-      # @return [Symbol] in case of error returns :error
+      #   data, message and code can also be accessed as attributes like .message .code .data.
+      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
       # @example
       #   resp = @http.post(Requests::Customer.update_customer)
       #   assert resp.code == 201
@@ -445,8 +445,8 @@ require_relative 'nice_http/utils'
           end
           return @response
         rescue Exception => stack
-          @logger.warn stack
-          return :error
+          @logger.fatal stack
+          return {fatal_error: stack.to_s, code: nil, message: nil, data: ''}
         end
   
       end
@@ -465,8 +465,8 @@ require_relative 'nice_http/utils'
       #     :message = plain text response.
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
-      #   data, message and code can also be accessed as attributes like .message .code .data
-      # @return [Symbol] in case of error returns :error
+      #   data, message and code can also be accessed as attributes like .message .code .data.
+      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
       # @example
       #   resp = @http.put(Requests::Customer.remove_phone)
       ######################################################
@@ -512,8 +512,8 @@ require_relative 'nice_http/utils'
   
           return @response
         rescue Exception => stack
-          @logger.fatal stack, self
-          return :error
+          @logger.fatal stack
+          return {fatal_error: stack.to_s, code: nil, message: nil, data: ''}
         end
   
       end
@@ -533,8 +533,8 @@ require_relative 'nice_http/utils'
       #     :message = plain text response.
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
-      #   data, message and code can also be accessed as attributes like .message .code .data
-      # @return [Symbol] in case of error returns :error
+      #   data, message and code can also be accessed as attributes like .message .code .data.
+      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
       # @example
       #   resp = @http.patch(Requests::Customer.unrelease_account)
       ######################################################
@@ -596,7 +596,7 @@ require_relative 'nice_http/utils'
           return @response
         rescue Exception => stack
           @logger.fatal stack
-          return :error
+          return {fatal_error: stack.to_s, code: nil, message: nil, data: ''}
         end
   
       end
@@ -612,8 +612,8 @@ require_relative 'nice_http/utils'
       #     :message = plain text response.
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
-      #   data, message and code can also be accessed as attributes like .message .code .data
-      # @return [Symbol] in case of error returns :error
+      #   data, message and code can also be accessed as attributes like .message .code .data.
+      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
       # @example
       #   resp = @http.delete(Requests::Customer.remove_session)
       #   assert resp.code == 204
@@ -664,7 +664,7 @@ require_relative 'nice_http/utils'
           return @response
         rescue Exception => stack
           @logger.fatal stack
-          return :error
+          return {fatal_error: stack.to_s, code: nil, message: nil, data: ''}
         end
   
       end
@@ -681,8 +681,8 @@ require_relative 'nice_http/utils'
       #     :message = plain text response.
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
-      #   message and code can also be accessed as attributes like .message .code
-      # @return [Symbol] in case of error returns :error
+      #   message and code can also be accessed as attributes like .message .code.
+      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil}
       ######################################################
       def head(argument)
         begin
@@ -729,7 +729,7 @@ require_relative 'nice_http/utils'
           return @response
         rescue Exception => stack
           @logger.fatal stack
-          return :error
+          return {fatal_error: stack.to_s, code: nil, message: nil}
         end
       end
 
