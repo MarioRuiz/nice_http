@@ -39,7 +39,7 @@ pp resp.data.json(:first_name, :last_name)
 
 resp = http.post( {
     path: "/api/users",
-    data: {"name": "morpheus", "job": "leader"} 
+    data: { name: "morpheus", job: "leader" } 
 } )
 
 pp resp.data.json
@@ -176,12 +176,12 @@ pp resp.data.json(:job)
 ```
 
 
-In case you want to modify the request before sending it, for example just changing one field but the rest will be the same, you can supply a new key :values_at in the request hash that will contain a hash with the keys to be changed and NiceHttp will perform the necessary changes at any level:
+In case you want to modify the request before sending it, for example just changing one field but the rest will be the same, you can supply a new key :values_for in the request hash that will contain a hash with the keys to be changed and NiceHttp will perform the necessary changes at any level:
 
 ```ruby
 
 req = Requests::Example.create_user_hash
-req.values_at = {job: "developer"}
+req.values_for = {job: "developer"}
 
 resp = http.post req
 

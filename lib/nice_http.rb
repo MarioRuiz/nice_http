@@ -250,7 +250,7 @@ require_relative 'nice_http/utils'
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
       #   data, message and code can also be accessed as attributes like .message .code .data.
-      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
+      #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
       #
       # @example 
       #   resp = @http.get(Requests::Customer.get_profile)
@@ -369,7 +369,7 @@ require_relative 'nice_http/utils'
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
       #   data, message and code can also be accessed as attributes like .message .code .data.
-      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
+      #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
       # @example
       #   resp = @http.post(Requests::Customer.update_customer)
       #   assert resp.code == 201
@@ -466,7 +466,7 @@ require_relative 'nice_http/utils'
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
       #   data, message and code can also be accessed as attributes like .message .code .data.
-      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
+      #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
       # @example
       #   resp = @http.put(Requests::Customer.remove_phone)
       ######################################################
@@ -534,7 +534,7 @@ require_relative 'nice_http/utils'
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
       #   data, message and code can also be accessed as attributes like .message .code .data.
-      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
+      #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
       # @example
       #   resp = @http.patch(Requests::Customer.unrelease_account)
       ######################################################
@@ -613,7 +613,7 @@ require_relative 'nice_http/utils'
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
       #   data, message and code can also be accessed as attributes like .message .code .data.
-      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil, data: ''}
+      #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
       # @example
       #   resp = @http.delete(Requests::Customer.remove_session)
       #   assert resp.code == 204
@@ -682,7 +682,7 @@ require_relative 'nice_http/utils'
       #     :code = code response (200=ok,500=wrong...).
       #   All keys in response are lowercase.
       #   message and code can also be accessed as attributes like .message .code.
-      #   In case of fatal error returns {fatal_error: "the error description", code: nil, message: nil}
+      #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil }
       ######################################################
       def head(argument)
         begin
@@ -860,22 +860,22 @@ require_relative 'nice_http/utils'
               content_type_included=true
             end
             # to be backwards compatible since before was :values
-            if arguments[0].include?(:values) and !arguments[0].include?(:values_at)
-              arguments[0][:values_at] = arguments[0][:values]
+            if arguments[0].include?(:values) and !arguments[0].include?(:values_for)
+              arguments[0][:values_for] = arguments[0][:values]
             end
             if content_type_included and (!headers_t["Content-Type"][/text\/xml/].nil? or 
               !headers_t["Content-Type"]["application/soap+xml"].nil? or 
               !headers_t["Content-Type"][/application\/jxml/].nil?) then
-              if arguments[0].include?(:values_at) then
-                arguments[0][:values_at].each {|key, value|
+              if arguments[0].include?(:values_for) then
+                arguments[0][:values_for].each {|key, value|
                   data=NiceHttpUtils.set_value_xml_tag(key.to_s(), data, value.to_s(), true)
                 }
               end
             elsif content_type_included and !headers_t["Content-Type"][/application\/json/].nil? and data.to_s()!="" then
               require 'json'
               if data.kind_of?(String) then
-                if arguments[0].include?(:values_at) then
-                  arguments[0][:values_at].each {|key, value|
+                if arguments[0].include?(:values_for) then
+                  arguments[0][:values_for].each {|key, value|
                     data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *")(.*)(" *, *$)/, '\1' + value+ '\4') # "key":"value", or key:"value",
                     data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *")(.*)(" *$)/, '\1' + value+ '\4') # "key":"value" or key:"value"
                     data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *[^"])([^"].*)([^"] *, *$)/, '\1' + value+ '\4') # "key":456, or key:456,
@@ -887,10 +887,10 @@ require_relative 'nice_http/utils'
                 data.each {|key, value|
                   data_n[key.to_s()]=value
                 }
-                if arguments[0].include?(:values_at) then
-                  #req[:values_at][:loginName] or req[:values_at]["loginName"]
+                if arguments[0].include?(:values_for) then
+                  #req[:values_for][:loginName] or req[:values_for]["loginName"]
                   new_values_hash=Hash.new()
-                  arguments[0][:values_at].each {|kv, vv|
+                  arguments[0][:values_for].each {|kv, vv|
                     if data_n.keys.include?(kv.to_s()) then
                       new_values_hash[kv.to_s()]=vv
                     end
@@ -909,18 +909,18 @@ require_relative 'nice_http/utils'
                   row.each {|key, value|
                     data_n[key.to_s()]=value
                   }
-                  if arguments[0].include?(:values_at) then
-                    #req[:values_at][:loginName] or req[:values_at]["loginName"]
+                  if arguments[0].include?(:values_for) then
+                    #req[:values_for][:loginName] or req[:values_for]["loginName"]
                     new_values_hash=Hash.new()
-                    if arguments[0][:values_at].kind_of?(Hash) then #values[:mykey][3]
-                      arguments[0][:values_at].each {|kv, vv|
+                    if arguments[0][:values_for].kind_of?(Hash) then #values[:mykey][3]
+                      arguments[0][:values_for].each {|kv, vv|
                         if data_n.keys.include?(kv.to_s()) and !vv[indx].nil? then
                           new_values_hash[kv.to_s()]=vv[indx]
                         end
                       }
-                    elsif arguments[0][:values_at].kind_of?(Array) then #values[5][:mykey]
-                      if !arguments[0][:values_at][indx].nil? then
-                        arguments[0][:values_at][indx].each {|kv, vv|
+                    elsif arguments[0][:values_for].kind_of?(Array) then #values[5][:mykey]
+                      if !arguments[0][:values_for][indx].nil? then
+                        arguments[0][:values_for][indx].each {|kv, vv|
                           if data_n.keys.include?(kv.to_s()) then
                             new_values_hash[kv.to_s()]=vv
                           end
@@ -939,10 +939,10 @@ require_relative 'nice_http/utils'
                 @logger.fatal("Wrong format on request application/json, be sure is a Hash, Array of Hashes or JSON string")
                 return :error, :error, :error
               end
-            elsif content_type_included and arguments[0].include?(:values_at) then
-              if arguments[0][:values_at].kind_of?(Hash) and arguments[0][:values_at].keys.size>0 then
+            elsif content_type_included and arguments[0].include?(:values_for) then
+              if arguments[0][:values_for].kind_of?(Hash) and arguments[0][:values_for].keys.size>0 then
                 if !headers_t.nil? and headers_t.kind_of?(Hash) and headers_t["Content-Type"]!="application/x-www-form-urlencoded" and headers_t["content-type"]!="application/x-www-form-urlencoded" then
-                  @logger.warn(":values_at key given without a valid content-type or data for request. No values modified on the request")
+                  @logger.warn(":values_for key given without a valid content-type or data for request. No values modified on the request")
                 end
               end
             end
