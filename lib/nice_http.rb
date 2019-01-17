@@ -38,28 +38,54 @@ require_relative 'nice_http/utils'
   #   @see https://ruby-doc.org/stdlib-2.5.0/libdoc/logger/rdoc/Logger.html
   ######################################################
   class NiceHttp
+  Error = Class.new StandardError
+
+  InfoMissing = Class.new Error do
+    attr_reader :attribute
+    def initialize(attribute)
+      @attribute = attribute
+      message = "It was not possible to create the http connection!!!\n"
+      message += "Wrong #{attribute}, remember to supply http:// or https:// in case you specify an url to create the http connection, for example:\n"
+      message += "http = NiceHttp.new('http://example.com')"
+      super message
+    end
+  end
 
   class << self
     attr_accessor :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port, 
                   :last_request, :last_response, :request_id, :use_mocks, :connections,
                   :active, :auto_redirect
   end
-  @host = nil
-  @port = 80
-  @ssl = false
-  @headers  = {}
-  @debug = false
-  @log = :fix_file
-  @proxy_host = nil
-  @proxy_port = nil
-  @last_request=nil
-  @last_response=nil
-  @request_id=""
-  @use_mocks = false
-  @connections = []
-  @active=0
-  @auto_redirect = true
-  
+
+  ######################################################
+  # to reset to the original defaults
+  ######################################################
+  def self.reset!
+    @host = nil
+    @port = 80
+    @ssl = false
+    @headers  = {}
+    @debug = false
+    @log = :fix_file
+    @proxy_host = nil
+    @proxy_port = nil
+    @last_request=nil
+    @last_response=nil
+    @request_id=""
+    @use_mocks = false
+    @connections = []
+    @active=0
+    @auto_redirect = true
+  end
+  reset!
+
+  ######################################################
+  # If inheriting from NiceHttp class
+  ######################################################
+  def self.inherited(subclass)
+    subclass.reset!
+  end
+
   attr_reader :host, :port, :ssl, :debug, :log, :proxy_host, :proxy_port, :response, :num_redirects
   attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger
 
@@ -129,17 +155,17 @@ require_relative 'nice_http/utils'
   def initialize(args = {})
     require 'net/http'
     require 'net/https'
-    @host = NiceHttp.host
-    @port = NiceHttp.port
-    @ssl = NiceHttp.ssl
-    @headers = NiceHttp.headers
-    @debug = NiceHttp.debug
-    @log = NiceHttp.log
-    @proxy_host = NiceHttp.proxy_host
-    @proxy_port = NiceHttp.proxy_port
-    @use_mocks = NiceHttp.use_mocks
+    @host = self.class.host
+    @port = self.class.port
+    @ssl = self.class.ssl
+    @headers = self.class.headers
+    @debug = self.class.debug
+    @log = self.class.log
+    @proxy_host = self.class.proxy_host
+    @proxy_port = self.class.proxy_port
+    @use_mocks = self.class.use_mocks
     @auto_redirect=false #set it up at the end of initialize
-    auto_redirect = NiceHttp.auto_redirect
+    auto_redirect = self.class.auto_redirect
     @num_redirects=0
 
     #todo: set only the cookies for the current domain
@@ -173,12 +199,7 @@ require_relative 'nice_http/utils'
         @ssl = true if !uri.scheme.nil? && (uri.scheme == 'https')
       end
 
-      if @host.nil? or @host.to_s=="" or @port.nil? or @port.to_s==""
-        message = "It was not possible to create the http connection!!!\n"
-        message += "Wrong host or port, remember to supply http:// or https:// in case you specify an url to create the http connection, for example:\n"
-        message += "http = NiceHttp.new('http://example.com')"
-        raise message
-      end
+      raise InfoMissing, :port if @port.to_s == ""
 
       if !@proxy_host.nil? && !@proxy_port.nil?
         @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)
@@ -232,9 +253,8 @@ require_relative 'nice_http/utils'
       end
     end
 
-    NiceHttp.active+=1
-    NiceHttp.connections.push(self)
-
+    self.class.active+=1
+    self.class.connections.push(self)
   end
 
       ######################################################
@@ -1173,4 +1193,3 @@ require_relative 'nice_http/utils'
       
       private :manage_request, :manage_response
 end
-
