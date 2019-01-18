@@ -9,8 +9,8 @@ require_relative "nice_http/utils"
 #   :active, :auto_redirect
 #
 # @attr [String] host The host to be accessed
-# @attr [Integer] port  The port number
-# @attr [Boolean] ssl  If you use ssl or not
+# @attr [Integer] port The port number
+# @attr [Boolean] ssl If you use ssl or not
 # @attr [Hash] headers Contains the headers you will be using on your connection
 # @attr [Boolean] debug In case true shows all the details of the communication with the host
 # @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".
@@ -99,7 +99,7 @@ class NiceHttp
     @host = par[:host] if par.key?(:host)
     @port = par[:port] if par.key?(:port)
     @ssl = par[:ssl] if par.key?(:ssl)
-    @headers = par[:headers] if par.key?(:headers)
+    @headers = par[:headers].dup if par.key?(:headers)
     @debug = par[:debug] if par.key?(:debug)
     @log = par[:log] if par.key?(:log)
     @proxy_host = par[:proxy_host] if par.key?(:proxy_host)
@@ -159,7 +159,7 @@ class NiceHttp
     @host = self.class.host
     @port = self.class.port
     @ssl = self.class.ssl
-    @headers = self.class.headers
+    @headers = self.class.headers.dup
     @debug = self.class.debug
     @log = self.class.log
     @proxy_host = self.class.proxy_host
@@ -183,7 +183,7 @@ class NiceHttp
       @host = args[:host] if args.keys.include?(:host)
       @port = args[:port] if args.keys.include?(:port)
       @ssl = args[:ssl] if args.keys.include?(:ssl)
-      @headers = args[:headers] if args.keys.include?(:headers)
+      @headers = args[:headers].dup if args.keys.include?(:headers)
       @debug = args[:debug] if args.keys.include?(:debug)
       @log = args[:log] if args.keys.include?(:log)
       @proxy_host = args[:proxy_host] if args.keys.include?(:proxy_host)
@@ -220,6 +220,7 @@ class NiceHttp
 
     raise InfoMissing, :port if @port.to_s == ""
     raise InfoMissing, :host if @host.to_s == ""
+    raise InfoMissing, :ssl unless @ssl.is_a?(TrueClass) or @ssl.is_a?(FalseClass)
 
     begin
       if !@proxy_host.nil? && !@proxy_port.nil?
@@ -256,6 +257,7 @@ class NiceHttp
       self.class.active += 1
       self.class.connections.push(self)
     rescue Exception => stack
+      puts stack
       @logger.fatal stack
     end
   end
@@ -320,7 +322,7 @@ class NiceHttp
           end
 
           http_redir = nil
-          NiceHttp.connections.each { |conn|
+          self.class.connections.each { |conn|
             if conn.host == uri.host and conn.port == uri.port
               http_redir = conn
               break
@@ -756,7 +758,7 @@ class NiceHttp
     begin
       pos = 0
       found = false
-      NiceHttp.connections.each { |conn|
+      self.class.connections.each { |conn|
         if conn.object_id == self.object_id
           found = true
           break
@@ -764,7 +766,7 @@ class NiceHttp
         pos += 1
       }
       if found
-        NiceHttp.connections.delete_at(pos)
+        self.class.connections.delete_at(pos)
       end
 
       unless @closed
@@ -783,7 +785,7 @@ class NiceHttp
     rescue Exception => stack
       @logger.fatal stack
     end
-    NiceHttp.active -= 1
+    self.class.active -= 1
   end
 
   ######################################################
@@ -1001,7 +1003,7 @@ class NiceHttp
       if path.to_s().scan(/^https?:\/\//).size > 0 and path.to_s().scan(/^https?:\/\/#{@host}/).size == 0
         # the path is for another server than the current
       else
-        NiceHttp.last_request = message
+        self.class.last_request = message
         @logger.info(message)
       end
 
@@ -1102,7 +1104,7 @@ class NiceHttp
       unless @response.nil?
         message = "\nRESPONSE: \n" + @response[:code].to_s() + ":" + @response[:message].to_s()
         if @debug
-          NiceHttp.last_response = message
+          self.class.last_response = message
           @response.each { |key, value|
             if value.to_s() != ""
               value_orig = value
@@ -1115,22 +1117,22 @@ class NiceHttp
                     rescue
                       data_s = value_orig
                     end
-                    NiceHttp.last_response += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
+                    self.class.last_response += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
                     if value_orig != value
                       message += "\nresponse." + key.to_s() + " = '" + value.gsub("<", "&lt;") + "'\n"
                     else
                       message += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
                     end
                   else
-                    NiceHttp.last_response += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
+                    self.class.last_response += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
                     message += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
                   end
                 else
-                  NiceHttp.last_response += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                  self.class.last_response += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
                   message += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
                 end
               elsif !@response.include?(key.to_sym)
-                NiceHttp.last_response += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                self.class.last_response += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
                 message += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
               end
             end
@@ -1140,7 +1142,7 @@ class NiceHttp
         if @response.kind_of?(Hash)
           if @response.keys.include?(:requestid)
             @headers["requestId"] = @response[:requestid]
-            NiceHttp.request_id = @response[:requestid]
+            self.class.request_id = @response[:requestid]
             @logger.info "requestId was found on the response header and it has been added to the headers for the next request"
           end
         end
