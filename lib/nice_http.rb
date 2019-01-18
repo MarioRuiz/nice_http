@@ -174,34 +174,54 @@ class NiceHttp
     # we set the default value for non existing keys to empty Hash {} so in case of merge there is no problem
     @cookies = Hash.new { |h, k| h[k] = {} }
 
+    if args.is_a?(String)
+      uri = URI.parse(args)
+      @host = uri.host unless uri.host.nil?
+      @port = uri.port unless uri.port.nil?
+      @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
+    elsif args.is_a?(Hash) && !args.keys.empty?
+      @host = args[:host] if args.keys.include?(:host)
+      @port = args[:port] if args.keys.include?(:port)
+      @ssl = args[:ssl] if args.keys.include?(:ssl)
+      @headers = args[:headers] if args.keys.include?(:headers)
+      @debug = args[:debug] if args.keys.include?(:debug)
+      @log = args[:log] if args.keys.include?(:log)
+      @proxy_host = args[:proxy_host] if args.keys.include?(:proxy_host)
+      @proxy_port = args[:proxy_port] if args.keys.include?(:proxy_port)
+      @use_mocks = args[:use_mocks] if args.keys.include?(:use_mocks)
+      @auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
+    end
+
     begin
-      if args.is_a?(String)
-        uri = URI.parse(args)
-        @host = uri.host unless uri.host.nil?
-        @port = uri.port unless uri.port.nil?
-        @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
-      elsif args.is_a?(Hash) && !args.keys.empty?
-        @host = args[:host] if args.keys.include?(:host)
-        @port = args[:port] if args.keys.include?(:port)
-        @ssl = args[:ssl] if args.keys.include?(:ssl)
-        @headers = args[:headers] if args.keys.include?(:headers)
-        @debug = args[:debug] if args.keys.include?(:debug)
-        @log = args[:log] if args.keys.include?(:log)
-        @proxy_host = args[:proxy_host] if args.keys.include?(:proxy_host)
-        @proxy_port = args[:proxy_port] if args.keys.include?(:proxy_port)
-        @use_mocks = args[:use_mocks] if args.keys.include?(:use_mocks)
-        @auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
+      if @log.kind_of?(String)
+        @logger = Logger.new File.new(@log, "w")
+      elsif @log == :fix_file
+        @logger = Logger.new File.new("nice_http.log", "w")
+      elsif @log == :file
+        @logger = Logger.new File.new("nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log", "w")
+      elsif @log == :screen
+        @logger = Logger.new STDOUT
+      elsif @log == :no
+        @logger = Logger.new nil
       end
+      @logger.level = Logger::INFO
+    rescue Exception => stack
+      puts stack
+      @logger = Logger.new nil
+    end
 
-      if @host.to_s != "" and (@host.include?("http:") or @host.include?("https:"))
-        uri = URI.parse(@host)
-        @host = uri.host unless uri.host.nil?
-        @port = uri.port unless uri.port.nil?
-        @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
-      end
 
-      raise InfoMissing, :port if @port.to_s == ""
+    if @host.to_s != "" and (@host.include?("http:") or @host.include?("https:"))
+      uri = URI.parse(@host)
+      @host = uri.host unless uri.host.nil?
+      @port = uri.port unless uri.port.nil?
+      @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
+    end
 
+    raise InfoMissing, :port if @port.to_s == ""
+    raise InfoMissing, :host if @host.to_s == ""
+
+    begin
       if !@proxy_host.nil? && !@proxy_port.nil?
         @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)
         @http.use_ssl = @ssl
@@ -215,19 +235,6 @@ class NiceHttp
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
         @http.start
       end
-
-      if @log.kind_of?(String)
-        @logger = Logger.new File.new(@log, "w")
-      elsif @log == :fix_file
-        @logger = Logger.new File.new("nice_http.log", "w")
-      elsif @log == :file
-        @logger = Logger.new File.new("nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log", "w")
-      elsif @log == :screen
-        @logger = Logger.new STDOUT
-      elsif @log == :no
-        @logger = Logger.new nil
-      end
-      @logger.level = Logger::INFO
 
       @message_server = "(#{self.object_id}):"
 
@@ -245,17 +252,12 @@ class NiceHttp
         @message_server += " proxy:#{@proxy_host}:#{@proxy_port}"
       end
       @auto_redirect = auto_redirect
-    rescue Exception => stack
-      if @logger.nil?
-        puts stack
-        @logger = Logger.new nil
-      else
-        @logger.fatal stack
-      end
-    end
 
-    self.class.active += 1
-    self.class.connections.push(self)
+      self.class.active += 1
+      self.class.connections.push(self)
+    rescue Exception => stack
+      @logger.fatal stack
+    end
   end
 
   ######################################################

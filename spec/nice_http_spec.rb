@@ -1,4 +1,4 @@
-require 'nice_http'
+require './lib/nice_http'
 require 'English'
 
 RSpec.describe NiceHttp do
@@ -6,6 +6,7 @@ RSpec.describe NiceHttp do
 
   describe 'port' do
     it 'uses the class port by default' do
+      klass.host = 'localhost'
       klass.port = 123
       expect(klass.new.port).to eq 123
     end
@@ -16,6 +17,7 @@ RSpec.describe NiceHttp do
     end
     it 'can be provided an explicit port' do
       klass.port = 123
+      klass.host = 'localhost'
       expect(klass.new(port: 456).port).to eq 456
     end
     it 'raises an error when it can\'t figure out the port' do

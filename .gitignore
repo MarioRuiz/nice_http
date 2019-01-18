@@ -4,6 +4,7 @@
 /.idea
 /.vscode
 /.config
+/Gemfile.lock
 /coverage/
 /InstalledFiles
 /pkg/
