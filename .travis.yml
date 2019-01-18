@@ -6,7 +6,6 @@ rvm:
   - 2.5
   - 2.6
   - ruby-head
-  - truffleruby
 branches:
   except:
     - "readme-edits"
