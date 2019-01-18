@@ -189,7 +189,7 @@ class NiceHttp
       @proxy_host = args[:proxy_host] if args.keys.include?(:proxy_host)
       @proxy_port = args[:proxy_port] if args.keys.include?(:proxy_port)
       @use_mocks = args[:use_mocks] if args.keys.include?(:use_mocks)
-      @auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
+      auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
     end
 
     begin
@@ -203,10 +203,12 @@ class NiceHttp
         @logger = Logger.new STDOUT
       elsif @log == :no
         @logger = Logger.new nil
+      else 
+        raise InfoMissing, :log
       end
       @logger.level = Logger::INFO
     rescue Exception => stack
-      puts stack
+      raise InfoMissing, :log
       @logger = Logger.new nil
     end
 
@@ -221,7 +223,11 @@ class NiceHttp
     raise InfoMissing, :port if @port.to_s == ""
     raise InfoMissing, :host if @host.to_s == ""
     raise InfoMissing, :ssl unless @ssl.is_a?(TrueClass) or @ssl.is_a?(FalseClass)
-
+    raise InfoMissing, :debug unless @debug.is_a?(TrueClass) or @debug.is_a?(FalseClass)
+    raise InfoMissing, :auto_redirect unless auto_redirect.is_a?(TrueClass) or auto_redirect.is_a?(FalseClass)
+    raise InfoMissing, :use_mocks unless @use_mocks.is_a?(TrueClass) or @use_mocks.is_a?(FalseClass)
+    raise InfoMissing, :headers unless @headers.is_a?(Hash)
+    
     begin
       if !@proxy_host.nil? && !@proxy_port.nil?
         @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)
