@@ -361,6 +361,7 @@ class NiceHttp
         data = resp.body
         manage_response(resp, data)
       end
+
       if @auto_redirect and @response[:code].to_i >= 300 and @response[:code].to_i < 400 and @response.include?(:location)
         if @num_redirects <= 30
           @num_redirects += 1

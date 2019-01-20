@@ -49,7 +49,7 @@ RSpec.describe NiceHttp, '#get' do
         http = NiceHttp.new(server)
         http.auto_redirect = true
         resp = http.get(path)
- 
+        
         expect(resp.code).to eq 200
         expect(resp.message).to eq 'OK'
     end
