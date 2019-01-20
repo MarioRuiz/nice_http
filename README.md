@@ -1,6 +1,7 @@
 # NiceHttp
 
 [![Gem Version](https://badge.fury.io/rb/nice_http.svg)](https://rubygems.org/gems/nice_http)
+[![Build Status](https://travis-ci.com/MarioRuiz/nice_http.svg?branch=master)](https://github.com/MarioRuiz/nice_http)
 
 NiceHttp the simplest library for accessing and testing HTTP and REST resources.
 

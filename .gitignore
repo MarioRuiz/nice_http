@@ -1,6 +1,7 @@
 *.gem
 *.rbc
 *.log
+Gemfile.lock
 /.idea
 /.vscode
 /.config
