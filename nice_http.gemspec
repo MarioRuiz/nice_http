@@ -13,6 +13,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec'
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
-  s.required_ruby_version = '>= 2.4', '< 2.6'
+  s.required_ruby_version = ['>= 2.4', '< 2.6']
 end
 
