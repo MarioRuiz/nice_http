@@ -293,6 +293,7 @@ class NiceHttp
   def get(arg)
     begin
       path, data, headers_t = manage_request(arg)
+      
       @start_time = Time.now if @start_time.nil?
       if @use_mocks and arg.kind_of?(Hash) and arg.keys.include?(:mock_response)
         data = ""
