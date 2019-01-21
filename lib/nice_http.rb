@@ -194,11 +194,17 @@ class NiceHttp
 
     begin
       if @log.kind_of?(String)
-        @logger = Logger.new File.new(@log, "w")
+        f = File.new(@log, "w")
+        f.sync = true
+        @logger = Logger.new f
       elsif @log == :fix_file
-        @logger = Logger.new File.new("nice_http.log", "w")
+        f = File.new("nice_http.log", "w")
+        f.sync = true
+        @logger = Logger.new f
       elsif @log == :file
-        @logger = Logger.new File.new("nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log", "w")
+        f = File.new("nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log", "w")
+        f.sync = true
+        @logger = Logger.new f
       elsif @log == :screen
         @logger = Logger.new STDOUT
       elsif @log == :no
