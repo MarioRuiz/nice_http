@@ -1,6 +1,7 @@
 # NiceHttp
 
-[![Gem Version](https://badge.fury.io/rb/nice_http.svg)](https://rubygems.org/gems/nice_http)
+[![Gem Version](https://badge.fury.io/rb/nice_http.svg)](https://rubygems.org/gems/nice_http)[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http?ref=badge_shield)
+
 [![Build Status](https://travis-ci.com/MarioRuiz/nice_http.svg?branch=master)](https://github.com/MarioRuiz/nice_http)
 [![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/nice_http/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/nice_http?branch=master)
 
@@ -325,3 +326,6 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/marior
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
 
 
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http?ref=badge_large)
