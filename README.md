@@ -1,9 +1,9 @@
 # NiceHttp
 
-[![Gem Version](https://badge.fury.io/rb/nice_http.svg)](https://rubygems.org/gems/nice_http)[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http?ref=badge_shield)
-
+[![Gem Version](https://badge.fury.io/rb/nice_http.svg)](https://rubygems.org/gems/nice_http)
 [![Build Status](https://travis-ci.com/MarioRuiz/nice_http.svg?branch=master)](https://github.com/MarioRuiz/nice_http)
 [![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/nice_http/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/nice_http?branch=master)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http?ref=badge_shield)
 
 NiceHttp the simplest library for accessing and testing HTTP and REST resources.
 
