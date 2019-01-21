@@ -4,6 +4,44 @@ require 'English'
 RSpec.describe NiceHttp do
   let(:klass) { Class.new NiceHttp }
 
+  describe 'reset!' do
+    it 'resets to original default values' do
+      klass.host = 'example.com'
+      klass.port = 433
+      klass.ssl = true
+      klass.headers = {uno: 'one'}
+      klass.debug = true
+      klass.log = :screen
+      klass.proxy_host = 'example.com'
+      klass.proxy_port = 8080
+      klass.last_request = {}
+      klass.last_response = {}
+      klass.request_id = "3344"
+      klass.use_mocks = true
+      klass.connections = [1,1]
+      klass.active = 1
+      klass.auto_redirect = false
+
+      klass.reset!
+
+      expect(klass.host).to eq nil 
+      expect(klass.port).to eq 80 
+      expect(klass.ssl).to eq false
+      expect(klass.headers).to eq ({})
+      expect(klass.debug).to eq false
+      expect(klass.log).to eq :fix_file
+      expect(klass.proxy_host).to eq nil 
+      expect(klass.proxy_port).to eq nil
+      expect(klass.last_request).to eq nil
+      expect(klass.last_response).to eq nil
+      expect(klass.request_id).to eq ""
+      expect(klass.use_mocks).to eq false
+      expect(klass.connections).to eq []
+      expect(klass.active).to eq 0
+      expect(klass.auto_redirect).to eq true
+    end
+  end
+
   describe 'port' do
     it 'uses the class port by default' do
       klass.host = 'localhost'
@@ -269,6 +307,47 @@ RSpec.describe NiceHttp do
       expect(klass.connections.size).to eq 1
       expect(klass.connections[0]).to eq http2
     end
+
+#   :no will not generate any logs.
+#   :screen will print the logs on the screen.
+    
+    it 'logs to file specified' do
+      klass.log = './example.log'
+      http = klass.new("https://example.com")
+      http.logger.info "testing"
+      content = File.read("./example.log")
+      expect(content).to match /testing/
+    end
+
+    it 'logs to nice_http.log when :fix_file specified' do
+      klass.log = :fix_file
+      http = klass.new("https://example.com")
+      http.logger.info "testing"
+      content = File.read("./nice_http.log")
+      expect(content).to match /testing/
+    end
+
+    it 'logs to nice_http_YY-mm-dd-HHMMSS.log when :file specified' do
+      Dir.glob('./nice_http_*.log').each { |file| File.delete(file)}
+      klass.log = :file
+      http = klass.new("https://example.com")
+      http.logger.info "testing"
+      files = Dir["./nice_http_*.log"]
+      expect(files.size).to eq 1
+
+      content = File.read(files[0])
+      expect(content).to match /testing/
+    end
+
+    it "doesn't create any log file when :no specified" do
+      Dir.glob('./*.log').each { |file| File.delete(file)}
+      klass.log = :no
+      http = klass.new("https://example.com")
+      http.logger.info "TESTING NO LOGS"
+      files = Dir["./*.log"]
+      expect(files.size).to eq 0
+    end
+
 
   end
 
