@@ -46,14 +46,15 @@ RSpec.describe NiceHttp, '#patch' do
             mock_response: {
                 code: 100,
                 message: "mock",
+                data: { example: "mock" }
             }
-        } 
-        
-        resp = @http.patch(request)
+        }
+        resp = @http.delete(request)
         expect(resp.class).to eq Hash
         expect(resp.code).to eq 100
         expect(resp.message).to eq 'mock'    
-    end
+        expect(resp.data.json).to eq ({ example: "mock" }) 
+     end
     
     it 'changes :data when supplied :values_for' do
         request = {

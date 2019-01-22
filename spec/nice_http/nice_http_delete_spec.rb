@@ -32,12 +32,14 @@ RSpec.describe NiceHttp, '#delete' do
             mock_response: {
                 code: 100,
                 message: "mock",
+                data: { example: "mock" }
             }
         }
         resp = @http.delete(request)
         expect(resp.class).to eq Hash
         expect(resp.code).to eq 100
         expect(resp.message).to eq 'mock'    
+        expect(resp.data.json).to eq ({ example: "mock" }) 
     end
 
 end

@@ -34,13 +34,15 @@ RSpec.describe NiceHttp, '#get' do
             mock_response: {
                 code: 100,
                 message: "mock",
+                data: { example: "mock" }
             }
         }
-        resp = @http.get(request)
+        resp = @http.delete(request)
         expect(resp.class).to eq Hash
         expect(resp.code).to eq 100
         expect(resp.message).to eq 'mock'    
-    end
+        expect(resp.data.json).to eq ({ example: "mock" }) 
+     end
 
     it 'redirects when auto_redirect is true and http code is 30x' do
         server = "https://samples.auth0.com/"

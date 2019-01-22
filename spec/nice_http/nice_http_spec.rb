@@ -348,6 +348,19 @@ RSpec.describe NiceHttp do
       expect(files.size).to eq 0
     end
 
+    it "starts proxy supplied host and port" do
+      klass.proxy_host = "example.com"
+      klass.proxy_port = 80
+      http = klass.new("http://example.com")
+      resp = http.get "/"
+      expect(resp.code).to eq 200
+
+      http2 = klass.new("http://www.google.com")
+      resp = http2.get "/"
+      expect(resp.code).to eq 404
+
+    end
+
 
   end
 
