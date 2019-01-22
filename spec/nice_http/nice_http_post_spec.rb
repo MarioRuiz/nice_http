@@ -48,7 +48,7 @@ RSpec.describe NiceHttp, '#post' do
                 data: { example: "mock" }
             }
         }
-        resp = @http.delete(request)
+        resp = @http.post(request)
         expect(resp.class).to eq Hash
         expect(resp.code).to eq 100
         expect(resp.message).to eq 'mock'    

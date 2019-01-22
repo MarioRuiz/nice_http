@@ -726,21 +726,9 @@ class NiceHttp
       if argument.kind_of?(Hash)
         arg = argument
         if @use_mocks and arg.kind_of?(Hash) and arg.keys.include?(:mock_response)
-          data = ""
-          if arg[:mock_response].keys.include?(:data)
-            data = arg[:mock_response][:data]
-            if data.kind_of?(Hash) #to json
-              begin
-                require "json"
-                data = data.to_json
-              rescue
-                @logger.fatal "There was a problem converting to json: #{data}"
-              end
-            end
-          end
           @logger.warn "Pay attention!!! This is a mock response:"
           @start_time_net = Time.now if @start_time_net.nil?
-          manage_response(arg[:mock_response], data.to_s)
+          manage_response(arg[:mock_response], "")
           return @response
         end
       end

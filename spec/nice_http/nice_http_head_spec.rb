@@ -32,15 +32,13 @@ RSpec.describe NiceHttp, '#head' do
             path: '/api/users?page=2',
             mock_response: {
                 code: 100,
-                message: "mock",
-                data: { example: "mock" }
+                message: "mock"
             }
         }
-        resp = @http.delete(request)
+        resp = @http.head(request)
         expect(resp.class).to eq Hash
         expect(resp.code).to eq 100
         expect(resp.message).to eq 'mock'    
-        expect(resp.data.json).to eq ({ example: "mock" }) 
      end
 
     it 'set the cookies when required' do
