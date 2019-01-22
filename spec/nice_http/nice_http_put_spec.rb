@@ -68,6 +68,18 @@ RSpec.describe NiceHttp, '#put' do
         expect(resp.data.json(:name)).to eq 'peter'
     end
 
-    #todo: add tests for redirection, headers, encoding and cookies
+    it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
+        server = "http://examplesinatra--tcblues.repl.co/"
+        http = NiceHttp.new(server)
+        http.auto_redirect = false
+        req = {
+            path: '/exampleRedirect',
+            data: {example: 'example'},
+        }
+        resp = http.put(req)
+        expect(resp.code).to eq 303
+    end
+
+    #todo: add tests for headers, encoding and cookies
 
 end

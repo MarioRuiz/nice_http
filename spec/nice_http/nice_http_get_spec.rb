@@ -67,6 +67,12 @@ RSpec.describe NiceHttp, '#get' do
         expect(resp.message).to eq 'Found'
     end
 
+    it 'handles correctly when http or https is on path' do
+        resp = @http.get 'https://www.reqres.in/api/users?page=2'
+        expect(resp.code).to eq 200
+        expect(resp.message).to eq 'OK'
+    end
+
     it 'set the cookies when required' do
         server = "https://samples.auth0.com/"
         path = "/authorize?client_id=kbyuFDidLLm280LIwVFiazOqjO3ty8KH&response_type=code"

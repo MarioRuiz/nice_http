@@ -42,4 +42,16 @@ RSpec.describe NiceHttp, '#delete' do
         expect(resp.data.json).to eq ({ example: "mock" }) 
     end
 
+    it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
+        server = "http://examplesinatra--tcblues.repl.co/"
+        http = NiceHttp.new(server)
+        http.auto_redirect = false
+        req = {
+            path: '/exampleRedirect',
+            data: {example: 'example'},
+        }
+        resp = http.delete(req)
+        expect(resp.code).to eq 303
+    end
+
 end
