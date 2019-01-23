@@ -296,6 +296,7 @@ RSpec.describe NiceHttp do
       http1.close
       expect(klass.active).to eq 1
     end
+
     it 'returns the connections on connections array' do
       klass.host = 'https://www.example.com'
       http1 = klass.new
@@ -360,8 +361,6 @@ RSpec.describe NiceHttp do
       expect(resp.code).to eq 404
 
     end
-
-
   end
 
 end

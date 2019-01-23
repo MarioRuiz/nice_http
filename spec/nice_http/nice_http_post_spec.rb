@@ -92,6 +92,46 @@ RSpec.describe NiceHttp, '#post' do
         expect(resp.code).to eq 303
     end
 
-    #todo: add tests headers, encoding and cookies
+    it 'accepts all kind of Content-Type' do
+        # as symbol
+        req = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: '{"name": "morpheus","job": "leader"}'
+        }
+
+        # as symbol
+        resp = @http.post req
+        expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+        
+        req.headers = {"content-type": "application/json"}
+        resp = @http.post req
+        expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+        
+        # as string
+        req.headers = {"content-type"=>"application/json"}
+        resp = @http.post req
+        expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+
+        # as string
+        req.headers = {"Content-Type"=> "application/json"}
+        resp = @http.post req
+        expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+    end
+
+    it 'implements json data by default if no content type supplied and a hash for data' do
+        req = {
+            path: "/api/users",
+            data: { name: "morpheus",job: "leader"}
+        }
+    
+        # not supplied content type by default
+        resp = @http.post req
+        expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+    
+    end
+
+
+    #todo: add tests encoding and cookies
 
 end

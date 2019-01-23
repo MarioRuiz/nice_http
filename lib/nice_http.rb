@@ -871,7 +871,6 @@ class NiceHttp
         elsif headers_t["Content-Type"].to_s() != ""
           content_type_included = true
         end
-
         if !content_type_included and data.kind_of?(Hash)
           headers_t["Content-Type"] = "application/json"
           content_type_included = true
