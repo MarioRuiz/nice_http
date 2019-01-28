@@ -13,6 +13,8 @@ Also you can use mock responses by using :mock_response key on the request hash 
 
 NiceHttp will take care of the redirections and the cookies, and for security tests you will be able to modify the cookies or disable and control the redirections by yourself.
 
+NiceHttp is able to use hashes as requests data and uses the Request Hash structure: https://github.com/MarioRuiz/Request-Hash
+
 To be able to generate random requests take a look at the documentation for nice_hash gem: https://github.com/MarioRuiz/nice_hash
 
 Example that creates 1000 good random and unique requests to register an user and test that the validation of the fields are correct by the user was able to be registered. Send 800 requests where just one field is wrong and verify the user was not able to be created: https://gist.github.com/MarioRuiz/824d7a462b62fd85f02c1a09455deefb
@@ -192,6 +194,21 @@ pp resp.data.json
 #response: {:name=>"morpheus", :job=>"developer", :id=>"192", :createdAt=>"2018-12-14T14:41:54.371Z"}
 
 ```
+
+If the request hash contains a key :method with one of these possible values: :get, :head, :delete, :post or :patch, then it is possible to use the `send_request` method and pass just the request hash:
+
+```ruby
+     req= {
+            path: "/api/users",
+            method: :post,
+            data: { 
+                name: "morpheus",
+                job: "leader"
+            }
+          }
+     resp = @http.send_request req
+```
+
 
 ## Responses
 
