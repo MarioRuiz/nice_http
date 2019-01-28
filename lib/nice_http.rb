@@ -1087,11 +1087,11 @@ class NiceHttp
         data.encode!("UTF-8", encoding_response.to_s())
       end
       if encoding_response != "" and encoding_response.to_s().upcase != "UTF-8"
-        @response[:message] = resp.message.to_s().encode("UTF-8", encoding_response.to_s())
+        @response[:message] = resp[:message].to_s().encode("UTF-8", encoding_response.to_s())
         #todo: response data in here for example is convert into string, verify if that is correct or needs to maintain the original data type (hash, array...)
         resp.each { |key, val| @response[key] = val.to_s().encode("UTF-8", encoding_response.to_s()) }
       else
-        @response[:message] = resp.message
+        @response[:message] = resp[:message]
         resp.each { |key, val| @response[key] = val }
       end
       if !defined?(Net::HTTP::Post::Multipart) or (defined?(Net::HTTP::Post::Multipart) and !data.kind_of?(Net::HTTP::Post::Multipart))
