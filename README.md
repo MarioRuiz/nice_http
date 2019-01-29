@@ -335,8 +335,9 @@ Example posting a csv file:
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/marioruiz/nice_http.
+Bug reports are very welcome on GitHub at https://github.com/marioruiz/nice_http.
 
+If you want to contribute please follow [GitHub Flow](https://guides.github.com/introduction/flow/index.html)
 
 ## License
 
