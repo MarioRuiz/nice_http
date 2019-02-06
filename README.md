@@ -315,6 +315,10 @@ The output:
 
 ```
 
+You can see on the next link how to get the OAuth2 token for Microsoft Azure and add it to your Http connection header. 
+
+https://gist.github.com/MarioRuiz/d3525185024737885c0c9afa6dc8b9e5
+
 
 ## Send multipart content
 

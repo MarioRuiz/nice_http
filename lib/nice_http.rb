@@ -327,7 +327,7 @@ class NiceHttp
           ssl = true if path.include?("https:")
 
           server = "http://"
-          server = "https://" if path.include?("https:")
+          server = "https://" if path.start_with?("https:")
           if uri.port != 443
             server += "#{uri.host}:#{uri.port}"
           else
@@ -346,7 +346,8 @@ class NiceHttp
             path, data, headers_t = manage_request(arg)
             http_redir.cookies.merge!(@cookies)
             http_redir.headers.merge!(headers_t)
-            resp = http_redir.get(path.gsub(server, "")) #todo: remove only the server at the begining in case in query is the server it will be replaced when it should not be
+            #todo: remove only the server at the begining in case in query is the server it will be replaced when it should not be
+            resp = http_redir.get(path.gsub(server, "")) 
             @response = http_redir.response
           else
             @logger.warn "It seems like the http connection cannot redirect to #{server} because there is no active connection for that server. You need to create previously one."
