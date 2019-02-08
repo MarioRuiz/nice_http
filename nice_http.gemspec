@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = ["LICENSE","README.md"]
   s.homepage    = 'https://github.com/MarioRuiz/nice_http'
   s.license       = 'MIT'
-  s.add_runtime_dependency 'nice_hash', ['>= 1.8.1']
+  s.add_runtime_dependency 'nice_hash', ['1.9.0']
   s.add_development_dependency 'rspec', '~> 3.8', '>= 3.8.0'
   s.add_development_dependency 'coveralls', '~> 0.8', '>= 0.8.22'
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
