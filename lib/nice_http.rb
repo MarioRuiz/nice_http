@@ -77,7 +77,6 @@ class NiceHttp
     @connections = []
     @active = 0
     @auto_redirect = true
-    @delete_log_file_content = true
   end
   reset!
 
@@ -195,9 +194,8 @@ class NiceHttp
 
     begin
       #only the first connection in the run will be deleting
-      if @delete_log_file_content
+      if self.class.last_request.nil?
         mode = "w"
-        @delete_log_file_content = false
       else
         mode = "a"
       end
