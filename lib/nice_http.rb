@@ -77,6 +77,7 @@ class NiceHttp
     @connections = []
     @active = 0
     @auto_redirect = true
+    @delete_log_file_content = true
   end
   reset!
 
@@ -193,16 +194,23 @@ class NiceHttp
     end
 
     begin
+      #only the first connection in the run will be deleting
+      if @delete_log_file_content
+        mode = "w"
+        @delete_log_file_content = false
+      else
+        mode = "a"
+      end
       if @log.kind_of?(String)
-        f = File.new(@log, "w")
+        f = File.new(@log, mode)
         f.sync = true
         @logger = Logger.new f
       elsif @log == :fix_file
-        f = File.new("nice_http.log", "w")
+        f = File.new("nice_http.log", mode)
         f.sync = true
         @logger = Logger.new f
       elsif @log == :file
-        f = File.new("nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log", "w")
+        f = File.new("nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log", mode)
         f.sync = true
         @logger = Logger.new f
       elsif @log == :screen
