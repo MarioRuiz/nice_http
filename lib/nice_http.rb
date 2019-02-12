@@ -55,7 +55,7 @@ class NiceHttp
   class << self
     attr_accessor :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port,
                   :last_request, :last_response, :request_id, :use_mocks, :connections,
-                  :active, :auto_redirect
+                  :active, :auto_redirect, :log_files
   end
 
   ######################################################
@@ -77,6 +77,7 @@ class NiceHttp
     @connections = []
     @active = 0
     @auto_redirect = true
+    @log_files = []
   end
   reset!
 
@@ -193,22 +194,27 @@ class NiceHttp
     end
 
     begin
-      #only the first connection in the run will be deleting
-      if self.class.last_request.nil?
-        mode = "w"
-      else
-        mode = "a"
-      end
+      mode = "a"
+      log_filename =''
       if @log.kind_of?(String)
-        f = File.new(@log, mode)
+        #only the first connection in the run will be deleting the log file
+        log_filename = @log
+        mode = "w" unless self.class.log_files.include?(log_filename)
+        f = File.new(log_filename, mode)
         f.sync = true
         @logger = Logger.new f
       elsif @log == :fix_file
-        f = File.new("nice_http.log", mode)
+        #only the first connection in the run will be deleting the log file
+        log_filename = 'nice_http.log'
+        mode = "w" unless self.class.log_files.include?(log_filename)
+        f = File.new(log_filename, mode)
         f.sync = true
         @logger = Logger.new f
       elsif @log == :file
-        f = File.new("nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log", mode)
+        log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
+        #only the first connection in the run will be deleting the log file
+        mode = "w" unless self.class.log_files.include?(log_filename)
+        f = File.new(log_filename, mode)
         f.sync = true
         @logger = Logger.new f
       elsif @log == :screen
@@ -219,6 +225,7 @@ class NiceHttp
         raise InfoMissing, :log
       end
       @logger.level = Logger::INFO
+      self.class.log_files << log_filename if mode == 'w'
     rescue Exception => stack
       raise InfoMissing, :log
       @logger = Logger.new nil
