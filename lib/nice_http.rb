@@ -1159,8 +1159,8 @@ class NiceHttp
 
       unless @response.nil?
         message = "\nRESPONSE: \n" + @response[:code].to_s() + ":" + @response[:message].to_s()
-        if @debug
-          self.class.last_response = message
+        #if @debug
+          self.class.last_response = message if @debug
           @response.each { |key, value|
             if value.to_s() != ""
               value_orig = value
@@ -1173,27 +1173,35 @@ class NiceHttp
                     rescue
                       data_s = value_orig
                     end
-                    self.class.last_response += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
+                    if @debug
+                      self.class.last_response += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
+                    end
                     if value_orig != value
                       message += "\nresponse." + key.to_s() + " = '" + value.gsub("<", "&lt;") + "'\n"
                     else
                       message += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
                     end
                   else
-                    self.class.last_response += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
-                    message += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
+                    if @debug
+                      self.class.last_response += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
+                      message += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
+                    end
                   end
                 else
-                  self.class.last_response += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                  if @debug
+                    self.class.last_response += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                  end  
                   message += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
                 end
               elsif !@response.include?(key.to_sym)
-                self.class.last_response += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                if @debug
+                  self.class.last_response += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                end
                 message += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
               end
             end
           }
-        end
+        #end
         @logger.info message
         if @response.kind_of?(Hash)
           if @response.keys.include?(:requestid)
