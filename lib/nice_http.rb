@@ -384,7 +384,6 @@ class NiceHttp
         data = resp.body
         manage_response(resp, data)
       end
-
       if @auto_redirect and @response[:code].to_i >= 300 and @response[:code].to_i < 400 and @response.include?(:location)
         if @num_redirects <= 30
           @num_redirects += 1
@@ -1152,14 +1151,18 @@ class NiceHttp
       if encoding_response.to_s() != "" and encoding_response.to_s().upcase != "UTF-8"
         data.encode!("UTF-8", encoding_response.to_s())
       end
+
       if encoding_response != "" and encoding_response.to_s().upcase != "UTF-8"
         @response[:message] = resp.message.to_s().encode("UTF-8", encoding_response.to_s())
         #todo: response data in here for example is convert into string, verify if that is correct or needs to maintain the original data type (hash, array...)
-        resp.each { |key, val| @response[key] = val.to_s().encode("UTF-8", encoding_response.to_s()) }
+        resp.each { |key, val| @response[key.to_sym] = val.to_s().encode("UTF-8", encoding_response.to_s()) }
       else
         @response[:message] = resp.message
-        resp.each { |key, val| @response[key] = val }
+        resp.each { |key, val| 
+          @response[key.to_sym] = val 
+        }
       end
+
       if !defined?(Net::HTTP::Post::Multipart) or (defined?(Net::HTTP::Post::Multipart) and !data.kind_of?(Net::HTTP::Post::Multipart))
         @response[:data] = data
       else
