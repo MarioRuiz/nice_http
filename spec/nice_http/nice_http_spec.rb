@@ -308,10 +308,9 @@ RSpec.describe NiceHttp do
       expect(klass.connections.size).to eq 1
       expect(klass.connections[0]).to eq http2
     end
+  end
 
-#   :no will not generate any logs.
-#   :screen will print the logs on the screen.
-    
+  describe 'log files' do
     it 'logs to file specified' do
       klass.log = './example.log'
       http = klass.new("https://example.com")
@@ -348,7 +347,9 @@ RSpec.describe NiceHttp do
       files = Dir["./*.log"]
       expect(files.size).to eq 0
     end
+  end
 
+  describe 'proxys' do
     it "starts proxy supplied host and port" do
       klass.proxy_host = "example.com"
       klass.proxy_port = 80
@@ -363,4 +364,13 @@ RSpec.describe NiceHttp do
     end
   end
 
+  describe 'prepaths' do
+    it "adds the prepath if supplied" do
+      http = klass.new("https://reqres.in/api")
+      resp = http.get "/users?page=2"
+      expect(resp.code).to eq 200
+    end
+  end
+
+  
 end

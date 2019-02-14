@@ -104,6 +104,17 @@ NiceHttp.defaults = {
 }
 ```
 
+To add a fixed path that would be added automatically to all your requests just before the specified request path, you can do it by adding it to `host`:
+
+```ruby
+http = NiceHttp.new('https://v2.namsor.com/NamSorAPIv2/')
+
+resp = http.get('/api2/json/gender/Peter/Moon')
+# The get request path will be: /NamSorAPIv2/api2/json/gender/Peter/Moon on server v2.namsor.com
+
+resp = http.get('/api2/json/gender/Love/Sun?ret=true')
+# The get request path will be: /NamSorAPIv2/api2/json/gender/Love/Sun on server v2.namsor.com
+```
 
 ## Creating requests
 

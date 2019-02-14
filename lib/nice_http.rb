@@ -159,6 +159,7 @@ class NiceHttp
     require "net/https"
     @host = self.class.host
     @port = self.class.port
+    @prepath = ''
     @ssl = self.class.ssl
     @headers = self.class.headers.dup
     @debug = self.class.debug
@@ -180,6 +181,7 @@ class NiceHttp
       @host = uri.host unless uri.host.nil?
       @port = uri.port unless uri.port.nil?
       @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
+      @prepath = uri.path unless uri.path=='/'
     elsif args.is_a?(Hash) && !args.keys.empty?
       @host = args[:host] if args.keys.include?(:host)
       @port = args[:port] if args.keys.include?(:port)
@@ -232,11 +234,12 @@ class NiceHttp
     end
 
 
-    if @host.to_s != "" and (@host.include?("http:") or @host.include?("https:"))
+    if @host.to_s != "" and (@host.start_with?("http:") or @host.start_with?("https:"))
       uri = URI.parse(@host)
       @host = uri.host unless uri.host.nil?
       @port = uri.port unless uri.port.nil?
       @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
+      @prepath = uri.path unless uri.path=='/'
     end
 
     raise InfoMissing, :port if @port.to_s == ""
@@ -878,6 +881,7 @@ class NiceHttp
       elsif arguments.size == 1 and arguments[0].kind_of?(String)
         path = arguments[0].to_s()
       end
+      path = (@prepath + path).gsub('//','/') unless path.nil? or path.start_with?('http:') or path.start_with?('https:')
       @cookies.each { |cookie_path, cookies_hash|
         cookie_path = "" if cookie_path == "/"
         path_to_check = path
