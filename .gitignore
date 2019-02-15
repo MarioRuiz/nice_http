@@ -2,6 +2,7 @@
 *.rbc
 *.log
 Gemfile.lock
+.covered.msgpack
 /.idea
 /.vscode
 /.config

@@ -13,7 +13,7 @@ before_install:
 matrix:
   allow_failures:
     - rvm: ruby-head
-    - rvm: 2.6
+      env: COVERAGE-PartialSummary,Coveralls
 
 script: 
   - bundle exec rake spec
