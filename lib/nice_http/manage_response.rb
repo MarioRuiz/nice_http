@@ -96,7 +96,7 @@ module NiceHttpManageResponse
               value_orig = value
               if key.kind_of?(Symbol)
                 if key == :code or key == :data or key == :header or key == :message
-                  if key == :data
+                  if key == :data and !@response[:'content-type'].to_s.include?('text/html')
                     begin
                       JSON.parse(value_orig)
                       data_s = JSON.pretty_generate(JSON.parse(value_orig))
