@@ -13,7 +13,6 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
   s.add_runtime_dependency 'nice_hash', '~> 1.9', '>= 1.9.0'
   s.add_development_dependency 'rspec', '~> 3.8', '>= 3.8.0'
-  s.add_development_dependency 'coveralls', '~> 0.8', '>= 0.8.22'
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
   s.required_ruby_version = ['>= 2.4']

@@ -3,6 +3,7 @@ source 'https://rubygems.org'
 group :test do
   gem 'rake'
   gem 'rspec'
+  gem 'coveralls'
   gem 'covered'
 end
 

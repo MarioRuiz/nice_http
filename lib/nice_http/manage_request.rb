@@ -103,10 +103,11 @@ module NiceHttpManageRequest
           if data.kind_of?(String)
             if arguments[0].include?(:values_for)
               arguments[0][:values_for].each { |key, value|
-                data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *")(.*)(" *, *$)/, '\1' + value + '\4') # "key":"value", or key:"value",
-                data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *")(.*)(" *$)/, '\1' + value + '\4') # "key":"value" or key:"value"
-                data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *[^"])([^"].*)([^"] *, *$)/, '\1' + value + '\4') # "key":456, or key:456,
-                data.gsub!(/(( *|^)"?#{key.to_s()}"? *: *[^"])([^"].*)([^"] * *$)/, '\1' + value + '\4') # "key":456 or key:456
+                data.gsub!(/"(#{key})":\s*"([^"]*)"/,'"\1": "'+value+'"')  # "key":"value"
+                data.gsub!(/(#{key}):\s*"([^"]*)"/,'\1: "'+value+'"')  # key:"value"
+                data.gsub!(/(#{key}):\s*'([^']*)'/,'\1: \''+value+"'")  # key:'value'
+                data.gsub!(/"(#{key})":\s*(\w+)/,'"\1": '+value)  # "key":456
+                data.gsub!(/(#{key}):\s*(\w+)/,'\1: '+value)  # key:456
               }
             end
           elsif data.kind_of?(Hash)

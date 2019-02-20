@@ -237,8 +237,8 @@ class NiceHttp
       @logger.level = Logger::INFO
       self.class.log_files << log_filename if mode == 'w'
     rescue Exception => stack
-      raise InfoMissing, :log
       @logger = Logger.new nil
+      raise InfoMissing, :log
     end
 
 
@@ -309,8 +309,9 @@ class NiceHttp
         if conn.object_id == self.object_id
           found = true
           break
+        else
+          pos += 1
         end
-        pos += 1
       }
       if found
         self.class.connections.delete_at(pos)

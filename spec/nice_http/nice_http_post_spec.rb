@@ -131,6 +131,78 @@ RSpec.describe NiceHttp, '#post' do
     
     end
 
+    it 'changes data to empty string if data is nil' do
+        req = {
+            path: "/api/users",
+            data: nil
+        }
+        resp = @http.post req
+        expect(NiceHttp.last_request).to match /data=\s*$/
+    end
+
+    it 'accepts values as an alias for values_for' do
+        request = {
+            path: "/api/users",
+            data: { name: "morpheus", job: "leader" } 
+        }
+
+        request[:values] = {name: "peter"}
+        resp = @http.post(request)
+        expect(resp.code).to eq 201
+        expect(resp.data.json(:name)).to eq 'peter'
+    end
+
+    it 'change xml value when supplied values_for' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "text/xml"},
+            data: "<name>morpheus</name><job>leader</job>"
+        }
+
+        request.values_for = {name: "peter"}
+        resp = @http.post(request)
+        expect(NiceHttp.last_request).to match /name>peter/
+    end
+
+    it 'changes json string values when values_for supplied and json is a string' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: '{"name": "morpheus","job": "leader"}'
+        }
+        request.values_for = {name: "peter"}
+        resp = @http.post(request)
+        expect(NiceHttp.last_request).to match /"name": "peter"/
+    end
+
+    it 'accepts an array as data' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: [
+                {name: 'morpheus', job: 'leader'},
+                {name: 'peter', job: 'vicepresident'}
+            ]
+        }
+        resp = @http.post(request)
+        expect(resp.code).to eq 201
+        expect(resp.data.json(:name)).to eq ['morpheus','peter']
+    end
+
+    it 'changes all values on array request when values_for' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: [
+                {name: 'morpheus', job: 'leader'},
+                {name: 'peter', job: 'vicepresident'}
+            ]
+        }
+        request.values_for = {job: ['dev','cleaner']}
+        resp = @http.post(request)
+        expect(resp.code).to eq 201
+        expect(resp.data.json(:job)).to eq ['dev','cleaner']
+    end
 
     #todo: add tests encoding and cookies
 

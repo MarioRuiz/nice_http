@@ -308,6 +308,7 @@ RSpec.describe NiceHttp do
       expect(klass.connections.size).to eq 1
       expect(klass.connections[0]).to eq http2
     end
+
   end
 
   describe 'log files' do
@@ -347,6 +348,31 @@ RSpec.describe NiceHttp do
       files = Dir["./*.log"]
       expect(files.size).to eq 0
     end
+
+    it "raises error if log file not possible to be created" do
+      Dir.glob('./*.log').each { |file| File.delete(file)}
+      klass.log = "./"
+      klass.new("https://example.com") rescue err = $ERROR_INFO
+      expect(err.class).to eq NiceHttp::InfoMissing
+      expect(err.attribute).to eq :log
+      expect(err.message).to match /wrong log/i
+    end
+
+    it "doesn't create any log file when exception on creating" do
+      klass.log = "./"
+      klass.new("https://example.com") rescue err = $ERROR_INFO
+      files = Dir["./*.log"]
+      expect(files.size).to eq 0
+    end
+
+    it 'cannot close a connection that is already closed' do
+      http = klass.new("https://example.com")
+      http.close
+      http.close
+      content = File.read('./nice_http.log')
+      expect(content).to match /It was not possible to close the HTTP connection, already closed/
+    end
+
   end
 
   describe 'proxys' do
