@@ -204,6 +204,90 @@ RSpec.describe NiceHttp, '#post' do
         expect(resp.data.json(:job)).to eq ['dev','cleaner']
     end
 
+    it 'shows wrong format on request when not array of hashes' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: [
+                {name: 'morpheus', job: 'leader'},
+                {name: 'peter', job: 'vicepresident'},
+                100
+            ]
+        }
+        resp = @http.post(request)
+        content = File.read('./nice_http.log')
+        expect(content).to match /Wrong format on request/
+    end
+
+    it 'changes all values on array request when values_for is array of hashes' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: [
+                {name: 'morpheus', job: 'leader'},
+                {name: 'peter', job: 'vicepresident'}
+            ]
+        }
+        request.values_for = [{job: 'dev'},{job: 'cleaner'}]
+        resp = @http.post(request)
+        expect(resp.code).to eq 201
+        expect(resp.data.json(:job)).to eq ['dev','cleaner']
+    end
+
+    it 'shows wrong format on request when not array of hashes supplied for values_for' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: [
+                {name: 'morpheus', job: 'leader'},
+                {name: 'peter', job: 'vicepresident'}
+            ]
+        }
+        request.values_for = "job"
+        resp = @http.post(request)
+        content = File.read('./nice_http.log')
+        expect(content).to match /Wrong format on request/
+    end
+
+
+    it 'shows wrong format on request when data is not a string, array or hash' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "application/json"},
+            data: 33
+        }
+        resp = @http.post(request)
+        content = File.read('./nice_http.log')
+        expect(content).to match /Wrong format on request/
+    end
+
+    it 'shows wrong data format for given values_for' do
+        request = {
+            path: "/api/users",
+            headers: {"Content-Type": "text"},
+            data: "example"
+        }
+        request.values_for={dog: 1}
+        resp = @http.post(request)
+        content = File.read('./nice_http.log')
+        expect(content).to match /values_for key given without a valid content-type or data for request/
+    end
+
+    it 'detects wrong json when supplying wrong mock_response data' do
+        request = {
+            path: '/api/users?page=2',
+            mock_response: {
+                code: 200,
+                message: 'OK',
+                data: {a: "Android\xAE"}
+            }
+        }
+        @http.use_mocks = true
+        resp = @http.post request
+        content = File.read('./nice_http.log')
+        expect(content).to match /There was a problem converting to json/
+    end
+
     #todo: add tests encoding and cookies
 
 end

@@ -92,4 +92,21 @@ RSpec.describe NiceHttp, '#send_request' do
         expect(resp.code).to eq 200
         expect(resp.message).to eq "OK"
     end
+
+    it 'detects wrong json when supplying wrong mock_response data' do
+        request = {
+            path: '/api/users?page=2',
+            method: :get,
+            mock_response: {
+                code: 200,
+                message: 'OK',
+                data: {a: "Android\xAE"}
+            }
+        }
+        @http.use_mocks = true
+        resp = @http.send_request request
+        content = File.read('./nice_http.log')
+        expect(content).to match /There was a problem converting to json/
+    end
+
 end

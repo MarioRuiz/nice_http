@@ -80,6 +80,22 @@ RSpec.describe NiceHttp, '#put' do
         expect(resp.code).to eq 303
     end
 
+    it 'detects wrong json when supplying wrong mock_response data' do
+        request = {
+            path: '/api/users?page=2',
+            mock_response: {
+                code: 200,
+                message: 'OK',
+                data: {a: "Android\xAE"}
+            }
+        }
+        @http.use_mocks = true
+        resp = @http.put request
+        content = File.read('./nice_http.log')
+        expect(content).to match /There was a problem converting to json/
+    end
+
+
     #todo: add tests for headers, encoding and cookies
 
 end

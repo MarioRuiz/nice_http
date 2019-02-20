@@ -63,5 +63,4 @@ RSpec.describe NiceHttp, '#head' do
         resp = http.head(req)
         expect(resp.code).to eq 303
     end
-
 end

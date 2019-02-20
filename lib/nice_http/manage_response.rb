@@ -40,6 +40,8 @@ module NiceHttpManageResponse
       if resp.kind_of?(Hash) and !resp.has_key?(:header)
         resp[:header] = {}
       end
+      
+      #todo: check this. not sure if this is valid anymore since resp it will be a hash only when mock_response      
       if resp.kind_of?(Hash)
         resp.each { |k, v|
           if k != :code and k != :message and k != :data and k != :'set-cookie' and k != :header

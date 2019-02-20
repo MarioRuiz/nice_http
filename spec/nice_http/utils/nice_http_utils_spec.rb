@@ -2,17 +2,6 @@ require 'nice_http'
 
 RSpec.describe NiceHttp, '#utils' do
 
-  ##################################################
-  # get a value of xml tag
-  # input:
-  #   tag_name
-  #   xml_string
-  #   take_off_prefix: boolean (optional). true, false(default)
-  # output:
-  #   the value or an array of all values found with this tag_name
-  ####################################################
-  #def self.get_value_xml_tag(tag_name, xml_string, take_off_prefix = false)
-    
     it 'returns the value of the xml tag supplied' do
         xml = "<Example><One>Uno</One></Example>"
         val = NiceHttpUtils.get_value_xml_tag('One', xml)
@@ -29,6 +18,17 @@ RSpec.describe NiceHttp, '#utils' do
         xml = "<bon:Example><bon:One>Uno</bon:One></bon:Example>"
         val = NiceHttpUtils.get_value_xml_tag('One', xml, true)
         expect(val).to eq 'Uno'
+    end
+
+    it 'returns the value of the xml tag supplied without taking in consideration prefix when added to tag also' do
+        xml = "<bon:Example><bon:One>Uno</bon:One></bon:Example>"
+        val = NiceHttpUtils.get_value_xml_tag('bon:One', xml, true)
+        expect(val).to eq 'Uno'
+    end
+
+    it 'returns empty string when no xml string supplied' do
+        val = NiceHttpUtils.get_value_xml_tag('bon:One', "", true)
+        expect(val).to eq ''
     end
 
     it 'returns nil if tag not found' do
@@ -53,6 +53,11 @@ RSpec.describe NiceHttp, '#utils' do
         xml = "<Example><One>Uno</One><One>Unob</One></Example>"
         val = NiceHttpUtils.set_value_xml_tag('Dos', xml, "Bob")
         expect(val).to eq xml
+    end
+
+    it 'returns empty string if not supplied xml' do
+        val = NiceHttpUtils.set_value_xml_tag('Dos', "", "Bob")
+        expect(val).to eq ""
     end
 
     it 'return the correct enconding for basic authentication' do
