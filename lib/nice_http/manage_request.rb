@@ -90,6 +90,15 @@ module NiceHttpManageRequest
         if arguments[0].include?(:values) and !arguments[0].include?(:values_for)
           arguments[0][:values_for] = arguments[0][:values]
         end
+        
+        if @values_for.size>0
+          if arguments[0][:values_for].nil?
+            arguments[0][:values_for] = @values_for.dup
+          else
+            arguments[0][:values_for] = @values_for.merge(arguments[0][:values_for])
+          end
+        end
+
         if content_type_included and (!headers_t["Content-Type"][/text\/xml/].nil? or
                                       !headers_t["Content-Type"]["application/soap+xml"].nil? or
                                       !headers_t["Content-Type"][/application\/jxml/].nil?)

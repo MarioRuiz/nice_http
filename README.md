@@ -82,6 +82,7 @@ NiceHttp.port = 443
 NiceHttp.debug = false
 NiceHttp.log = "./my_logs.log"
 NiceHttp.headers = {"api-key": "the api key"}
+NiceHttp.values_for = { region: 'europe', customerId: 334 }
 
 http1 = NiceHttp.new()
 

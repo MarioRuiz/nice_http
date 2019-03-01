@@ -9,7 +9,7 @@ require_relative "nice_http/http_methods"
 # Attributes you can access using NiceHttp.the_attribute:
 #   :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port,
 #   :last_request, :last_response, :request_id, :use_mocks, :connections,
-#   :active, :auto_redirect
+#   :active, :auto_redirect, :values_for
 #
 # @attr [String] host The host to be accessed
 # @attr [Integer] port The port number
@@ -39,6 +39,7 @@ require_relative "nice_http/http_methods"
 # @attr [Logger] logger An instance of the Logger class where logs will be stored. You can access on anytime to store specific data, for example:
 #   my_http.logger.info "add this to the log file"
 #   @see https://ruby-doc.org/stdlib-2.5.0/libdoc/logger/rdoc/Logger.html
+# @attr [Hash] values_for The default values to set on the data in case not specified others
 ######################################################
 class NiceHttp
   
@@ -63,7 +64,7 @@ class NiceHttp
   class << self
     attr_accessor :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port,
                   :last_request, :last_response, :request_id, :use_mocks, :connections,
-                  :active, :auto_redirect, :log_files
+                  :active, :auto_redirect, :log_files, :values_for
   end
 
   ######################################################
@@ -74,6 +75,7 @@ class NiceHttp
     @port = 80
     @ssl = false
     @headers = {}
+    @values_for = {}
     @debug = false
     @log = :fix_file
     @proxy_host = nil
@@ -97,18 +99,19 @@ class NiceHttp
   end
 
   attr_reader :host, :port, :ssl, :debug, :log, :proxy_host, :proxy_port, :response, :num_redirects
-  attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger
+  attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for
 
   ######################################################
   # Change the default values for NiceHttp supplying a Hash
   #
-  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port, :use_mocks, :auto_redirect
+  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for
   ######################################################
   def self.defaults=(par = {})
     @host = par[:host] if par.key?(:host)
     @port = par[:port] if par.key?(:port)
     @ssl = par[:ssl] if par.key?(:ssl)
     @headers = par[:headers].dup if par.key?(:headers)
+    @values_for = par[:values_for].dup if par.key?(:values_for)
     @debug = par[:debug] if par.key?(:debug)
     @log = par[:log] if par.key?(:log)
     @proxy_host = par[:proxy_host] if par.key?(:proxy_host)
@@ -140,6 +143,8 @@ class NiceHttp
   #
   #             headers -- hash with the headers
   #
+  #             values_for -- hash with the values_for
+  #
   #             debug -- true, false (default)
   #
   #             log -- :no, :screen, :file, :fix_file (default).
@@ -170,6 +175,7 @@ class NiceHttp
     @prepath = ''
     @ssl = self.class.ssl
     @headers = self.class.headers.dup
+    @values_for = self.class.values_for.dup
     @debug = self.class.debug
     @log = self.class.log
     @proxy_host = self.class.proxy_host
@@ -195,6 +201,7 @@ class NiceHttp
       @port = args[:port] if args.keys.include?(:port)
       @ssl = args[:ssl] if args.keys.include?(:ssl)
       @headers = args[:headers].dup if args.keys.include?(:headers)
+      @values_for = args[:values_for].dup if args.keys.include?(:values_for)
       @debug = args[:debug] if args.keys.include?(:debug)
       @log = args[:log] if args.keys.include?(:log)
       @proxy_host = args[:proxy_host] if args.keys.include?(:proxy_host)
@@ -257,6 +264,7 @@ class NiceHttp
     raise InfoMissing, :auto_redirect unless auto_redirect.is_a?(TrueClass) or auto_redirect.is_a?(FalseClass)
     raise InfoMissing, :use_mocks unless @use_mocks.is_a?(TrueClass) or @use_mocks.is_a?(FalseClass)
     raise InfoMissing, :headers unless @headers.is_a?(Hash)
+    raise InfoMissing, :values_for unless @values_for.is_a?(Hash)
     
     begin
       if !@proxy_host.nil? && !@proxy_port.nil?
