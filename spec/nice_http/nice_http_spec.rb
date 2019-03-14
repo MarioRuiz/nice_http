@@ -391,6 +391,31 @@ RSpec.describe NiceHttp do
       expect(content).to match /testing/
     end
 
+    it "logs to file specified even when two connections pointing to same file" do
+      klass.host = "https://example.com"
+      http1 = klass.new({log: "./example.log"})
+      http1.logger.info "testing"
+      content = File.read("./example.log")
+      expect(content).to match /testing/
+
+      http2 = klass.new({log: http1.log})
+      http2.logger.info "example2"
+      content = File.read("./example.log")
+      expect(content).to match /example2/
+
+
+      http1.logger.info "testing2"
+      content = File.read("./example.log")
+      expect(content).to match /testing2/
+
+      http1.close
+
+      http2.logger.info "example3"
+      content = File.read("./example.log")
+      expect(content).to match /example3/
+
+    end
+
     it "logs to nice_http.log when :fix_file specified" do
       klass.log = :fix_file
       http = klass.new("https://example.com")

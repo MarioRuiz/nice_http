@@ -17,10 +17,11 @@ require_relative "nice_http/http_methods"
 # @attr [Hash] headers Contains the headers you will be using on your connection
 # @attr [Boolean] debug In case true shows all the details of the communication with the host
 # @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".
-#   :fix_file will log the communication on nice_http.log. (default).
-#   :no will not generate any logs.
-#   :screen will print the logs on the screen.
-#   :file will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.
+#   :fix_file, will log the communication on nice_http.log. (default).
+#   :no, will not generate any logs.
+#   :screen, will print the logs on the screen.
+#   :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.
+#   :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log
 #   String the path and file name where the logs will be stored.
 # @attr [String] proxy_host the proxy host to be used
 # @attr [Integer] proxy_port the proxy port to be used
@@ -87,7 +88,7 @@ class NiceHttp
     @connections = []
     @active = 0
     @auto_redirect = true
-    @log_files = []
+    @log_files = {}
   end
   reset!
 
@@ -211,29 +212,26 @@ class NiceHttp
     end
 
     begin
-      mode = "a"
       log_filename =''
-      if @log.kind_of?(String)
-        #only the first connection in the run will be deleting the log file
-        log_filename = @log
-        mode = "w" unless self.class.log_files.include?(log_filename)
-        f = File.new(log_filename, mode)
-        f.sync = true
-        @logger = Logger.new f
-      elsif @log == :fix_file
-        #only the first connection in the run will be deleting the log file
-        log_filename = 'nice_http.log'
-        mode = "w" unless self.class.log_files.include?(log_filename)
-        f = File.new(log_filename, mode)
-        f.sync = true
-        @logger = Logger.new f
-      elsif @log == :file
-        log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
-        #only the first connection in the run will be deleting the log file
-        mode = "w" unless self.class.log_files.include?(log_filename)
-        f = File.new(log_filename, mode)
-        f.sync = true
-        @logger = Logger.new f
+      if @log.kind_of?(String) or @log == :fix_file or @log == :file or @log == :file_run
+        if @log.kind_of?(String)
+          log_filename = @log
+        elsif @log == :fix_file
+          log_filename = 'nice_http.log'
+        elsif @log == :file
+          log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
+        elsif @log == :file_run
+          #todo:
+          log_filename = ''
+        end
+        if self.class.log_files.key?(log_filename)
+          @logger = self.class.log_files[log_filename] 
+        else
+          f = File.new(log_filename, 'w')
+          f.sync = true
+          @logger = Logger.new f
+          self.class.log_files[log_filename] = @logger
+        end
       elsif @log == :screen
         @logger = Logger.new STDOUT
       elsif @log == :no
@@ -242,7 +240,6 @@ class NiceHttp
         raise InfoMissing, :log
       end
       @logger.level = Logger::INFO
-      self.class.log_files << log_filename if mode == 'w'
     rescue Exception => stack
       @logger = Logger.new nil
       raise InfoMissing, :log
