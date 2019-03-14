@@ -241,7 +241,7 @@ Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many mo
 
 *debug*: (true or false) it will set the connecition on debug mode so you will be able to see the whole communication with the server in detail
 
-*log*: (:no, :screen, :file, :fix_file, "filename") it will log the basic communication for inspect. In case you want to add extra info to your logs you can do it for example adding to your code: http.logger.info "example extra log"
+*log*: (:no, :screen, :file, :file_run, :fix_file, "filename") it will log the basic communication for inspect. In case you want to add extra info to your logs you can do it for example adding to your code: http.logger.info "example extra log"
 
 *headers*: Hash containing the headers for the communication
 

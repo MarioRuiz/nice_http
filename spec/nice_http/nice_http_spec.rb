@@ -424,6 +424,14 @@ RSpec.describe NiceHttp do
       expect(content).to match /testing/
     end
 
+    it "logs to file running.log when :file_run specified" do
+      klass.log = :file_run
+      http = klass.new("https://example.com")
+      http.logger.info "testing XaXDo"
+      content = File.read("./spec/nice_http/nice_http_spec.rb.log")
+      expect(content).to match /testing XaXDo/
+    end
+
     it "logs to nice_http_YY-mm-dd-HHMMSS.log when :file specified" do
       Dir.glob("./nice_http_*.log").each { |file| File.delete(file) }
       klass.log = :file

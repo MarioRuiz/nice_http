@@ -221,8 +221,7 @@ class NiceHttp
         elsif @log == :file
           log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
         elsif @log == :file_run
-          #todo:
-          log_filename = ''
+          log_filename = "#{caller.first[/[^:]+/]}.log"
         end
         if self.class.log_files.key?(log_filename)
           @logger = self.class.log_files[log_filename] 
