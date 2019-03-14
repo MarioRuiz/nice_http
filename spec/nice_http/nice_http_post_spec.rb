@@ -135,7 +135,7 @@ RSpec.describe NiceHttp, "#post" do
       data: nil,
     }
     resp = @http.post req
-    expect(NiceHttp.last_request).to match /data=\s*$/
+    expect(NiceHttp.last_request).to match /data:\s*$/
   end
 
   it "accepts values as an alias for values_for" do

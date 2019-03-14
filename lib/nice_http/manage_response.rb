@@ -90,7 +90,7 @@ module NiceHttpManageResponse
       @response[:code] = resp.code
 
       unless @response.nil?
-        message = "\nRESPONSE: \n" + @response[:code].to_s() + ":" + @response[:message].to_s()
+        message = "\nRESPONSE: \n " + @response[:code].to_s() + ":" + @response[:message].to_s()
         #if @debug
           self.class.last_response = message if @debug
           @response.each { |key, value|
@@ -106,30 +106,30 @@ module NiceHttpManageResponse
                       data_s = value_orig
                     end
                     if @debug
-                      self.class.last_response += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
+                      self.class.last_response += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
                     end
                     if value_orig != value
-                      message += "\nresponse." + key.to_s() + " = '" + value.gsub("<", "&lt;") + "'\n"
+                      message += "\n " + key.to_s() + ": '" + value.gsub("<", "&lt;") + "'\n"
                     else
-                      message += "\nresponse." + key.to_s() + " = '" + data_s.gsub("<", "&lt;") + "'\n"
+                      message += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
                     end
                   else
                     if @debug
-                      self.class.last_response += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
-                      message += "\nresponse." + key.to_s() + " = '" + value.to_s().gsub("<", "&lt;") + "'"
+                      self.class.last_response += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
+                      message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
                     end
                   end
                 else
                   if @debug
-                    self.class.last_response += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                    self.class.last_response += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
                   end  
-                  message += "\nresponse[:" + key.to_s() + "] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                  message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
                 end
               elsif !@response.include?(key.to_sym)
                 if @debug
-                  self.class.last_response += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                  self.class.last_response += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
                 end
-                message += "\nresponse['" + key.to_s() + "'] = '" + value.to_s().gsub("<", "&lt;") + "'"
+                message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
               end
             end
           }

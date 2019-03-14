@@ -218,9 +218,15 @@ module NiceHttpManageRequest
 
       headers_ts = ""
       headers_t.each { |key, val| headers_ts += key.to_s + ":" + val.to_s() + ", " }
-      message = "#{method_s} REQUEST: \npath= " + path.to_s() + "\n"
-      message += "headers= " + headers_ts.to_s() + "\n"
-      message += "data= " + data_s.to_s() + "\n"
+      message = "#{"- " * 25}\n"
+      if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
+        message+= "#{method_s.upcase} Request: #{arguments[0][:name]}\n"
+      else
+        message+= "#{method_s.upcase} Request\n"
+      end
+      message += " path: " + path.to_s() + "\n"
+      message += " headers: {" + headers_ts.to_s() + "}\n"
+      message += " data: " + data_s.to_s() + "\n"
       message = @message_server + "\n" + message
       if path.to_s().scan(/^https?:\/\//).size > 0 and path.to_s().scan(/^https?:\/\/#{@host}/).size == 0
         # the path is for another server than the current
