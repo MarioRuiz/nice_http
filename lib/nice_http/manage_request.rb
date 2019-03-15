@@ -120,21 +120,10 @@ module NiceHttpManageRequest
               }
             end
           elsif data.kind_of?(Hash)
-            data_n = Hash.new()
-            data.each { |key, value|
-              data_n[key.to_s()] = value
-            }
             if arguments[0].include?(:values_for)
-              #req[:values_for][:loginName] or req[:values_for]["loginName"]
-              new_values_hash = Hash.new()
-              arguments[0][:values_for].each { |kv, vv|
-                if data_n.keys.include?(kv.to_s())
-                  new_values_hash[kv.to_s()] = vv
-                end
-              }
-              data_n.merge!(new_values_hash)
+              data = data.set_values(arguments[0][:values_for])
             end
-            data = data_n.to_json()
+            data = data.to_json()
           elsif data.kind_of?(Array)
             data_arr = Array.new()
             data.each_with_index { |row, indx|
@@ -142,32 +131,14 @@ module NiceHttpManageRequest
                 @logger.fatal("Wrong format on request application/json, be sure is a Hash, Array of Hashes or JSON string")
                 return :error, :error, :error
               end
-              data_n = Hash.new()
-              row.each { |key, value|
-                data_n[key.to_s()] = value
-              }
               if arguments[0].include?(:values_for)
-                #req[:values_for][:loginName] or req[:values_for]["loginName"]
-                new_values_hash = Hash.new()
-                if arguments[0][:values_for].kind_of?(Hash) #values[:mykey][3]
-                  arguments[0][:values_for].each { |kv, vv|
-                    if data_n.keys.include?(kv.to_s()) and !vv[indx].nil?
-                      new_values_hash[kv.to_s()] = vv[indx]
-                    end
-                  }
-                elsif arguments[0][:values_for].kind_of?(Array) #values[5][:mykey]
-                  if !arguments[0][:values_for][indx].nil?
-                    arguments[0][:values_for][indx].each { |kv, vv|
-                      if data_n.keys.include?(kv.to_s())
-                        new_values_hash[kv.to_s()] = vv
-                      end
-                    }
-                  end
+                if arguments[0][:values_for].is_a?(Array)
+                  data_n = row.set_values(arguments[0][:values_for][indx])
                 else
-                  @logger.fatal("Wrong format on request application/json when supplying values, the data is an array of Hashes but the values supplied are not")
-                  return :error, :error, :error
+                  data_n = row.set_values(arguments[0][:values_for])
                 end
-                data_n.merge!(new_values_hash)
+              else
+                data_n = row
               end
               data_arr.push(data_n)
             }

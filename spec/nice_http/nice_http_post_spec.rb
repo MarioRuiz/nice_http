@@ -57,13 +57,15 @@ RSpec.describe NiceHttp, "#post" do
   it "changes :data when supplied :values_for" do
     request = {
       path: "/api/users",
-      data: { name: "morpheus", job: "leader" },
+      headers: {"Content-Type": "application/json"},
+      data: {name: "morpheus", job: "leader", lab: { doom: 'one', beep: true }, products: [{one:1 ,two:2}, {one:11,two:22}]}
     }
-
-    request.values_for = { name: "peter" }
+    request.values_for = {name: "peter", doom: 'two', one: "uno"}
     resp = @http.post(request)
     expect(resp.code).to eq 201
     expect(resp.data.json(:name)).to eq "peter"
+    expect(resp.data.json(:doom)).to eq "two"
+    expect(resp.data.json(:one)).to eq (["uno","uno"])
   end
 
   it "redirects when auto_redirect is true and http code is 30x" do
@@ -196,10 +198,10 @@ RSpec.describe NiceHttp, "#post" do
         { name: "peter", job: "vicepresident" },
       ],
     }
-    request.values_for = { job: ["dev", "cleaner"] }
+    request.values_for = { job: "dev" }
     resp = @http.post(request)
     expect(resp.code).to eq 201
-    expect(resp.data.json(:job)).to eq ["dev", "cleaner"]
+    expect(resp.data.json(:job)).to eq ["dev", "dev"]
   end
 
   it "shows wrong format on request when not array of hashes" do
@@ -228,6 +230,7 @@ RSpec.describe NiceHttp, "#post" do
     }
     request.values_for = [{ job: "dev" }, { job: "cleaner" }]
     resp = @http.post(request)
+    
     expect(resp.code).to eq 201
     expect(resp.data.json(:job)).to eq ["dev", "cleaner"]
   end
