@@ -43,7 +43,6 @@ require_relative "nice_http/http_methods"
 # @attr [Hash] values_for The default values to set on the data in case not specified others
 ######################################################
 class NiceHttp
-  
   include NiceHttpManageRequest
   include NiceHttpManageResponse
   include NiceHttpHttpMethods
@@ -173,7 +172,7 @@ class NiceHttp
     require "net/https"
     @host = self.class.host
     @port = self.class.port
-    @prepath = ''
+    @prepath = ""
     @ssl = self.class.ssl
     @headers = self.class.headers.dup
     @values_for = self.class.values_for.dup
@@ -196,7 +195,7 @@ class NiceHttp
       @host = uri.host unless uri.host.nil?
       @port = uri.port unless uri.port.nil?
       @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
-      @prepath = uri.path unless uri.path=='/'
+      @prepath = uri.path unless uri.path == "/"
     elsif args.is_a?(Hash) && !args.keys.empty?
       @host = args[:host] if args.keys.include?(:host)
       @port = args[:port] if args.keys.include?(:port)
@@ -212,21 +211,21 @@ class NiceHttp
     end
 
     begin
-      log_filename =''
+      log_filename = ""
       if @log.kind_of?(String) or @log == :fix_file or @log == :file or @log == :file_run
         if @log.kind_of?(String)
           log_filename = @log
         elsif @log == :fix_file
-          log_filename = 'nice_http.log'
+          log_filename = "nice_http.log"
         elsif @log == :file
           log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
         elsif @log == :file_run
           log_filename = "#{caller.first[/[^:]+/]}.log"
         end
         if self.class.log_files.key?(log_filename)
-          @logger = self.class.log_files[log_filename] 
+          @logger = self.class.log_files[log_filename]
         else
-          f = File.new(log_filename, 'w')
+          f = File.new(log_filename, "w")
           f.sync = true
           @logger = Logger.new f
           self.class.log_files[log_filename] = @logger
@@ -235,7 +234,7 @@ class NiceHttp
         @logger = Logger.new STDOUT
       elsif @log == :no
         @logger = Logger.new nil
-      else 
+      else
         raise InfoMissing, :log
       end
       @logger.level = Logger::INFO
@@ -244,13 +243,12 @@ class NiceHttp
       raise InfoMissing, :log
     end
 
-
     if @host.to_s != "" and (@host.start_with?("http:") or @host.start_with?("https:"))
       uri = URI.parse(@host)
       @host = uri.host unless uri.host.nil?
       @port = uri.port unless uri.port.nil?
       @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
-      @prepath = uri.path unless uri.path=='/'
+      @prepath = uri.path unless uri.path == "/"
     end
 
     raise InfoMissing, :port if @port.to_s == ""
@@ -261,7 +259,7 @@ class NiceHttp
     raise InfoMissing, :use_mocks unless @use_mocks.is_a?(TrueClass) or @use_mocks.is_a?(FalseClass)
     raise InfoMissing, :headers unless @headers.is_a?(Hash)
     raise InfoMissing, :values_for unless @values_for.is_a?(Hash)
-    
+
     begin
       if !@proxy_host.nil? && !@proxy_port.nil?
         @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)

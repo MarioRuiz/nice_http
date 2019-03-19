@@ -10,6 +10,7 @@ module NiceHttpManageResponse
   ######################################################
   def manage_response(resp, data)
     require "json"
+    @prev_response = Hash.new() if @prev_response.nil?
     begin
       if @start_time.kind_of?(Time)
         @response[:time_elapsed_total] = Time.now - @start_time
@@ -40,8 +41,8 @@ module NiceHttpManageResponse
       if resp.kind_of?(Hash) and !resp.has_key?(:header)
         resp[:header] = {}
       end
-      
-      #todo: check this. not sure if this is valid anymore since resp it will be a hash only when mock_response      
+
+      #todo: check this. not sure if this is valid anymore since resp it will be a hash only when mock_response
       if resp.kind_of?(Hash)
         resp.each { |k, v|
           if k != :code and k != :message and k != :data and k != :'set-cookie' and k != :header
@@ -76,8 +77,8 @@ module NiceHttpManageResponse
         resp.each { |key, val| @response[key.to_sym] = val.to_s().encode("UTF-8", encoding_response.to_s()) }
       else
         @response[:message] = resp.message
-        resp.each { |key, val| 
-          @response[key.to_sym] = val 
+        resp.each { |key, val|
+          @response[key.to_sym] = val
         }
       end
 
@@ -88,59 +89,59 @@ module NiceHttpManageResponse
       end
 
       @response[:code] = resp.code
-
-      unless @response.nil?
-        message = "\nRESPONSE: \n " + @response[:code].to_s() + ":" + @response[:message].to_s()
-        #if @debug
-          self.class.last_response = message if @debug
-          @response.each { |key, value|
-            if value.to_s() != ""
-              value_orig = value
-              if key.kind_of?(Symbol)
-                if key == :code or key == :data or key == :header or key == :message
-                  if key == :data and !@response[:'content-type'].to_s.include?('text/html')
-                    begin
-                      JSON.parse(value_orig)
-                      data_s = JSON.pretty_generate(JSON.parse(value_orig))
-                    rescue
-                      data_s = value_orig
-                    end
-                    if @debug
-                      self.class.last_response += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
-                    end
-                    if value_orig != value
-                      message += "\n " + key.to_s() + ": '" + value.gsub("<", "&lt;") + "'\n"
-                    else
-                      message += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
-                    end
+      message = "\nRESPONSE: \n " + @response[:code].to_s() + ":" + @response[:message].to_s()
+      if @debug or @prev_response[:'content-type']!=@response[:'content-type'] or @prev_response[:'content-length']!=@response[:'content-length'] or
+        @prev_response[:data]!=@response[:data] or @prev_response[:code]!=@response[:code] or @prev_response[:message]!= @response[:message]
+        self.class.last_response = message if @debug
+        @response.each { |key, value|
+          if value.to_s() != ""
+            value_orig = value
+            if key.kind_of?(Symbol)
+              if key == :code or key == :data or key == :header or key == :message
+                if key == :data and !@response[:'content-type'].to_s.include?("text/html")
+                  begin
+                    JSON.parse(value_orig)
+                    data_s = JSON.pretty_generate(JSON.parse(value_orig))
+                  rescue
+                    data_s = value_orig
+                  end
+                  if @debug
+                    self.class.last_response += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
+                  end
+                  if value_orig != value
+                    message += "\n " + key.to_s() + ": '" + value.gsub("<", "&lt;") + "'\n"
                   else
-                    if @debug
-                      self.class.last_response += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
-                      message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
-                    end
+                    message += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
                   end
                 else
                   if @debug
                     self.class.last_response += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
-                  end  
-                  message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
+                    message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
+                  end
                 end
-              elsif !@response.include?(key.to_sym)
+              else
                 if @debug
                   self.class.last_response += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
                 end
                 message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
               end
+            elsif !@response.include?(key.to_sym)
+              if @debug
+                self.class.last_response += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
+              end
+              message += "\n " + key.to_s() + ": '" + value.to_s().gsub("<", "&lt;") + "'"
             end
-          }
-        #end
-        @logger.info message
-        if @response.kind_of?(Hash)
-          if @response.keys.include?(:requestid)
-            @headers["requestId"] = @response[:requestid]
-            self.class.request_id = @response[:requestid]
-            @logger.info "requestId was found on the response header and it has been added to the headers for the next request"
           end
+        }
+      else
+        message += "\n Same as the last response."
+      end
+      @logger.info message
+      if @response.kind_of?(Hash)
+        if @response.keys.include?(:requestid)
+          @headers["requestId"] = @response[:requestid]
+          self.class.request_id = @response[:requestid]
+          @logger.info "requestId was found on the response header and it has been added to the headers for the next request"
         end
       end
 
@@ -173,6 +174,7 @@ module NiceHttpManageResponse
           end
         end
       end
+      @prev_response = @response
     rescue Exception => stack
       @logger.fatal stack
       @logger.fatal "manage_response Error on method #{method_s} "

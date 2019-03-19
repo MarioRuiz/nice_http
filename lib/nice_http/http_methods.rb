@@ -25,7 +25,7 @@ module NiceHttpHttpMethods
   def get(arg)
     begin
       path, data, headers_t = manage_request(arg)
-      
+
       @start_time = Time.now if @start_time.nil?
       if @use_mocks and arg.kind_of?(Hash) and arg.keys.include?(:mock_response)
         data = ""
@@ -73,7 +73,7 @@ module NiceHttpHttpMethods
             http_redir.cookies.merge!(@cookies)
             http_redir.headers.merge!(headers_t)
             #todo: remove only the server at the begining in case in query is the server it will be replaced when it should not be
-            resp = http_redir.get(path.gsub(server, "")) 
+            resp = http_redir.get(path.gsub(server, ""))
             @response = http_redir.response
           else
             @logger.warn "It seems like the http connection cannot redirect to #{server} because there is no active connection for that server. You need to create previously one."
@@ -499,31 +499,28 @@ module NiceHttpHttpMethods
   ######################################################
   def send_request(request_hash)
     unless request_hash.is_a?(Hash) and request_hash.key?(:method) and request_hash.key?(:path) and
-      request_hash[:method].is_a?(Symbol) and 
-      [:get, :head, :post, :put, :delete, :patch].include?(request_hash[:method])
-
+           request_hash[:method].is_a?(Symbol) and
+           [:get, :head, :post, :put, :delete, :patch].include?(request_hash[:method])
       message = "send_request: it needs to be supplied a Request Hash that includes a :method and :path. "
       message += "Supported methods: :get, :head, :post, :put, :delete, :patch"
       @logger.fatal message
       return {fatal_error: message, code: nil, message: nil}
     else
       case request_hash[:method]
-        when :get
-          resp = get request_hash
-        when :post
-          resp = post request_hash
-        when :head
-          resp = head request_hash
-        when :put
-          resp = put request_hash
-        when :delete
-          resp = delete request_hash
-        when :patch
-          resp = patch request_hash
+      when :get
+        resp = get request_hash
+      when :post
+        resp = post request_hash
+      when :head
+        resp = head request_hash
+      when :put
+        resp = put request_hash
+      when :delete
+        resp = delete request_hash
+      when :patch
+        resp = patch request_hash
       end
       return resp
     end
-
   end
-
 end

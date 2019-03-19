@@ -288,6 +288,57 @@ RSpec.describe NiceHttp, "#post" do
     expect(content).to match /There was a problem converting to json/
   end
 
+  it "doesn't log request if the same as before" do
+    request = {
+      path: "/api/register",
+      data: {
+        email: 'test@example.com',
+        password: 'example'
+      }
+    }
+    resp = @http.post request
+    resp = @http.post request
+    resp = @http.post request
+    content = File.read("./nice_http.log")
+    expect(content).to match /Same as the last request/
+  end
+
+  it "doesn't log response if the same as before" do
+    request = {
+      path: "/api/register",
+      data: {
+        email: 'test@example.com',
+        password: 'example'
+      }
+    }
+    resp = @http.post request
+    resp = @http.post request
+    resp = @http.post request
+    content = File.read("./nice_http.log")
+    expect(content).to match /Same as the last response/
+  end
+
+  it "logs request and response when debug set to true" do
+    File.delete('./nice_http_tmp.log') if File.exist?('./nice_http_tmp.log')
+    @http = NiceHttp.new({host: "https://www.reqres.in", debug: true, log: './nice_http_tmp.log'})
+
+    request = {
+      path: "/api/register",
+      data: {
+        email: 'test@example.com',
+        password: 'example'
+      }
+    }
+    resp = @http.post request
+    resp = @http.post request
+    resp = @http.post request
+    content = File.read('./nice_http_tmp.log')
+    expect(content).not_to match /Same as the last response/
+    expect(content).not_to match /Same as the last request/
+  end
+
+
+
   #todo: add tests encoding and cookies
 
 end

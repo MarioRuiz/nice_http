@@ -11,6 +11,8 @@ module NiceHttpManageRequest
   ######################################################
   def manage_request(*arguments)
     require "json"
+
+    @prev_request = Hash.new() if @prev_request.nil?
     begin
       content_type_included = false
       path = ""
@@ -26,7 +28,7 @@ module NiceHttpManageRequest
       elsif arguments.size == 1 and arguments[0].kind_of?(String)
         path = arguments[0].to_s()
       end
-      path = (@prepath + path).gsub('//','/') unless path.nil? or path.start_with?('http:') or path.start_with?('https:')
+      path = (@prepath + path).gsub("//", "/") unless path.nil? or path.start_with?("http:") or path.start_with?("https:")
       @cookies.each { |cookie_path, cookies_hash|
         cookie_path = "" if cookie_path == "/"
         path_to_check = path
@@ -90,8 +92,8 @@ module NiceHttpManageRequest
         if arguments[0].include?(:values) and !arguments[0].include?(:values_for)
           arguments[0][:values_for] = arguments[0][:values]
         end
-        
-        if @values_for.size>0
+
+        if @values_for.size > 0
           if arguments[0][:values_for].nil?
             arguments[0][:values_for] = @values_for.dup
           else
@@ -112,11 +114,11 @@ module NiceHttpManageRequest
           if data.kind_of?(String)
             if arguments[0].include?(:values_for)
               arguments[0][:values_for].each { |key, value|
-                data.gsub!(/"(#{key})":\s*"([^"]*)"/,'"\1": "'+value+'"')  # "key":"value"
-                data.gsub!(/(#{key}):\s*"([^"]*)"/,'\1: "'+value+'"')  # key:"value"
-                data.gsub!(/(#{key}):\s*'([^']*)'/,'\1: \''+value+"'")  # key:'value'
-                data.gsub!(/"(#{key})":\s*(\w+)/,'"\1": '+value)  # "key":456
-                data.gsub!(/(#{key}):\s*(\w+)/,'\1: '+value)  # key:456
+                data.gsub!(/"(#{key})":\s*"([^"]*)"/, '"\1": "' + value + '"')  # "key":"value"
+                data.gsub!(/(#{key}):\s*"([^"]*)"/, '\1: "' + value + '"')  # key:"value"
+                data.gsub!(/(#{key}):\s*'([^']*)'/, '\1: \'' + value + "'")  # key:'value'
+                data.gsub!(/"(#{key})":\s*(\w+)/, '"\1": ' + value)  # "key":456
+                data.gsub!(/(#{key}):\s*(\w+)/, '\1: ' + value)  # key:456
               }
             end
           elsif data.kind_of?(Hash)
@@ -191,16 +193,21 @@ module NiceHttpManageRequest
       headers_t.each { |key, val| headers_ts += key.to_s + ":" + val.to_s() + ", " }
       message = "#{"- " * 25}\n"
       if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
-        message+= "#{method_s.upcase} Request: #{arguments[0][:name]}\n"
+        message += "#{method_s.upcase} Request: #{arguments[0][:name]}"
       else
-        message+= "#{method_s.upcase} Request\n"
+        message += "#{method_s.upcase} Request"
       end
-      message += " path: " + path.to_s() + "\n"
-      message += " headers: {" + headers_ts.to_s() + "}\n"
-      message += " data: " + data_s.to_s() + "\n"
-      message = @message_server + "\n" + message
+      message += "\n path: " + path.to_s() + "\n"
+      if @debug or @prev_request[:path] != path or @prev_request[:headers] != headers_t or @prev_request[:data] != data
+        message += " headers: {" + headers_ts.to_s() + "}\n"
+        message += " data: " + data_s.to_s() + "\n"
+        message = @message_server + "\n" + message
+      else
+        message += " Same as the last request."
+      end
       if path.to_s().scan(/^https?:\/\//).size > 0 and path.to_s().scan(/^https?:\/\/#{@host}/).size == 0
         # the path is for another server than the current
+        # todo: identify if it is better to log the request, or if it is done later
       else
         self.class.last_request = message
         @logger.info(message)
@@ -209,6 +216,9 @@ module NiceHttpManageRequest
       if data.to_s() != "" and encoding.to_s().upcase != "UTF-8" and encoding != ""
         data = data.to_s().encode(encoding, "UTF-8")
       end
+      @prev_request[:path] = path
+      @prev_request[:data] = data
+      @prev_request[:headers] = headers_t
       return path, data, headers_t
     rescue Exception => stack
       @logger.fatal(stack)
@@ -216,5 +226,4 @@ module NiceHttpManageRequest
       return :error
     end
   end
-
 end
