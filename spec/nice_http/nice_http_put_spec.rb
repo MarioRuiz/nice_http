@@ -8,7 +8,7 @@ RSpec.describe NiceHttp, "#put" do
   it "accepts hash including keys :data and :path" do
     resp = @http.put({
       path: "/api/users/2",
-      data: { name: "morpheus", job: "HR leader" },
+      data: {name: "morpheus", job: "HR leader"},
     })
     expect(resp.code).to eq 200
     expect(resp.data.json(:job)).to eq "HR leader"
@@ -20,7 +20,7 @@ RSpec.describe NiceHttp, "#put" do
   end
 
   it "returns error in case no path" do
-    resp = @http.put({ data: { name: "morpheus", job: "leader" } })
+    resp = @http.put({data: {name: "morpheus", job: "leader"}})
     expect(resp.class).to eq Hash
     expect(resp.fatal_error).to match /no[\w\s]+path/i
     expect(resp.code).to eq nil
@@ -31,7 +31,7 @@ RSpec.describe NiceHttp, "#put" do
   it "accepts data_examples array in case no data supplied" do
     resp = @http.put({
       path: "/api/users/2",
-      data_examples: [{ name: "doopy", job: "loope" }],
+      data_examples: [{name: "doopy", job: "loope"}],
     })
     expect(resp.code).to eq 200
     expect(resp.data.json(:name)).to eq "doopy"
@@ -41,27 +41,27 @@ RSpec.describe NiceHttp, "#put" do
     @http.use_mocks = true
     request = {
       path: "/api/users/2",
-      data: { name: "morpheus", job: "leader" },
+      data: {name: "morpheus", job: "leader"},
       mock_response: {
         code: 100,
         message: "mock",
-        data: { example: "mock" },
+        data: {example: "mock"},
       },
     }
     resp = @http.put(request)
     expect(resp.class).to eq Hash
     expect(resp.code).to eq 100
     expect(resp.message).to eq "mock"
-    expect(resp.data.json).to eq ({ example: "mock" })
+    expect(resp.data.json).to eq ({example: "mock"})
   end
 
   it "changes :data when supplied :values_for" do
     request = {
       path: "/api/users",
-      data: { name: "morpheus", job: "leader" },
+      data: {name: "morpheus", job: "leader"},
     }
 
-    request.values_for = { name: "peter" }
+    request.values_for = {name: "peter"}
     resp = @http.put(request)
     expect(resp.code).to eq 200
     expect(resp.data.json(:name)).to eq "peter"
@@ -73,7 +73,7 @@ RSpec.describe NiceHttp, "#put" do
     http.auto_redirect = false
     req = {
       path: "/exampleRedirect",
-      data: { example: "example" },
+      data: {example: "example"},
     }
     resp = http.put(req)
     expect(resp.code).to eq 303
@@ -85,7 +85,7 @@ RSpec.describe NiceHttp, "#put" do
       mock_response: {
         code: 200,
         message: "OK",
-        data: { a: "Android\xAE" },
+        data: {a: "Android\xAE"},
       },
     }
     @http.use_mocks = true

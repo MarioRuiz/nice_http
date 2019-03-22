@@ -1,0 +1,39 @@
+---
+Doom.example:
+  :num_requests: 10
+  :time_elapsed:
+    :total: 2.590167929
+    :maximum: 0.350803659
+    :minimum: 0.198707111
+    :average: 0.2590167929
+  :method:
+    POST:
+      :num_requests: 7
+      :time_elapsed:
+        :total: 1.9771444880000002
+        :maximum: 0.350803659
+        :minimum: 0.198707111
+        :average: 0.2824492125714286
+      :response:
+        '201':
+          :num_requests: 7
+          :time_elapsed:
+            :total: 1.9771444880000002
+            :maximum: 0.350803659
+            :minimum: 0.198707111
+            :average: 0.2824492125714286
+    GET:
+      :num_requests: 3
+      :time_elapsed:
+        :total: 0.613023441
+        :maximum: 0.210662528
+        :minimum: 0.200197583
+        :average: 0.20434114699999997
+      :response:
+        '200':
+          :num_requests: 3
+          :time_elapsed:
+            :total: 0.613023441
+            :maximum: 0.210662528
+            :minimum: 0.200197583
+            :average: 0.20434114699999997

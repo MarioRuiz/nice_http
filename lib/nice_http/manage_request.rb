@@ -191,7 +191,7 @@ module NiceHttpManageRequest
 
       headers_ts = ""
       headers_t.each { |key, val| headers_ts += key.to_s + ":" + val.to_s() + ", " }
-      message = "#{"- " * 25}\n"
+      message = "\n\n#{"- " * 25}\n"
       if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
         message += "#{method_s.upcase} Request: #{arguments[0][:name]}"
       else
@@ -203,7 +203,7 @@ module NiceHttpManageRequest
         message += " data: " + data_s.to_s() + "\n"
         message = @message_server + "\n" + message
       else
-        message += " Same as the last request."
+        message += " Same#{" headers" if headers_t != {}}#{" and" if headers_t != {} and data.to_s != ""}#{" data" if data.to_s != ""} as in the previous request."
       end
       if path.to_s().scan(/^https?:\/\//).size > 0 and path.to_s().scan(/^https?:\/\/#{@host}/).size == 0
         # the path is for another server than the current
@@ -219,6 +219,10 @@ module NiceHttpManageRequest
       @prev_request[:path] = path
       @prev_request[:data] = data
       @prev_request[:headers] = headers_t
+      @prev_request[:method] = method_s.upcase
+      if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
+        @prev_request[:name] = arguments[0][:name]
+      end
       return path, data, headers_t
     rescue Exception => stack
       @logger.fatal(stack)

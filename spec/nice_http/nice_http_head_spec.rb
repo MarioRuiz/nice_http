@@ -12,7 +12,7 @@ RSpec.describe NiceHttp, "#head" do
   end
 
   it "accepts Hash with key path" do
-    resp = @http.head({ path: "/api/users?page=2" })
+    resp = @http.head({path: "/api/users?page=2"})
     expect(resp.code).to eq 200
     expect(resp.message).to eq "OK"
   end
@@ -57,7 +57,7 @@ RSpec.describe NiceHttp, "#head" do
     http.auto_redirect = false
     req = {
       path: "/exampleRedirect",
-      data: { example: "example" },
+      data: {example: "example"},
     }
     resp = http.head(req)
     expect(resp.code).to eq 303

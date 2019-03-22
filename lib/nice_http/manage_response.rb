@@ -24,6 +24,9 @@ module NiceHttpManageResponse
       else
         @response[:time_elapsed] = nil
       end
+
+      create_stats(resp) if @create_stats
+
       begin
         # this is to be able to access all keys as symbols
         new_resp = Hash.new()
@@ -90,8 +93,8 @@ module NiceHttpManageResponse
 
       @response[:code] = resp.code
       message = "\nRESPONSE: \n " + @response[:code].to_s() + ":" + @response[:message].to_s()
-      if @debug or @prev_response[:'content-type']!=@response[:'content-type'] or @prev_response[:'content-length']!=@response[:'content-length'] or
-        @prev_response[:data]!=@response[:data] or @prev_response[:code]!=@response[:code] or @prev_response[:message]!= @response[:message]
+      if @debug or @prev_response[:'content-type'] != @response[:'content-type'] or @prev_response[:'content-length'] != @response[:'content-length'] or
+         @prev_response[:data] != @response[:data] or @prev_response[:code] != @response[:code] or @prev_response[:message] != @response[:message]
         self.class.last_response = message if @debug
         @response.each { |key, value|
           if value.to_s() != ""
@@ -178,6 +181,99 @@ module NiceHttpManageResponse
     rescue Exception => stack
       @logger.fatal stack
       @logger.fatal "manage_response Error on method #{method_s} "
+    end
+  end
+
+  private
+
+  def set_stats(hash)
+    unless hash.key?(:num_requests)
+      # to add to the end the previous keys so num_requests and time_elapsed come first
+      keys = hash.keys
+      hash.keys.each do |k|
+        hash.delete(k)
+      end
+
+      hash[:num_requests] = 0
+      hash[:time_elapsed] = {
+        total: 0,
+        maximum: 0,
+        minimum: 100000,
+        average: 0,
+      }
+
+      # to add to the end the previous keys so num_requests and time_elapsed come first
+      keys.each do |k|
+        hash[k] = {}
+      end
+    end
+    hash[:num_requests] += 1
+    hash[:time_elapsed][:total] += @response[:time_elapsed]
+    hash[:time_elapsed][:maximum] = @response[:time_elapsed] if @response[:time_elapsed] > hash[:time_elapsed][:maximum]
+    hash[:time_elapsed][:minimum] = @response[:time_elapsed] if @response[:time_elapsed] < hash[:time_elapsed][:minimum]
+    hash[:time_elapsed][:average] = hash[:time_elapsed][:total] / hash[:num_requests]
+  end
+
+  private
+
+  def create_stats(resp)
+    # all
+    set_stats(self.class.stats[:all])
+    # all method
+    unless self.class.stats[:all][:method].key?(@prev_request[:method])
+      self.class.stats[:all][:method][@prev_request[:method]] = {
+        response: {},
+      }
+    end
+    set_stats(self.class.stats[:all][:method][@prev_request[:method]])
+    # all method response
+    unless self.class.stats[:all][:method][@prev_request[:method]][:response].key?(resp.code)
+      self.class.stats[:all][:method][@prev_request[:method]][:response][resp.code] = {}
+    end
+    set_stats(self.class.stats[:all][:method][@prev_request[:method]][:response][resp.code])
+
+    # server
+    server = "#{@host}:#{@port}"
+    unless self.class.stats[:path].key?(server) 
+      self.class.stats[:path][server] = {}
+    end
+    set_stats(self.class.stats[:path][server])
+    # server path
+    unless self.class.stats[:path][server].key?(@prev_request[:path])
+      self.class.stats[:path][server][@prev_request[:path]] = {method: {}}
+    end
+    set_stats(self.class.stats[:path][server][@prev_request[:path]])
+    # server path method
+    unless self.class.stats[:path][server][@prev_request[:path]][:method].key?(@prev_request[:method])
+      self.class.stats[:path][server][@prev_request[:path]][:method][@prev_request[:method]] = {
+        response: {},
+      }
+    end
+    set_stats(self.class.stats[:path][server][@prev_request[:path]][:method][@prev_request[:method]])
+    # server path method response
+    unless self.class.stats[:path][server][@prev_request[:path]][:method][@prev_request[:method]][:response].key?(resp.code)
+      self.class.stats[:path][server][@prev_request[:path]][:method][@prev_request[:method]][:response][resp.code] = {}
+    end
+    set_stats(self.class.stats[:path][server][@prev_request[:path]][:method][@prev_request[:method]][:response][resp.code])
+
+    if @prev_request.key?(:name)
+      # name
+      unless self.class.stats[:name].key?(@prev_request[:name])
+        self.class.stats[:name][@prev_request[:name]] = {method: {}}
+      end
+      set_stats(self.class.stats[:name][@prev_request[:name]])
+      # name method
+      unless self.class.stats[:name][@prev_request[:name]][:method].key?(@prev_request[:method])
+        self.class.stats[:name][@prev_request[:name]][:method][@prev_request[:method]] = {
+          response: {},
+        }
+      end
+      set_stats(self.class.stats[:name][@prev_request[:name]][:method][@prev_request[:method]])
+      # name method response
+      unless self.class.stats[:name][@prev_request[:name]][:method][@prev_request[:method]][:response].key?(resp.code)
+        self.class.stats[:name][@prev_request[:name]][:method][@prev_request[:method]][:response][resp.code] = {}
+      end
+      set_stats(self.class.stats[:name][@prev_request[:name]][:method][@prev_request[:method]][:response][resp.code])
     end
   end
 end

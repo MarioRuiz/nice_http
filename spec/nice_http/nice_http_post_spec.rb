@@ -8,7 +8,7 @@ RSpec.describe NiceHttp, "#post" do
   it "accepts hash including keys :data and :path" do
     resp = @http.post({
       path: "/api/users",
-      data: { name: "morpheus", job: "leader" },
+      data: {name: "morpheus", job: "leader"},
     })
     expect(resp.code).to eq 201
   end
@@ -19,7 +19,7 @@ RSpec.describe NiceHttp, "#post" do
   end
 
   it "returns error in case no path" do
-    resp = @http.post({ data: { name: "morpheus", job: "leader" } })
+    resp = @http.post({data: {name: "morpheus", job: "leader"}})
     expect(resp.class).to eq Hash
     expect(resp.fatal_error).to match /no[\w\s]+path/i
     expect(resp.code).to eq nil
@@ -30,7 +30,7 @@ RSpec.describe NiceHttp, "#post" do
   it "accepts data_examples array in case no data supplied" do
     resp = @http.post({
       path: "/api/users",
-      data_examples: [{ name: "doopy", job: "loope" }],
+      data_examples: [{name: "doopy", job: "loope"}],
     })
     expect(resp.code).to eq 201
     expect(resp.data.json(:name)).to eq "doopy"
@@ -40,32 +40,32 @@ RSpec.describe NiceHttp, "#post" do
     @http.use_mocks = true
     request = {
       path: "/api/users",
-      data: { name: "morpheus", job: "leader" },
+      data: {name: "morpheus", job: "leader"},
       mock_response: {
         code: 100,
         message: "mock",
-        data: { example: "mock" },
+        data: {example: "mock"},
       },
     }
     resp = @http.post(request)
     expect(resp.class).to eq Hash
     expect(resp.code).to eq 100
     expect(resp.message).to eq "mock"
-    expect(resp.data.json).to eq ({ example: "mock" })
+    expect(resp.data.json).to eq ({example: "mock"})
   end
 
   it "changes :data when supplied :values_for" do
     request = {
       path: "/api/users",
       headers: {"Content-Type": "application/json"},
-      data: {name: "morpheus", job: "leader", lab: { doom: 'one', beep: true }, products: [{one:1 ,two:2}, {one:11,two:22}]}
+      data: {name: "morpheus", job: "leader", lab: {doom: "one", beep: true}, products: [{one: 1, two: 2}, {one: 11, two: 22}]},
     }
-    request.values_for = {name: "peter", doom: 'two', one: "uno"}
+    request.values_for = {name: "peter", doom: "two", one: "uno"}
     resp = @http.post(request)
     expect(resp.code).to eq 201
     expect(resp.data.json(:name)).to eq "peter"
     expect(resp.data.json(:doom)).to eq "two"
-    expect(resp.data.json(:one)).to eq (["uno","uno"])
+    expect(resp.data.json(:one)).to eq (["uno", "uno"])
   end
 
   it "redirects when auto_redirect is true and http code is 30x" do
@@ -74,7 +74,7 @@ RSpec.describe NiceHttp, "#post" do
     http.auto_redirect = true
     req = {
       path: "/exampleRedirect",
-      data: { example: "example" },
+      data: {example: "example"},
     }
     resp = http.post(req)
     expect(resp.code).to eq 200
@@ -87,7 +87,7 @@ RSpec.describe NiceHttp, "#post" do
     http.auto_redirect = false
     req = {
       path: "/exampleRedirect",
-      data: { example: "example" },
+      data: {example: "example"},
     }
     resp = http.post(req)
     expect(resp.code).to eq 303
@@ -97,7 +97,7 @@ RSpec.describe NiceHttp, "#post" do
     # as symbol
     req = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: '{"name": "morpheus","job": "leader"}',
     }
 
@@ -105,17 +105,17 @@ RSpec.describe NiceHttp, "#post" do
     resp = @http.post req
     expect(NiceHttp.last_request).to match /Content-Type:application\/json/
 
-    req.headers = { "content-type": "application/json" }
+    req.headers = {"content-type": "application/json"}
     resp = @http.post req
     expect(NiceHttp.last_request).to match /Content-Type:application\/json/
 
     # as string
-    req.headers = { "content-type" => "application/json" }
+    req.headers = {"content-type" => "application/json"}
     resp = @http.post req
     expect(NiceHttp.last_request).to match /Content-Type:application\/json/
 
     # as string
-    req.headers = { "Content-Type" => "application/json" }
+    req.headers = {"Content-Type" => "application/json"}
     resp = @http.post req
     expect(NiceHttp.last_request).to match /Content-Type:application\/json/
   end
@@ -123,7 +123,7 @@ RSpec.describe NiceHttp, "#post" do
   it "implements json data by default if no content type supplied and a hash for data" do
     req = {
       path: "/api/users",
-      data: { name: "morpheus", job: "leader" },
+      data: {name: "morpheus", job: "leader"},
     }
 
     # not supplied content type by default
@@ -143,10 +143,10 @@ RSpec.describe NiceHttp, "#post" do
   it "accepts values as an alias for values_for" do
     request = {
       path: "/api/users",
-      data: { name: "morpheus", job: "leader" },
+      data: {name: "morpheus", job: "leader"},
     }
 
-    request[:values] = { name: "peter" }
+    request[:values] = {name: "peter"}
     resp = @http.post(request)
     expect(resp.code).to eq 201
     expect(resp.data.json(:name)).to eq "peter"
@@ -155,11 +155,11 @@ RSpec.describe NiceHttp, "#post" do
   it "change xml value when supplied values_for" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "text/xml" },
+      headers: {"Content-Type": "text/xml"},
       data: "<name>morpheus</name><job>leader</job>",
     }
 
-    request.values_for = { name: "peter" }
+    request.values_for = {name: "peter"}
     resp = @http.post(request)
     expect(NiceHttp.last_request).to match /name>peter/
   end
@@ -167,10 +167,10 @@ RSpec.describe NiceHttp, "#post" do
   it "changes json string values when values_for supplied and json is a string" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: '{"name": "morpheus","job": "leader"}',
     }
-    request.values_for = { name: "peter" }
+    request.values_for = {name: "peter"}
     resp = @http.post(request)
     expect(NiceHttp.last_request).to match /"name": "peter"/
   end
@@ -178,10 +178,10 @@ RSpec.describe NiceHttp, "#post" do
   it "accepts an array as data" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: [
-        { name: "morpheus", job: "leader" },
-        { name: "peter", job: "vicepresident" },
+        {name: "morpheus", job: "leader"},
+        {name: "peter", job: "vicepresident"},
       ],
     }
     resp = @http.post(request)
@@ -192,13 +192,13 @@ RSpec.describe NiceHttp, "#post" do
   it "changes all values on array request when values_for" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: [
-        { name: "morpheus", job: "leader" },
-        { name: "peter", job: "vicepresident" },
+        {name: "morpheus", job: "leader"},
+        {name: "peter", job: "vicepresident"},
       ],
     }
-    request.values_for = { job: "dev" }
+    request.values_for = {job: "dev"}
     resp = @http.post(request)
     expect(resp.code).to eq 201
     expect(resp.data.json(:job)).to eq ["dev", "dev"]
@@ -207,10 +207,10 @@ RSpec.describe NiceHttp, "#post" do
   it "shows wrong format on request when not array of hashes" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: [
-        { name: "morpheus", job: "leader" },
-        { name: "peter", job: "vicepresident" },
+        {name: "morpheus", job: "leader"},
+        {name: "peter", job: "vicepresident"},
         100,
       ],
     }
@@ -222,15 +222,15 @@ RSpec.describe NiceHttp, "#post" do
   it "changes all values on array request when values_for is array of hashes" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: [
-        { name: "morpheus", job: "leader" },
-        { name: "peter", job: "vicepresident" },
+        {name: "morpheus", job: "leader"},
+        {name: "peter", job: "vicepresident"},
       ],
     }
-    request.values_for = [{ job: "dev" }, { job: "cleaner" }]
+    request.values_for = [{job: "dev"}, {job: "cleaner"}]
     resp = @http.post(request)
-    
+
     expect(resp.code).to eq 201
     expect(resp.data.json(:job)).to eq ["dev", "cleaner"]
   end
@@ -238,10 +238,10 @@ RSpec.describe NiceHttp, "#post" do
   it "shows wrong format on request when not array of hashes supplied for values_for" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: [
-        { name: "morpheus", job: "leader" },
-        { name: "peter", job: "vicepresident" },
+        {name: "morpheus", job: "leader"},
+        {name: "peter", job: "vicepresident"},
       ],
     }
     request.values_for = "job"
@@ -253,7 +253,7 @@ RSpec.describe NiceHttp, "#post" do
   it "shows wrong format on request when data is not a string, array or hash" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       data: 33,
     }
     resp = @http.post(request)
@@ -264,10 +264,10 @@ RSpec.describe NiceHttp, "#post" do
   it "shows wrong data format for given values_for" do
     request = {
       path: "/api/users",
-      headers: { "Content-Type": "text" },
+      headers: {"Content-Type": "text"},
       data: "example",
     }
-    request.values_for = { dog: 1 }
+    request.values_for = {dog: 1}
     resp = @http.post(request)
     content = File.read("./nice_http.log")
     expect(content).to match /values_for key given without a valid content-type or data for request/
@@ -279,7 +279,7 @@ RSpec.describe NiceHttp, "#post" do
       mock_response: {
         code: 200,
         message: "OK",
-        data: { a: "Android\xAE" },
+        data: {a: "Android\xAE"},
       },
     }
     @http.use_mocks = true
@@ -292,24 +292,24 @@ RSpec.describe NiceHttp, "#post" do
     request = {
       path: "/api/register",
       data: {
-        email: 'test@example.com',
-        password: 'example'
-      }
+        email: "test@example.com",
+        password: "example",
+      },
     }
     resp = @http.post request
     resp = @http.post request
     resp = @http.post request
     content = File.read("./nice_http.log")
-    expect(content).to match /Same as the last request/
+    expect(content).to match /Same headers and data as in the previous request/
   end
 
   it "doesn't log response if the same as before" do
     request = {
       path: "/api/register",
       data: {
-        email: 'test@example.com',
-        password: 'example'
-      }
+        email: "test@example.com",
+        password: "example",
+      },
     }
     resp = @http.post request
     resp = @http.post request
@@ -319,25 +319,23 @@ RSpec.describe NiceHttp, "#post" do
   end
 
   it "logs request and response when debug set to true" do
-    File.delete('./nice_http_tmp.log') if File.exist?('./nice_http_tmp.log')
-    @http = NiceHttp.new({host: "https://www.reqres.in", debug: true, log: './nice_http_tmp.log'})
+    File.delete("./nice_http_tmp.log") if File.exist?("./nice_http_tmp.log")
+    @http = NiceHttp.new({host: "https://www.reqres.in", debug: true, log: "./nice_http_tmp.log"})
 
     request = {
       path: "/api/register",
       data: {
-        email: 'test@example.com',
-        password: 'example'
-      }
+        email: "test@example.com",
+        password: "example",
+      },
     }
     resp = @http.post request
     resp = @http.post request
     resp = @http.post request
-    content = File.read('./nice_http_tmp.log')
+    content = File.read("./nice_http_tmp.log")
     expect(content).not_to match /Same as the last response/
     expect(content).not_to match /Same as the last request/
   end
-
-
 
   #todo: add tests encoding and cookies
 

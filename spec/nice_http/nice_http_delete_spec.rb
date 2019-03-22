@@ -11,7 +11,7 @@ RSpec.describe NiceHttp, "#delete" do
   end
 
   it "accepts Hash with key path" do
-    resp = @http.delete({ path: "/api/users/2" })
+    resp = @http.delete({path: "/api/users/2"})
     expect(resp.code).to eq 204
   end
 
@@ -31,14 +31,14 @@ RSpec.describe NiceHttp, "#delete" do
       mock_response: {
         code: 100,
         message: "mock",
-        data: { example: "mock" },
+        data: {example: "mock"},
       },
     }
     resp = @http.delete(request)
     expect(resp.class).to eq Hash
     expect(resp.code).to eq 100
     expect(resp.message).to eq "mock"
-    expect(resp.data.json).to eq ({ example: "mock" })
+    expect(resp.data.json).to eq ({example: "mock"})
   end
 
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
@@ -47,7 +47,7 @@ RSpec.describe NiceHttp, "#delete" do
     http.auto_redirect = false
     req = {
       path: "/exampleRedirect",
-      data: { example: "example" },
+      data: {example: "example"},
     }
     resp = http.delete(req)
     expect(resp.code).to eq 303
@@ -59,7 +59,7 @@ RSpec.describe NiceHttp, "#delete" do
       mock_response: {
         code: 200,
         message: "OK",
-        data: { a: "Android\xAE" },
+        data: {a: "Android\xAE"},
       },
     }
     @http.use_mocks = true

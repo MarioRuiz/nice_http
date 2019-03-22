@@ -351,6 +351,197 @@ Example posting a csv file:
 
 ```
 
+## Http logs
+
+You can set where the http logs will be stored by using the log attribute of the NiceHttp. 
+By default they will be stored in your root directory with the name nice_http.log.
+```ruby
+    # you can specify the default for all connections
+    NiceHttp.log = :file_run
+
+    # also you can specify for a concrete connection
+    http = NiceHttp.new({host: 'www.example.com', log: './example.log'})
+```
+
+Other values you can supply:
+* :fix_file, will log the communication on nice_http.log. (default).
+* :no, won't generate any logs.
+* :screen, will print the logs on the screen.
+* :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.
+* :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log
+* String, the path and file name where the logs will be stored.
+
+Example of logs:
+```
+I, [2019-03-22T18:38:58.518964 #29412]  INFO -- : (47266856647720): Http connection created. host:www.reqres.in,  port:443,  ssl:true, mode:, proxy_host: , proxy_port:  
+I, [2019-03-22T18:38:58.537106 #29412]  INFO -- : (47266856647720): Http connection: https://www.reqres.in:443
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - 
+POST Request: Doom.example
+ path: /api/users
+ headers: {Loop:44, Cookie:, Boom:33, Content-Type:application/json, }
+ data: {
+  "name": "peter",
+  "job": "leader",
+  "products": [
+    {
+      "one": "uno",
+      "two": 2
+    },
+    {
+      "one": "uno",
+      "two": 22
+    }
+  ]
+}
+
+I, [2019-03-22T18:38:58.873935 #29412]  INFO -- : 
+RESPONSE: 
+ 201:Created
+ time_elapsed_total: '0.335720719'
+ time_elapsed: '0.335728095'
+ date: 'Fri, 22 Mar 2019 18:38:58 GMT'
+ content-type: 'application/json; charset=utf-8'
+ content-length: '172'
+ connection: 'keep-alive'
+ set-cookie: '__cfduid=dfb962e62cd8386ce4ab9bad601611553272738; expires=Sat, 21-Mar-20 18:38:58 GMT; path=/; domain=.reqres.in; HttpOnly'
+ x-powered-by: 'Express'
+ access-control-allow-origin: '*'
+ etag: 'W/"ac-EMh4XBmK5vry/OeKaGWILGtmHU0"'
+ expect-ct: 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"'
+ server: 'cloudflare'
+ cf-ray: '4bb99958090dbf89-AMS'
+ data: '{
+  "name": "peter",
+  "job": "leader",
+  "products": [
+    {
+      "one": "uno",
+      "two": 2
+    },
+    {
+      "one": "uno",
+      "two": 22
+    }
+  ],
+  "id": "628",
+  "createdAt": "2019-03-22T18:43:33.619Z"
+}'
+
+I, [2019-03-22T18:38:58.874190 #29412]  INFO -- : set-cookie added to Cookie header as required
+I, [2019-03-22T18:38:59.075293 #29412]  INFO -- : 
+
+- - - - - - - - - - - - - - - - - - - - - - - - - 
+GET Request: Doom.example
+ path: /api/users
+ Same headers and data as in the previous request.
+I, [2019-03-22T18:38:59.403459 #29412]  INFO -- : 
+RESPONSE: 
+ 200:OK
+ time_elapsed_total: '0.327002338'
+ time_elapsed: '0.327004766'
+ date: 'Fri, 22 Mar 2019 18:38:59 GMT'
+ content-type: 'application/json; charset=utf-8'
+ transfer-encoding: 'chunked'
+ connection: 'keep-alive'
+ x-powered-by: 'Express'
+ access-control-allow-origin: '*'
+ etag: 'W/"1bb-D+c3sZ5g5u/nmLPQRl1uVo2heAo"'
+ expect-ct: 'max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"'
+ server: 'cloudflare'
+ cf-ray: '4bb9995b5c20bf89-AMS'
+ data: '{
+  "page": 1,
+  "per_page": 3,
+  "total": 12,
+  "total_pages": 4,
+  "data": [
+    {
+      "id": 1,
+      "first_name": "George",
+      "last_name": "Bluth",
+      "avatar": "https://s3.amazonaws.com/uifaces/faces/twitter/calebogden/128.jpg"
+    },
+    {
+      "id": 2,
+      "first_name": "Janet",
+      "last_name": "Weaver",
+      "avatar": "https://s3.amazonaws.com/uifaces/faces/twitter/josephstein/128.jpg"
+    },
+  ]
+}'
+
+```
+
+## Http stats
+
+If you want to get a summarize stats of your http communication you need to set `NiceHttp.create_stats = true` 
+
+Then whenever you want to access the stats: `NiceHttp.stats`
+
+Also it is very convenient to store the stats on a file, for example on YAML format. You can use the at_exit method to be run at the end of the run:
+
+```ruby
+at_exit do
+    require 'yaml'
+    NiceHttp.stats.keys.each do |key|
+        File.open("./nice_http_stats_#{key}.yaml", "w") { |file| file.write(NiceHttp.stats[key].to_yaml) }
+    end
+end
+```
+
+This is an example of the output:
+
+```yaml
+---
+www.reqres.in:443:
+  :num_requests: 11
+  :time_elapsed:
+    :total: 2.947269038
+    :maximum: 0.357101109
+    :minimum: 0.198707111
+    :average: 0.2679335489090909
+  "/api/users":
+    :num_requests: 11
+    :time_elapsed:
+      :total: 2.947269038
+      :maximum: 0.357101109
+      :minimum: 0.198707111
+      :average: 0.2679335489090909
+    :method:
+      POST:
+        :num_requests: 8
+        :time_elapsed:
+          :total: 2.3342455970000002
+          :maximum: 0.357101109
+          :minimum: 0.198707111
+          :average: 0.29178069962500003
+        :response:
+          '201':
+            :num_requests: 8
+            :time_elapsed:
+              :total: 2.3342455970000002
+              :maximum: 0.357101109
+              :minimum: 0.198707111
+              :average: 0.29178069962500003
+      GET:
+        :num_requests: 3
+        :time_elapsed:
+          :total: 0.613023441
+          :maximum: 0.210662528
+          :minimum: 0.200197583
+          :average: 0.20434114699999997
+        :response:
+          '200':
+            :num_requests: 3
+            :time_elapsed:
+              :total: 0.613023441
+              :maximum: 0.210662528
+              :minimum: 0.200197583
+              :average: 0.20434114699999997
+```
+
 ## Contributing
 
 Bug reports are very welcome on GitHub at https://github.com/marioruiz/nice_http.

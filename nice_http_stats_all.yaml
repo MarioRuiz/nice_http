@@ -1,0 +1,38 @@
+---
+:num_requests: 12
+:time_elapsed:
+  :total: 3.040032696
+  :maximum: 0.357101109
+  :minimum: 0.092763658
+  :average: 0.253336058
+:method:
+  POST:
+    :num_requests: 8
+    :time_elapsed:
+      :total: 2.3342455970000002
+      :maximum: 0.357101109
+      :minimum: 0.198707111
+      :average: 0.29178069962500003
+    :response:
+      '201':
+        :num_requests: 8
+        :time_elapsed:
+          :total: 2.3342455970000002
+          :maximum: 0.357101109
+          :minimum: 0.198707111
+          :average: 0.29178069962500003
+  GET:
+    :num_requests: 4
+    :time_elapsed:
+      :total: 0.7057870989999999
+      :maximum: 0.210662528
+      :minimum: 0.092763658
+      :average: 0.17644677474999998
+    :response:
+      '200':
+        :num_requests: 4
+        :time_elapsed:
+          :total: 0.7057870989999999
+          :maximum: 0.210662528
+          :minimum: 0.092763658
+          :average: 0.17644677474999998

@@ -9,7 +9,7 @@ RSpec.describe NiceHttp do
       klass.host = "example.com"
       klass.port = 433
       klass.ssl = true
-      klass.headers = { uno: "one" }
+      klass.headers = {uno: "one"}
       klass.debug = true
       klass.log = :screen
       klass.proxy_host = "example.com"
@@ -21,7 +21,9 @@ RSpec.describe NiceHttp do
       klass.connections = [1, 1]
       klass.active = 1
       klass.auto_redirect = false
-      klass.values_for = { one: 1 }
+      klass.values_for = {one: 1}
+      klass.create_stats = true
+      klass.stats = {one: 1}
 
       klass.reset!
 
@@ -41,6 +43,8 @@ RSpec.describe NiceHttp do
       expect(klass.active).to eq 0
       expect(klass.auto_redirect).to eq true
       expect(klass.values_for).to eq ({})
+      expect(klass.create_stats).to eq false
+      expect(klass.stats[:all][:num_requests]).to eq 0
     end
   end
 
@@ -193,7 +197,7 @@ RSpec.describe NiceHttp do
 
   describe "headers" do
     it "uses the class headers by default" do
-      klass.headers = { example: "test" }
+      klass.headers = {example: "test"}
       klass.host = "example.com"
       klass.port = 443
       expect(klass.new.headers).to eq klass.headers
@@ -202,7 +206,7 @@ RSpec.describe NiceHttp do
       klass.port = 443
       klass.host = "localhost"
       klass.headers = {}
-      expect(klass.new(headers: { example: "test" }).headers).to eq ({ example: "test" })
+      expect(klass.new(headers: {example: "test"}).headers).to eq ({example: "test"})
     end
     it 'raises an error when it can\'t figure out the headers' do
       klass.headers = nil
@@ -217,7 +221,7 @@ RSpec.describe NiceHttp do
 
   describe "values_for" do
     it "uses the class values_for by default" do
-      klass.values_for = { example: "test" }
+      klass.values_for = {example: "test"}
       klass.host = "example.com"
       klass.port = 443
       expect(klass.new.values_for).to eq klass.values_for
@@ -226,7 +230,7 @@ RSpec.describe NiceHttp do
       klass.port = 443
       klass.host = "localhost"
       klass.values_for = {}
-      expect(klass.new(values_for: { example: "test" }).values_for).to eq ({ example: "test" })
+      expect(klass.new(values_for: {example: "test"}).values_for).to eq ({example: "test"})
     end
     it 'raises an error when it can\'t figure out the values_for' do
       klass.values_for = nil
@@ -239,12 +243,12 @@ RSpec.describe NiceHttp do
     end
 
     it "changes :data when supplied :values_for on class defaults" do
-      klass.values_for = { name: "peter" }
+      klass.values_for = {name: "peter"}
       klass.host = "https://www.reqres.in"
       http = klass.new
       request = {
         path: "/api/users",
-        data: { name: "morpheus", job: "leader" },
+        data: {name: "morpheus", job: "leader"},
       }
       resp = http.post(request)
       expect(resp.code).to eq 201
@@ -254,10 +258,10 @@ RSpec.describe NiceHttp do
     it "changes :data when supplied :values_for on new class instance" do
       klass.values_for = {}
       klass.host = "https://www.reqres.in"
-      http = klass.new(values_for: { name: "juan" })
+      http = klass.new(values_for: {name: "juan"})
       request = {
         path: "/api/users",
-        data: { name: "morpheus", job: "leader" },
+        data: {name: "morpheus", job: "leader"},
       }
       resp = http.post(request)
       expect(resp.code).to eq 201
@@ -267,12 +271,12 @@ RSpec.describe NiceHttp do
     it "changes :data when supplied :values_for on request instead of value on class" do
       klass.values_for = {}
       klass.host = "https://www.reqres.in"
-      http = klass.new(values_for: { name: "juan" })
+      http = klass.new(values_for: {name: "juan"})
       request = {
         path: "/api/users",
-        data: { name: "morpheus", job: "leader" },
+        data: {name: "morpheus", job: "leader"},
       }
-      request.values_for = { name: "John" }
+      request.values_for = {name: "John"}
       resp = http.post(request)
       expect(resp.code).to eq 201
       expect(resp.data.json(:name)).to eq "John"
@@ -326,11 +330,14 @@ RSpec.describe NiceHttp do
     specify "headers is empty hash" do
       expect(klass.headers).to eq ({})
     end
-    specify "headers is empty hash" do
+    specify "values_for is empty hash" do
       expect(klass.values_for).to eq ({})
     end
     specify "log is :fix_file" do
       expect(klass.log).to eq (:fix_file)
+    end
+    specify "create_stats is false" do
+      expect(klass.create_stats).to eq false
     end
     specify "I can set/get them with accessors" do
       expect { klass.port = 8888 }.to change { klass.port }.to(8888)
@@ -339,23 +346,25 @@ RSpec.describe NiceHttp do
       expect { klass.debug = true }.to change { klass.debug }.to(true)
       expect { klass.auto_redirect = false }.to change { klass.auto_redirect }.to(false)
       expect { klass.use_mocks = true }.to change { klass.use_mocks }.to(true)
-      expect { klass.headers = { example: "test" } }.to change { klass.headers }.to({ example: "test" })
-      expect { klass.values_for = { example: "test" } }.to change { klass.values_for }.to({ example: "test" })
+      expect { klass.headers = {example: "test"} }.to change { klass.headers }.to({example: "test"})
+      expect { klass.values_for = {example: "test"} }.to change { klass.values_for }.to({example: "test"})
       expect { klass.log = :screen }.to change { klass.log }.to(:screen)
+      expect { klass.create_stats = true }.to change { klass.create_stats }.to(true)
     end
     specify "I can set many at once with a hash" do
-      expect { klass.defaults = { port: 8888 } }.to change { klass.port }.to(8888)
-      expect { klass.defaults = { host: "localhost" } }.to change { klass.host }.to("localhost")
-      expect { klass.defaults = { ssl: true } }.to change { klass.ssl }.to(true)
-      expect { klass.defaults = { debug: true } }.to change { klass.debug }.to(true)
-      expect { klass.defaults = { auto_redirect: false } }.to change { klass.auto_redirect }.to(false)
-      expect { klass.defaults = { use_mocks: true } }.to change { klass.use_mocks }.to(true)
-      expect { klass.defaults = { headers: { example: "test" } } }.to change { klass.headers }.to({ example: "test" })
-      expect { klass.defaults = { values_for: { example: "test" } } }.to change { klass.values_for }.to({ example: "test" })
-      expect { klass.defaults = { log: :screen } }.to change { klass.log }.to(:screen)
+      expect { klass.defaults = {port: 8888} }.to change { klass.port }.to(8888)
+      expect { klass.defaults = {host: "localhost"} }.to change { klass.host }.to("localhost")
+      expect { klass.defaults = {ssl: true} }.to change { klass.ssl }.to(true)
+      expect { klass.defaults = {debug: true} }.to change { klass.debug }.to(true)
+      expect { klass.defaults = {auto_redirect: false} }.to change { klass.auto_redirect }.to(false)
+      expect { klass.defaults = {use_mocks: true} }.to change { klass.use_mocks }.to(true)
+      expect { klass.defaults = {headers: {example: "test"}} }.to change { klass.headers }.to({example: "test"})
+      expect { klass.defaults = {values_for: {example: "test"}} }.to change { klass.values_for }.to({example: "test"})
+      expect { klass.defaults = {log: :screen} }.to change { klass.log }.to(:screen)
+      expect { klass.defaults = {create_stats: true} }.to change { klass.create_stats }.to(true)
     end
     specify 'setting many at once doesn\'t override unprovided values' do
-      expect { klass.defaults = { host: "http://whatevz.com" } }.to_not change { klass.port }
+      expect { klass.defaults = {host: "http://whatevz.com"} }.to_not change { klass.port }
     end
   end
 
@@ -403,7 +412,6 @@ RSpec.describe NiceHttp do
       content = File.read("./example.log")
       expect(content).to match /example2/
 
-
       http1.logger.info "testing2"
       content = File.read("./example.log")
       expect(content).to match /testing2/
@@ -413,7 +421,6 @@ RSpec.describe NiceHttp do
       http2.logger.info "example3"
       content = File.read("./example.log")
       expect(content).to match /example3/
-
     end
 
     it "logs to nice_http.log when :fix_file specified" do
