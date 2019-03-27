@@ -276,4 +276,5 @@ module NiceHttpManageResponse
       set_stats(self.class.stats[:name][@prev_request[:name]][:method][@prev_request[:method]][:response][resp.code])
     end
   end
+
 end

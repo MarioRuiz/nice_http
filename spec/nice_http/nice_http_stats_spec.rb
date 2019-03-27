@@ -3,7 +3,7 @@ require "English"
 
 RSpec.describe NiceHttp do
   let(:klass) { Class.new NiceHttp }
-  
+
   describe "stats" do
     describe "all" do
       it "counts correctly the number of requests" do
@@ -98,18 +98,18 @@ RSpec.describe NiceHttp do
       it "counts correctly the number of requests" do
         klass.create_stats = true
         http = klass.new("http://example.com")
-        resp = http.get({path: "/", name: 'exam_name'})
+        resp = http.get({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:num_requests]).to eq 1
-        resp = http.get({path: "/", name: 'exam_name'})
+        resp = http.get({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:num_requests]).to eq 2
       end
       it "counts correctly time_elapsed" do
         klass.create_stats = true
         http = klass.new("http://example.com")
-        resp = http.get({path: "/", name: 'exam_name'})
+        resp = http.get({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:time_elapsed][:total]).to eq resp[:time_elapsed]
         prev_time = resp[:time_elapsed]
-        resp = http.get({path: "/", name: 'exam_name'})
+        resp = http.get({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:time_elapsed][:total]).to eq (resp[:time_elapsed] + prev_time)
         expect(klass.stats[:name]["exam_name"][:time_elapsed][:maximum]).to be >= klass.stats[:all][:time_elapsed][:minimum]
         expect(klass.stats[:name]["exam_name"][:time_elapsed][:minimum]).to be <= klass.stats[:all][:time_elapsed][:maximum]
@@ -118,8 +118,8 @@ RSpec.describe NiceHttp do
       it "creates correctly the http method stats" do
         klass.create_stats = true
         http = klass.new("http://example.com")
-        resp = http.get({path: "/", name: 'exam_name'})
-        resp = http.post({path: "/", name: 'exam_name'})
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.post({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:method].keys).to eq (["GET", "POST"])
         expect(klass.stats[:name]["exam_name"][:method]["GET"].keys).to eq ([:num_requests, :time_elapsed, :response])
         expect(klass.stats[:name]["exam_name"][:method]["GET"][:time_elapsed][:total]).to be > 0
@@ -128,13 +128,61 @@ RSpec.describe NiceHttp do
       it "creates correctly the http response stats" do
         klass.create_stats = true
         http = klass.new("http://example.com")
-        resp = http.get({path: "/", name: 'exam_name'})
-        resp = http.post({path: "/", name: 'exam_name'})
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.post({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:method]["GET"][:response].keys).to eq (["200"])
         expect(klass.stats[:name]["exam_name"][:method]["GET"][:response]["200"].keys).to eq ([:num_requests, :time_elapsed])
         expect(klass.stats[:name]["exam_name"][:method]["GET"][:response]["200"][:time_elapsed][:total]).to be > 0
       end
     end
 
+    describe "specific" do
+      it "counts correctly the number of records" do
+        klass.create_stats = true
+        started = Time.now
+        http = klass.new("http://example.com")
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.get({path: "/", name: "exam_name"})
+        klass.add_stats(:example, :correct, started, Time.now)
+        expect(klass.stats[:specific][:example][:num]).to eq 1
+        expect(klass.stats[:specific][:example][:correct][:num]).to eq 1
+        started = Time.now
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.get({path: "/", name: "exam_name"})
+        klass.add_stats(:example, :correct, started, Time.now)
+        expect(klass.stats[:specific][:example][:num]).to eq 2
+        expect(klass.stats[:specific][:example][:correct][:num]).to eq 2
+        started = Time.now
+        http = klass.new("http://example.com")
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.get({path: "/", name: "exam_name"})
+        klass.add_stats(:example, :correct, started, Time.now)
+        expect(klass.stats[:specific][:example][:num]).to eq 3
+        expect(klass.stats[:specific][:example][:correct][:num]).to eq 3
+      end
+      it "counts correctly time_elapsed" do
+        klass.create_stats = true
+        started = Time.now
+        http = klass.new("http://example.com")
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.get({path: "/", name: "exam_name"})
+        finished = Time.now
+        klass.add_stats(:example, :correct, started, finished)
+        expect(klass.stats[:specific][:example][:time_elapsed][:total]).to eq (finished-started)
+        expect(klass.stats[:specific][:example][:correct][:time_elapsed][:total]).to eq (finished-started)
+      end
+      it "creates correctly the hash" do
+        klass.create_stats = true
+        started = Time.now
+        http = klass.new("http://example.com")
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.post({path: "/", name: "exam_name"})
+        klass.add_stats(:example, :correct, started, Time.now)
+        expect(klass.stats[:specific][:example].keys).to eq ([:num, :time_elapsed, :correct])
+        expect(klass.stats[:specific][:example][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
+        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :time_elapsed])
+        expect(klass.stats[:specific][:example][:correct][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
+      end
+    end
   end
 end

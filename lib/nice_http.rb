@@ -139,6 +139,44 @@ class NiceHttp
   end
 
   ######################################################
+  # To add specific stats
+  # The stats will be added to NiceHttp.stats[:specific]
+  #
+  # @param name [Symbol] name to group your specific stats
+  # @param state [Symbol] state of the name supplied to group your specific stats
+  # @param started [Time] when the process you want the stats started
+  # @param finished [Time] when the process you want the stats finished
+  #
+  # @example
+  #   started = Time.now
+  #   @http.send_request Requests::Customer.add_customer
+  #   30.times do
+  #      resp = @http.get(Requests::Customer.get_customer)
+  #      break if resp.code == 200
+  #      sleep 0.5
+  #   end
+  #   NiceHttp.add_stats(:customer, :create, started, Time.now)
+  ######################################################
+  def self.add_stats(name, state, started, finished)
+    self.stats[:specific] ||= {}
+    self.stats[:specific][name] ||= {num: 0, time_elapsed: {total:0, maximum:0, minimum:1000, average: 0}}
+    self.stats[:specific][name][:num] += 1
+    time_elapsed = self.stats[:specific][name][:time_elapsed]
+    time_elapsed[:total] += finished - started
+    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum]<(finished-started)
+    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum]>(finished-started)
+    time_elapsed[:average] = time_elapsed[:total]/self.stats[:specific][name][:num]
+
+    self.stats[:specific][name][state] ||= {num: 0, time_elapsed: {total:0, maximum:0, minimum:1000, average: 0}}
+    self.stats[:specific][name][state][:num] += 1
+    time_elapsed = self.stats[:specific][name][state][:time_elapsed]
+    time_elapsed[:total] += finished - started
+    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum]<(finished-started)
+    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum]>(finished-started)
+    time_elapsed[:average] = time_elapsed[:total]/self.stats[:specific][name][state][:num]
+  end
+
+  ######################################################
   # Creates a new http connection.
   #
   # @param args [] If no parameter supplied, by default will access how is setup on defaults

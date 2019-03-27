@@ -542,6 +542,19 @@ www.reqres.in:443:
               :average: 0.20434114699999997
 ```
 
+If you want to add specific stats for your processes you can use the method `NiceHttp.add_stats`
+
+```ruby
+   started = Time.now
+   @http.send_request Requests::Customer.add_customer
+   30.times do
+      resp = @http.get(Requests::Customer.get_customer)
+      break if resp.code == 200
+      sleep 0.5
+   end
+   NiceHttp.add_stats(:customer, :create, started, Time.now)
+```
+
 ## Contributing
 
 Bug reports are very welcome on GitHub at https://github.com/marioruiz/nice_http.
