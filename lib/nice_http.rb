@@ -69,6 +69,15 @@ class NiceHttp
                   :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats
   end
 
+  at_exit do
+    if self.create_stats
+      require 'yaml'
+      self.stats.keys.each do |key|
+          File.open("./nice_http_stats_#{key}.yaml", "w") { |file| file.write(self.stats[key].to_yaml) }
+      end
+    end
+  end
+
   ######################################################
   # to reset to the original defaults
   ######################################################
@@ -175,6 +184,7 @@ class NiceHttp
     time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum]>(finished-started)
     time_elapsed[:average] = time_elapsed[:total]/self.stats[:specific][name][state][:num]
   end
+
 
   ######################################################
   # Creates a new http connection.
@@ -348,6 +358,8 @@ class NiceHttp
         @message_server += " proxy:#{@proxy_host}:#{@proxy_port}"
       end
       @auto_redirect = auto_redirect
+      # for the case we have headers following nice_hash implementation
+      @headers = @headers.generate
 
       self.class.active += 1
       self.class.connections.push(self)

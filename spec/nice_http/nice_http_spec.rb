@@ -506,4 +506,35 @@ RSpec.describe NiceHttp do
       expect(resp.code).to eq 200
     end
   end
+
+  describe "lambda on headers" do
+    it "execute lambdas on headers for every request" do
+      http = klass.new("https://reqres.in/api")
+      req = {path: "/users?page=2", headers: {example: lambda {Time.now}}}
+      resp = http.get req.generate
+      first_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
+      expect(klass.last_request).to match /example:[\d\-\s:+]+,/
+      sleep 1
+      resp = http.get req.generate
+      second_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
+      expect(klass.last_request).to match /example:[\d\-\s:+]+,/
+      expect(second_request).not_to be == first_request
+    end
+
+    it "execute lambdas on headers when initializing" do
+      klass.headers = {example: lambda {Time.now}}
+      http = klass.new("https://reqres.in/api")
+      resp = http.get "/users?page=2"
+      first_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
+      expect(klass.last_request).to match /example:[\d\-\s:+]+,/
+      sleep 1
+      resp = http.get "/users?page=2"
+      second_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
+      expect(klass.last_request).to match /example:[\d\-\s:+]+,/
+      expect(second_request).to be == first_request
+    end
+
+  end
+
+
 end

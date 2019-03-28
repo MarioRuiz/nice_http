@@ -333,6 +333,13 @@ You can see on the next link how to get the OAuth2 token for Microsoft Azure and
 
 https://gist.github.com/MarioRuiz/d3525185024737885c0c9afa6dc8b9e5
 
+If you need a new token every time a new http connection is created you can use `lambda`
+
+```ruby
+NiceHttp.headers[:Authorization] = lambda {get_token()}
+```
+
+NiceHttp will call the get_token method you created every time a new Http connection is created.
 
 ## Send multipart content
 
@@ -480,14 +487,18 @@ If you want to get a summarize stats of your http communication you need to set 
 
 Then whenever you want to access the stats: `NiceHttp.stats`
 
-Also it is very convenient to store the stats on a file, for example on YAML format. You can use the at_exit method to be run at the end of the run:
+After the run is finished there will be few files starting by nice_http_stats and extension yaml on your project root folder including all http stats.
+
+If you are using RSpec and you want to generate the stats files after every test is finished, add to your spec_helper.rb file:
 
 ```ruby
-at_exit do
+RSpec.configure do |config|
+  config.after(:each) do
     require 'yaml'
     NiceHttp.stats.keys.each do |key|
         File.open("./nice_http_stats_#{key}.yaml", "w") { |file| file.write(NiceHttp.stats[key].to_yaml) }
     end
+  end
 end
 ```
 

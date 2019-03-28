@@ -216,6 +216,10 @@ module NiceHttpManageRequest
       if data.to_s() != "" and encoding.to_s().upcase != "UTF-8" and encoding != ""
         data = data.to_s().encode(encoding, "UTF-8")
       end
+      headers_t.each do |k,v|
+        # for lambdas
+        headers_t[k] = v.call if v.is_a?(Proc)
+      end
       @prev_request[:path] = path
       @prev_request[:data] = data
       @prev_request[:headers] = headers_t
