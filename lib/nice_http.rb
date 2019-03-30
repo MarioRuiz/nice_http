@@ -281,13 +281,16 @@ class NiceHttp
       log_filename = ""
       if @log.kind_of?(String) or @log == :fix_file or @log == :file or @log == :file_run
         if @log.kind_of?(String)
-          log_filename = @log
+          log_filename = @log.dup
         elsif @log == :fix_file
           log_filename = "nice_http.log"
         elsif @log == :file
           log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
         elsif @log == :file_run
           log_filename = "#{caller.first[/[^:]+/]}.log"
+        end
+        if Thread.current.name.to_s!=''
+          log_filename.gsub!(/\.log$/, "_#{Thread.current.name}.log")
         end
         if self.class.log_files.key?(log_filename)
           @logger = self.class.log_files[log_filename]

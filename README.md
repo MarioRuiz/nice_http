@@ -481,6 +481,32 @@ RESPONSE:
 
 ```
 
+### Multithreading
+
+In case you want to use multithread and log in different files every thread, add an unique name for the thread then the logs will be stored accordingly
+
+```ruby
+require 'nice_http'
+
+threads = []
+
+40.times do |num|
+    threads << Thread.new do
+        Thread.current.name = num.to_s
+        http = NiceHttp.new("https://www.reqres.in")
+        request = {
+          path: '/api/users',
+          data: { name: 'morpheus', job: 'leader' },
+        }
+        http.post(request)
+    end
+end
+
+t.each(&:join)
+
+# log files: nice_http_0.log, nice_http_1.log... nice_http_39.log
+```
+
 ## Http stats
 
 If you want to get a summarize stats of your http communication you need to set `NiceHttp.create_stats = true` 
