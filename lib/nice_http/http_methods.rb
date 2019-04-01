@@ -113,7 +113,7 @@ module NiceHttpHttpMethods
       return @response
     rescue Exception => stack
       @logger.fatal stack
-      return {fatal_error: stack.to_s, code: nil, message: nil, data: ""}
+      return { fatal_error: stack.to_s, code: nil, message: nil, data: "" }
     end
   end
 
@@ -209,7 +209,7 @@ module NiceHttpHttpMethods
       return @response
     rescue Exception => stack
       @logger.fatal stack
-      return {fatal_error: stack.to_s, code: nil, message: nil, data: ""}
+      return { fatal_error: stack.to_s, code: nil, message: nil, data: "" }
     end
   end
 
@@ -275,7 +275,7 @@ module NiceHttpHttpMethods
       return @response
     rescue Exception => stack
       @logger.fatal stack
-      return {fatal_error: stack.to_s, code: nil, message: nil, data: ""}
+      return { fatal_error: stack.to_s, code: nil, message: nil, data: "" }
     end
   end
 
@@ -356,7 +356,7 @@ module NiceHttpHttpMethods
       return @response
     rescue Exception => stack
       @logger.fatal stack
-      return {fatal_error: stack.to_s, code: nil, message: nil, data: ""}
+      return { fatal_error: stack.to_s, code: nil, message: nil, data: "" }
     end
   end
 
@@ -380,7 +380,7 @@ module NiceHttpHttpMethods
   def delete(argument)
     begin
       if argument.kind_of?(String)
-        argument = {:path => argument}
+        argument = { :path => argument }
       end
       path, data, headers_t = manage_request(argument)
       @start_time = Time.now if @start_time.nil?
@@ -423,7 +423,7 @@ module NiceHttpHttpMethods
       return @response
     rescue Exception => stack
       @logger.fatal stack
-      return {fatal_error: stack.to_s, code: nil, message: nil, data: ""}
+      return { fatal_error: stack.to_s, code: nil, message: nil, data: "" }
     end
   end
 
@@ -445,7 +445,7 @@ module NiceHttpHttpMethods
   def head(argument)
     begin
       if argument.kind_of?(String)
-        argument = {:path => argument}
+        argument = { :path => argument }
       end
       path, data, headers_t = manage_request(argument)
       @start_time = Time.now if @start_time.nil?
@@ -475,7 +475,7 @@ module NiceHttpHttpMethods
       return @response
     rescue Exception => stack
       @logger.fatal stack
-      return {fatal_error: stack.to_s, code: nil, message: nil}
+      return { fatal_error: stack.to_s, code: nil, message: nil }
     end
   end
 
@@ -504,7 +504,7 @@ module NiceHttpHttpMethods
       message = "send_request: it needs to be supplied a Request Hash that includes a :method and :path. "
       message += "Supported methods: :get, :head, :post, :put, :delete, :patch"
       @logger.fatal message
-      return {fatal_error: message, code: nil, message: nil}
+      return { fatal_error: message, code: nil, message: nil }
     else
       case request_hash[:method]
       when :get

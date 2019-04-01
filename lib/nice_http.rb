@@ -54,10 +54,11 @@ class NiceHttp
   InfoMissing = Class.new Error do
     attr_reader :attribute
 
-    def initialize(attribute)
+    def initialize(attribute, message = "")
       @attribute = attribute
-      message = "It was not possible to create the http connection!!!\n"
-      message += "Wrong #{attribute}, remember to supply http:// or https:// in case you specify an url to create the http connection, for example:\n"
+      message += "It was not possible to create the http connection!!!\n"
+      message += "Wrong #{attribute}. "
+      message += "Remember to supply http:// or https:// in case you specify an url to create the http connection, for example:\n"
       message += "http = NiceHttp.new('http://example.com')"
       super message
     end
@@ -71,9 +72,9 @@ class NiceHttp
 
   at_exit do
     if self.create_stats
-      require 'yaml'
+      require "yaml"
       self.stats.keys.each do |key|
-          File.open("./nice_http_stats_#{key}.yaml", "w") { |file| file.write(self.stats[key].to_yaml) }
+        File.open("./nice_http_stats_#{key}.yaml", "w") { |file| file.write(self.stats[key].to_yaml) }
       end
     end
   end
@@ -168,23 +169,22 @@ class NiceHttp
   ######################################################
   def self.add_stats(name, state, started, finished)
     self.stats[:specific] ||= {}
-    self.stats[:specific][name] ||= {num: 0, time_elapsed: {total:0, maximum:0, minimum:1000, average: 0}}
+    self.stats[:specific][name] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 } }
     self.stats[:specific][name][:num] += 1
     time_elapsed = self.stats[:specific][name][:time_elapsed]
     time_elapsed[:total] += finished - started
-    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum]<(finished-started)
-    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum]>(finished-started)
-    time_elapsed[:average] = time_elapsed[:total]/self.stats[:specific][name][:num]
+    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum] < (finished - started)
+    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum] > (finished - started)
+    time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][:num]
 
-    self.stats[:specific][name][state] ||= {num: 0, time_elapsed: {total:0, maximum:0, minimum:1000, average: 0}}
+    self.stats[:specific][name][state] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 } }
     self.stats[:specific][name][state][:num] += 1
     time_elapsed = self.stats[:specific][name][state][:time_elapsed]
     time_elapsed[:total] += finished - started
-    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum]<(finished-started)
-    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum]>(finished-started)
-    time_elapsed[:average] = time_elapsed[:total]/self.stats[:specific][name][state][:num]
+    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum] < (finished - started)
+    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum] > (finished - started)
+    time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][state][:num]
   end
-
 
   ######################################################
   # Creates a new http connection.
@@ -277,41 +277,55 @@ class NiceHttp
       auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
     end
 
-    begin
-      log_filename = ""
-      if @log.kind_of?(String) or @log == :fix_file or @log == :file or @log == :file_run
-        if @log.kind_of?(String)
-          log_filename = @log.dup
-        elsif @log == :fix_file
-          log_filename = "nice_http.log"
-        elsif @log == :file
-          log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
-        elsif @log == :file_run
-          log_filename = "#{caller.first[/[^:]+/]}.log"
+    log_filename = ""
+    if @log.kind_of?(String) or @log == :fix_file or @log == :file or @log == :file_run
+      if @log.kind_of?(String)
+        log_filename = @log.dup
+
+        unless log_filename.start_with?(".")
+          if caller.first.start_with?(Dir.pwd)
+            folder = File.dirname(caller.first[/[^:]+/])
+          else
+            folder = File.dirname("#{Dir.pwd}/#{caller.first[/[^:]+/]}")
+          end
+          folder += "/" unless log_filename.start_with?("/")
+          log_filename = folder + log_filename
         end
-        if Thread.current.name.to_s!=''
-          log_filename.gsub!(/\.log$/, "_#{Thread.current.name}.log")
+        unless Dir.exist?(File.dirname(log_filename))
+          @logger = Logger.new nil
+          raise InfoMissing, :log, "Wrong directory specified for logs.\n"
         end
-        if self.class.log_files.key?(log_filename)
-          @logger = self.class.log_files[log_filename]
-        else
+      elsif @log == :fix_file
+        log_filename = "nice_http.log"
+      elsif @log == :file
+        log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
+      elsif @log == :file_run
+        log_filename = "#{caller.first[/[^:]+/]}.log"
+      end
+      if Thread.current.name.to_s != ""
+        log_filename.gsub!(/\.log$/, "_#{Thread.current.name}.log")
+      end
+      if self.class.log_files.key?(log_filename)
+        @logger = self.class.log_files[log_filename]
+      else
+        begin
           f = File.new(log_filename, "w")
           f.sync = true
           @logger = Logger.new f
-          self.class.log_files[log_filename] = @logger
+        rescue Exception => stack
+          @logger = Logger.new nil
+          raise InfoMissing, :log
         end
-      elsif @log == :screen
-        @logger = Logger.new STDOUT
-      elsif @log == :no
-        @logger = Logger.new nil
-      else
-        raise InfoMissing, :log
+        self.class.log_files[log_filename] = @logger
       end
-      @logger.level = Logger::INFO
-    rescue Exception => stack
+    elsif @log == :screen
+      @logger = Logger.new STDOUT
+    elsif @log == :no
       @logger = Logger.new nil
+    else
       raise InfoMissing, :log
     end
+    @logger.level = Logger::INFO
 
     if @host.to_s != "" and (@host.start_with?("http:") or @host.start_with?("https:"))
       uri = URI.parse(@host)

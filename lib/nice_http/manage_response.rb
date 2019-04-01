@@ -234,13 +234,13 @@ module NiceHttpManageResponse
 
     # server
     server = "#{@host}:#{@port}"
-    unless self.class.stats[:path].key?(server) 
+    unless self.class.stats[:path].key?(server)
       self.class.stats[:path][server] = {}
     end
     set_stats(self.class.stats[:path][server])
     # server path
     unless self.class.stats[:path][server].key?(@prev_request[:path])
-      self.class.stats[:path][server][@prev_request[:path]] = {method: {}}
+      self.class.stats[:path][server][@prev_request[:path]] = { method: {} }
     end
     set_stats(self.class.stats[:path][server][@prev_request[:path]])
     # server path method
@@ -259,7 +259,7 @@ module NiceHttpManageResponse
     if @prev_request.key?(:name)
       # name
       unless self.class.stats[:name].key?(@prev_request[:name])
-        self.class.stats[:name][@prev_request[:name]] = {method: {}}
+        self.class.stats[:name][@prev_request[:name]] = { method: {} }
       end
       set_stats(self.class.stats[:name][@prev_request[:name]])
       # name method
@@ -276,5 +276,4 @@ module NiceHttpManageResponse
       set_stats(self.class.stats[:name][@prev_request[:name]][:method][@prev_request[:method]][:response][resp.code])
     end
   end
-
 end

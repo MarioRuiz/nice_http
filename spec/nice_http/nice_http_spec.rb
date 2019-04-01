@@ -476,6 +476,20 @@ RSpec.describe NiceHttp do
       expect(files.size).to eq 0
     end
 
+    it 'logs data to relative path starting by name' do
+      Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
+      klass.log = 'nice_http_example.log'
+      klass.new("https://example.com")
+      expect(File.exist?('./spec/nice_http/nice_http_example.log')).to eq true
+    end
+
+    it 'logs data to relative path starting by slash' do
+      Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
+      klass.log = '/nice_http_example.log'
+      klass.new("https://example.com")
+      expect(File.exist?('./spec/nice_http/nice_http_example.log')).to eq true
+    end
+
     it "cannot close a connection that is already closed" do
       http = klass.new("https://example.com")
       http.close
