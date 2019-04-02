@@ -156,6 +156,7 @@ class NiceHttp
   # @param state [Symbol] state of the name supplied to group your specific stats
   # @param started [Time] when the process you want the stats started
   # @param finished [Time] when the process you want the stats finished
+  # @param item [Object] (Optional) The item to be added to :items key to store all items in an array
   #
   # @example
   #   started = Time.now
@@ -167,9 +168,9 @@ class NiceHttp
   #   end
   #   NiceHttp.add_stats(:customer, :create, started, Time.now)
   ######################################################
-  def self.add_stats(name, state, started, finished)
+  def self.add_stats(name, state, started, finished, item=nil)
     self.stats[:specific] ||= {}
-    self.stats[:specific][name] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 } }
+    self.stats[:specific][name] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }}
     self.stats[:specific][name][:num] += 1
     time_elapsed = self.stats[:specific][name][:time_elapsed]
     time_elapsed[:total] += finished - started
@@ -177,13 +178,15 @@ class NiceHttp
     time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum] > (finished - started)
     time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][:num]
 
-    self.stats[:specific][name][state] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 } }
+    self.stats[:specific][name][state] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }, items: [] }
     self.stats[:specific][name][state][:num] += 1
+    self.stats[:specific][name][state][:items] << item unless item.nil? or self.stats[:specific][name][state][:items].include?(item)
     time_elapsed = self.stats[:specific][name][state][:time_elapsed]
     time_elapsed[:total] += finished - started
     time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum] < (finished - started)
     time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum] > (finished - started)
     time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][state][:num]
+    
   end
 
   ######################################################
