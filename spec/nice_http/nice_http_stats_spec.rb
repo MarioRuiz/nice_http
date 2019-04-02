@@ -180,7 +180,7 @@ RSpec.describe NiceHttp do
         klass.add_stats(:example, :correct, started, Time.now)
         expect(klass.stats[:specific][:example].keys).to eq ([:num, :time_elapsed, :correct])
         expect(klass.stats[:specific][:example][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
-        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :time_elapsed])
+        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :time_elapsed, :items])
         expect(klass.stats[:specific][:example][:correct][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
       end
     end
