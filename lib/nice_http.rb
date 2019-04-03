@@ -171,8 +171,22 @@ class NiceHttp
     self.stats[:specific][name][:num] += 1
     time_elapsed = self.stats[:specific][name][:time_elapsed]
     time_elapsed[:total] += finished - started
-    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum] < (finished - started)
-    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum] > (finished - started)
+    if time_elapsed[:maximum] < (finished - started)
+      time_elapsed[:maximum] = (finished - started)
+      if !item.nil?
+        time_elapsed[:item_maximum] = item
+      elsif Thread.current.name.to_s != ""
+        time_elapsed[:item_maximum] = Thread.current.name
+      end
+    end
+    if time_elapsed[:minimum] > (finished - started)
+      time_elapsed[:minimum] = (finished - started) 
+      if !item.nil?
+        time_elapsed[:item_minimum] = item
+      elsif Thread.current.name.to_s != ""
+        time_elapsed[:item_minimum] = Thread.current.name
+      end
+    end
     time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][:num]
 
     self.stats[:specific][name][state] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }, items: [] }
@@ -180,8 +194,22 @@ class NiceHttp
     self.stats[:specific][name][state][:items] << item unless item.nil? or self.stats[:specific][name][state][:items].include?(item)
     time_elapsed = self.stats[:specific][name][state][:time_elapsed]
     time_elapsed[:total] += finished - started
-    time_elapsed[:maximum] = (finished - started) if time_elapsed[:maximum] < (finished - started)
-    time_elapsed[:minimum] = (finished - started) if time_elapsed[:minimum] > (finished - started)
+    if time_elapsed[:maximum] < (finished - started)
+      time_elapsed[:maximum] = (finished - started) 
+      if !item.nil?
+        time_elapsed[:item_maximum] = item
+      elsif Thread.current.name.to_s != ""
+        time_elapsed[:item_maximum] = Thread.current.name
+      end
+    end
+    if time_elapsed[:minimum] > (finished - started)
+      time_elapsed[:minimum] = (finished - started) 
+      if !item.nil?
+        time_elapsed[:item_minimum] = item
+      elsif Thread.current.name.to_s != ""
+        time_elapsed[:item_minimum] = Thread.current.name
+      end
+    end
     time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][state][:num]
   end
 

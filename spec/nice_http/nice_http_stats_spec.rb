@@ -183,6 +183,18 @@ RSpec.describe NiceHttp do
         expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :time_elapsed, :items])
         expect(klass.stats[:specific][:example][:correct][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
       end
+      it "creates correctly the hash with max and min and items" do
+        klass.create_stats = true
+        started = Time.now
+        http = klass.new("http://example.com")
+        resp = http.get({path: "/", name: "exam_name"})
+        resp = http.post({path: "/", name: "exam_name"})
+        klass.add_stats(:example, :correct, started, Time.now, "example")
+        expect(klass.stats[:specific][:example].keys).to eq ([:num, :time_elapsed, :correct])
+        expect(klass.stats[:specific][:example][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average, :item_maximum, :item_minimum])
+        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :time_elapsed, :items])
+        expect(klass.stats[:specific][:example][:correct][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average, :item_maximum, :item_minimum])
+      end
     end
     describe "save_stats" do
       it 'generates the files when no file_name supplied' do
