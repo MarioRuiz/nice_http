@@ -184,5 +184,36 @@ RSpec.describe NiceHttp do
         expect(klass.stats[:specific][:example][:correct][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
       end
     end
+    describe "save_stats" do
+      it 'generates the files when no file_name supplied' do
+        klass.create_stats = true
+        klass.log = './nice_http_tmp.log'
+        File.delete(klass.log) if File.exist?(klass.log)
+        File.delete('./nice_http_tmp_stats_all.yaml') if File.exist?('./nice_http_tmp_stats_all.yaml')
+        http = klass.new("http://example.com")
+        resp = http.get "/"
+        klass.save_stats()
+        expect(File.exist?('./nice_http_tmp_stats_all.yaml')).to eq true
+      end
+
+      it 'generates the files when file_name supplied and extension .yaml' do
+        klass.create_stats = true
+        File.delete('./nice_http_tmp_stats_all.yaml') if File.exist?('./nice_http_tmp_stats_all.yaml')
+        http = klass.new("http://example.com")
+        resp = http.get "/"
+        klass.save_stats('./nice_http_tmp.yaml')
+        expect(File.exist?('./nice_http_tmp_stats_all.yaml')).to eq true
+      end
+
+      it 'generates the files when file_name supplied and extension .json' do
+        klass.create_stats = true
+        File.delete('./nice_http_tmp_stats_all.json') if File.exist?('./nice_http_tmp_stats_all.json')
+        http = klass.new("http://example.com")
+        resp = http.get "/"
+        klass.save_stats('./nice_http_tmp.json')
+        expect(File.exist?('./nice_http_tmp_stats_all.json')).to eq true
+      end
+
+    end
   end
 end

@@ -511,19 +511,16 @@ t.each(&:join)
 
 If you want to get a summarize stats of your http communication you need to set `NiceHttp.create_stats = true` 
 
-Then whenever you want to access the stats: `NiceHttp.stats`
+Then whenever you want to access the stats: `NiceHttp.stats` and if you want to save it on a file: `NiceHttp.save_stats`
 
-After the run is finished there will be few files starting by nice_http_stats and extension yaml on your project root folder including all http stats.
+After the run is finished the stats will automatically be saved even if you didn't call `save_stats`. The stats files will use the name and path on `NiceHttp.log`.
 
 If you are using RSpec and you want to generate the stats files after every test is finished, add to your spec_helper.rb file:
 
 ```ruby
 RSpec.configure do |config|
   config.after(:each) do
-    require 'yaml'
-    NiceHttp.stats.keys.each do |key|
-        File.open("./nice_http_stats_#{key}.yaml", "w") { |file| file.write(NiceHttp.stats[key].to_yaml) }
-    end
+    NiceHttp.save_stats
   end
 end
 ```
@@ -582,15 +579,23 @@ www.reqres.in:443:
 If you want to add specific stats for your processes you can use the method `NiceHttp.add_stats`
 
 ```ruby
+   # random customer name
+   customer_name = "10-20:L".gen
    started = Time.now
-   @http.send_request Requests::Customer.add_customer
+   @http.send_request Requests::Customer.add_customer(name: customer_name)
    30.times do
-      resp = @http.get(Requests::Customer.get_customer)
+      resp = @http.get(Requests::Customer.get_customer(name: customer_name))
       break if resp.code == 200
       sleep 0.5
    end
    NiceHttp.add_stats(:customer, :create, started, Time.now)
 ```
+
+To add the items for every specific stats to be accessed as an array you can add it as the last parameter of `add_stats`
+```ruby
+NiceHttp.add_stats(:customer, :create, started, Time.now, customer_name)
+```
+This will generate an items key that will contain an array of the values you added.
 
 ## Contributing
 

@@ -16,7 +16,8 @@ Gemfile.lock
 /test/version_tmp/
 /tmp/
 /doc/
-nice_http_stats*.yaml
+nice_http_stats*.*
+nice_http_tmp_stats*.*
 
 # Used by dotenv library to load environment variables.
 # .env

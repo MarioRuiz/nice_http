@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'nice_http'
-  s.version     = '1.7.6'
+  s.version     = '1.7.7'
   s.summary     = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources."
   s.description = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources. Manage different hosts on the fly. Easily get the value you want from the JSON strings. Use hashes on your requests."
   s.authors     = ["Mario Ruiz"]
