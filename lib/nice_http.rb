@@ -212,7 +212,6 @@ class NiceHttp
         File.open("#{file_name.gsub(/.json$/, "_stats_")}#{key}.json", "w") { |file| file.write(self.stats[key].to_json) }
       end
     else
-      puts file_name.gsub(/.\w+$/, "_stats_")
       require 'yaml'
       self.stats.keys.each do |key|
         File.open("#{file_name.gsub(/.\w+$/, "_stats_")}#{key}.yaml", "w") { |file| file.write(self.stats[key].to_yaml) }
