@@ -182,7 +182,7 @@ module NiceHttpManageResponse
       @logger.fatal stack
       @logger.fatal "manage_response Error on method #{method_s} "
     end
-    
+
     @start_time = nil
   end
 
@@ -198,8 +198,8 @@ module NiceHttpManageResponse
 
       hash[:num_requests] = 0
       hash[:started] = @start_time
-      hash[:finished] = @finish_time
-      hash[:real_time_elapsed] = @finish_time - @start_time
+      hash[:finished] = @start_time
+      hash[:real_time_elapsed] = 0
       hash[:time_elapsed] = {
         total: 0,
         maximum: 0,
@@ -213,9 +213,14 @@ module NiceHttpManageResponse
       end
     end
     hash[:num_requests] += 1
-    hash[:started] = @start_time if hash[:started].nil?
+    hash[:started] = hash[:finished] = @start_time if hash[:started].nil?
+
+    if @start_time < hash[:finished]
+      hash[:real_time_elapsed] += (@finish_time - hash[:finished])
+    else
+      hash[:real_time_elapsed] += (@finish_time - @start_time)
+    end
     hash[:finished] = @finish_time
-    hash[:real_time_elapsed] = @finish_time - hash[:started]
 
     hash[:time_elapsed][:total] += @response[:time_elapsed]
     hash[:time_elapsed][:maximum] = @response[:time_elapsed] if @response[:time_elapsed] > hash[:time_elapsed][:maximum]

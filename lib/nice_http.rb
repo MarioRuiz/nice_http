@@ -103,11 +103,11 @@ class NiceHttp
         num_requests: 0,
         started: nil,
         finished: nil,
-        real_time_elapsed: nil,
+        real_time_elapsed: 0,
         time_elapsed: {
           total: 0,
           maximum: 0,
-          minimum: 100000,
+          minimum: 1000000,
           average: 0,
         },
         method: {},
@@ -168,14 +168,18 @@ class NiceHttp
   #   end
   #   NiceHttp.add_stats(:customer, :create, started, Time.now)
   ######################################################
-  def self.add_stats(name, state, started, finished, item=nil)
+  def self.add_stats(name, state, started, finished, item = nil)
     self.stats[:specific] ||= {}
-    self.stats[:specific][name] ||= { num: 0, started: started, finished: finished, real_time_elapsed: nil, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }}
+    self.stats[:specific][name] ||= { num: 0, started: started, finished: started, real_time_elapsed: 0, time_elapsed: { total: 0, maximum: 0, minimum: 100000, average: 0 } }
     self.stats[:specific][name][:num] += 1
 
+    if started < self.stats[:specific][name][:finished]
+      self.stats[:specific][name][:real_time_elapsed] += (finished - self.stats[:specific][name][:finished])
+    else
+      self.stats[:specific][name][:real_time_elapsed] += (finished - started)
+    end
     self.stats[:specific][name][:finished] = finished
-    self.stats[:specific][name][:real_time_elapsed] = finished - self.stats[:specific][name][:started]
-  
+
     time_elapsed = self.stats[:specific][name][:time_elapsed]
     time_elapsed[:total] += finished - started
     if time_elapsed[:maximum] < (finished - started)
@@ -187,7 +191,7 @@ class NiceHttp
       end
     end
     if time_elapsed[:minimum] > (finished - started)
-      time_elapsed[:minimum] = (finished - started) 
+      time_elapsed[:minimum] = (finished - started)
       if !item.nil?
         time_elapsed[:item_minimum] = item
       elsif Thread.current.name.to_s != ""
@@ -196,16 +200,21 @@ class NiceHttp
     end
     time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][:num]
 
-    self.stats[:specific][name][state] ||= { num: 0, started: started, finished: finished, real_time_elapsed: nil, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }, items: [] }
+    self.stats[:specific][name][state] ||= { num: 0, started: started, finished: started, real_time_elapsed: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }, items: [] }
     self.stats[:specific][name][state][:num] += 1
+    if started < self.stats[:specific][name][state][:finished]
+      self.stats[:specific][name][state][:real_time_elapsed] += (finished - self.stats[:specific][name][state][:finished])
+    else
+      self.stats[:specific][name][state][:real_time_elapsed] += (finished - started)
+    end
+
     self.stats[:specific][name][state][:finished] = finished
-    self.stats[:specific][name][state][:real_time_elapsed] = finished - self.stats[:specific][name][:started]
 
     self.stats[:specific][name][state][:items] << item unless item.nil? or self.stats[:specific][name][state][:items].include?(item)
     time_elapsed = self.stats[:specific][name][state][:time_elapsed]
     time_elapsed[:total] += finished - started
     if time_elapsed[:maximum] < (finished - started)
-      time_elapsed[:maximum] = (finished - started) 
+      time_elapsed[:maximum] = (finished - started)
       if !item.nil?
         time_elapsed[:item_maximum] = item
       elsif Thread.current.name.to_s != ""
@@ -213,7 +222,7 @@ class NiceHttp
       end
     end
     if time_elapsed[:minimum] > (finished - started)
-      time_elapsed[:minimum] = (finished - started) 
+      time_elapsed[:minimum] = (finished - started)
       if !item.nil?
         time_elapsed[:item_minimum] = item
       elsif Thread.current.name.to_s != ""
@@ -226,7 +235,7 @@ class NiceHttp
   ######################################################
   # It will save the NiceHttp.stats on different files, each key of the hash in a different file.
   #
-  # @param file_name [String] path and file name to be used to store the stats. 
+  # @param file_name [String] path and file name to be used to store the stats.
   #   In case no one supplied it will be used the value in NiceHttp.log and it will be saved on YAML format.
   #   In case extension is .yaml will be saved on YAML format.
   #   In case extension is .json will be saved on JSON format.
@@ -236,27 +245,28 @@ class NiceHttp
   #    NiceHttp.save_stats('./stats/my_stats.yaml')
   #    NiceHttp.save_stats('./stats/my_stats.json')
   ######################################################
-  def self.save_stats(file_name = '')
-    if file_name == '' 
+  def self.save_stats(file_name = "")
+    if file_name == ""
       if self.log.is_a?(String)
         file_name = self.log
       else
-        file_name = './nice_http.log'
+        file_name = "./nice_http.log"
       end
     end
+    require "fileutils"
+    FileUtils.mkdir_p File.dirname(file_name)
     if file_name.match?(/\.json$/)
-      require 'json'
+      require "json"
       self.stats.keys.each do |key|
         File.open("#{file_name.gsub(/.json$/, "_stats_")}#{key}.json", "w") { |file| file.write(self.stats[key].to_json) }
       end
     else
-      require 'yaml'
+      require "yaml"
       self.stats.keys.each do |key|
         File.open("#{file_name.gsub(/.\w+$/, "_stats_")}#{key}.yaml", "w") { |file| file.write(self.stats[key].to_yaml) }
       end
     end
   end
-
 
   ######################################################
   # Creates a new http connection.
@@ -363,6 +373,8 @@ class NiceHttp
           folder += "/" unless log_filename.start_with?("/")
           log_filename = folder + log_filename
         end
+        require "fileutils"
+        FileUtils.mkdir_p File.dirname(log_filename)
         unless Dir.exist?(File.dirname(log_filename))
           @logger = Logger.new nil
           raise InfoMissing, :log, "Wrong directory specified for logs.\n"
