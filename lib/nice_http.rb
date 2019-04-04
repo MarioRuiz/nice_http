@@ -101,6 +101,9 @@ class NiceHttp
     @stats = {
       all: {
         num_requests: 0,
+        started: nil,
+        finished: nil,
+        real_time_elapsed: nil,
         time_elapsed: {
           total: 0,
           maximum: 0,
@@ -167,8 +170,12 @@ class NiceHttp
   ######################################################
   def self.add_stats(name, state, started, finished, item=nil)
     self.stats[:specific] ||= {}
-    self.stats[:specific][name] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }}
+    self.stats[:specific][name] ||= { num: 0, started: started, finished: finished, real_time_elapsed: nil, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }}
     self.stats[:specific][name][:num] += 1
+
+    self.stats[:specific][name][:finished] = finished
+    self.stats[:specific][name][:real_time_elapsed] = finished - self.stats[:specific][name][:started]
+  
     time_elapsed = self.stats[:specific][name][:time_elapsed]
     time_elapsed[:total] += finished - started
     if time_elapsed[:maximum] < (finished - started)
@@ -189,8 +196,11 @@ class NiceHttp
     end
     time_elapsed[:average] = time_elapsed[:total] / self.stats[:specific][name][:num]
 
-    self.stats[:specific][name][state] ||= { num: 0, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }, items: [] }
+    self.stats[:specific][name][state] ||= { num: 0, started: started, finished: finished, real_time_elapsed: nil, time_elapsed: { total: 0, maximum: 0, minimum: 1000, average: 0 }, items: [] }
     self.stats[:specific][name][state][:num] += 1
+    self.stats[:specific][name][state][:finished] = finished
+    self.stats[:specific][name][state][:real_time_elapsed] = finished - self.stats[:specific][name][:started]
+
     self.stats[:specific][name][state][:items] << item unless item.nil? or self.stats[:specific][name][state][:items].include?(item)
     time_elapsed = self.stats[:specific][name][state][:time_elapsed]
     time_elapsed[:total] += finished - started

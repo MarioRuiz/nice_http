@@ -9,17 +9,17 @@ module NiceHttpManageResponse
   #     @response updated
   ######################################################
   def manage_response(resp, data)
+    @finish_time = Time.now
     require "json"
     @prev_response = Hash.new() if @prev_response.nil?
     begin
       if @start_time.kind_of?(Time)
-        @response[:time_elapsed_total] = Time.now - @start_time
-        @start_time = nil
+        @response[:time_elapsed_total] = @finish_time - @start_time
       else
         @response[:time_elapsed_total] = nil
       end
       if @start_time_net.kind_of?(Time)
-        @response[:time_elapsed] = Time.now - @start_time_net
+        @response[:time_elapsed] = @finish_time - @start_time_net
         @start_time_net = nil
       else
         @response[:time_elapsed] = nil
@@ -182,6 +182,8 @@ module NiceHttpManageResponse
       @logger.fatal stack
       @logger.fatal "manage_response Error on method #{method_s} "
     end
+    
+    @start_time = nil
   end
 
   private
@@ -195,6 +197,9 @@ module NiceHttpManageResponse
       end
 
       hash[:num_requests] = 0
+      hash[:started] = @start_time
+      hash[:finished] = @finish_time
+      hash[:real_time_elapsed] = @finish_time - @start_time
       hash[:time_elapsed] = {
         total: 0,
         maximum: 0,
@@ -208,6 +213,10 @@ module NiceHttpManageResponse
       end
     end
     hash[:num_requests] += 1
+    hash[:started] = @start_time if hash[:started].nil?
+    hash[:finished] = @finish_time
+    hash[:real_time_elapsed] = @finish_time - hash[:started]
+
     hash[:time_elapsed][:total] += @response[:time_elapsed]
     hash[:time_elapsed][:maximum] = @response[:time_elapsed] if @response[:time_elapsed] > hash[:time_elapsed][:maximum]
     hash[:time_elapsed][:minimum] = @response[:time_elapsed] if @response[:time_elapsed] < hash[:time_elapsed][:minimum]

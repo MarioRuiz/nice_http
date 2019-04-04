@@ -37,7 +37,7 @@ RSpec.describe NiceHttp do
         http2 = klass.new("http://www.google.com")
         resp = http2.post "/"
         expect(klass.stats[:all][:method].keys).to eq (["GET", "POST"])
-        expect(klass.stats[:all][:method]["GET"].keys).to eq ([:num_requests, :time_elapsed, :response])
+        expect(klass.stats[:all][:method]["GET"].keys).to eq ([:num_requests, :started, :finished, :real_time_elapsed, :time_elapsed, :response])
         expect(klass.stats[:all][:method]["GET"][:time_elapsed][:total]).to be > 0
       end
 
@@ -48,7 +48,7 @@ RSpec.describe NiceHttp do
         http2 = klass.new("http://www.google.com")
         resp = http2.post "/"
         expect(klass.stats[:all][:method]["GET"][:response].keys).to eq (["200"])
-        expect(klass.stats[:all][:method]["GET"][:response]["200"].keys).to eq ([:num_requests, :time_elapsed])
+        expect(klass.stats[:all][:method]["GET"][:response]["200"].keys).to eq ([:num_requests, :started, :finished, :real_time_elapsed, :time_elapsed])
         expect(klass.stats[:all][:method]["GET"][:response]["200"][:time_elapsed][:total]).to be > 0
       end
     end
@@ -80,7 +80,7 @@ RSpec.describe NiceHttp do
         resp = http.get "/"
         resp = http.post "/"
         expect(klass.stats[:path]["example.com:80"]["/"][:method].keys).to eq (["GET", "POST"])
-        expect(klass.stats[:path]["example.com:80"]["/"][:method]["GET"].keys).to eq ([:num_requests, :time_elapsed, :response])
+        expect(klass.stats[:path]["example.com:80"]["/"][:method]["GET"].keys).to eq ([:num_requests, :started, :finished, :real_time_elapsed, :time_elapsed, :response])
         expect(klass.stats[:path]["example.com:80"]["/"][:method]["GET"][:time_elapsed][:total]).to be > 0
       end
 
@@ -90,7 +90,7 @@ RSpec.describe NiceHttp do
         resp = http.get "/"
         resp = http.post "/"
         expect(klass.stats[:path]["example.com:80"]["/"][:method]["GET"][:response].keys).to eq (["200"])
-        expect(klass.stats[:path]["example.com:80"]["/"][:method]["GET"][:response]["200"].keys).to eq ([:num_requests, :time_elapsed])
+        expect(klass.stats[:path]["example.com:80"]["/"][:method]["GET"][:response]["200"].keys).to eq ([:num_requests, :started, :finished, :real_time_elapsed, :time_elapsed])
         expect(klass.stats[:path]["example.com:80"]["/"][:method]["GET"][:response]["200"][:time_elapsed][:total]).to be > 0
       end
     end
@@ -121,7 +121,7 @@ RSpec.describe NiceHttp do
         resp = http.get({path: "/", name: "exam_name"})
         resp = http.post({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:method].keys).to eq (["GET", "POST"])
-        expect(klass.stats[:name]["exam_name"][:method]["GET"].keys).to eq ([:num_requests, :time_elapsed, :response])
+        expect(klass.stats[:name]["exam_name"][:method]["GET"].keys).to eq ([:num_requests, :started, :finished, :real_time_elapsed, :time_elapsed, :response])
         expect(klass.stats[:name]["exam_name"][:method]["GET"][:time_elapsed][:total]).to be > 0
       end
 
@@ -131,7 +131,7 @@ RSpec.describe NiceHttp do
         resp = http.get({path: "/", name: "exam_name"})
         resp = http.post({path: "/", name: "exam_name"})
         expect(klass.stats[:name]["exam_name"][:method]["GET"][:response].keys).to eq (["200"])
-        expect(klass.stats[:name]["exam_name"][:method]["GET"][:response]["200"].keys).to eq ([:num_requests, :time_elapsed])
+        expect(klass.stats[:name]["exam_name"][:method]["GET"][:response]["200"].keys).to eq ([:num_requests, :started, :finished, :real_time_elapsed, :time_elapsed])
         expect(klass.stats[:name]["exam_name"][:method]["GET"][:response]["200"][:time_elapsed][:total]).to be > 0
       end
     end
@@ -178,9 +178,9 @@ RSpec.describe NiceHttp do
         resp = http.get({path: "/", name: "exam_name"})
         resp = http.post({path: "/", name: "exam_name"})
         klass.add_stats(:example, :correct, started, Time.now)
-        expect(klass.stats[:specific][:example].keys).to eq ([:num, :time_elapsed, :correct])
+        expect(klass.stats[:specific][:example].keys).to eq ([:num, :started, :finished, :real_time_elapsed, :time_elapsed, :correct])
         expect(klass.stats[:specific][:example][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
-        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :time_elapsed, :items])
+        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :started, :finished, :real_time_elapsed, :time_elapsed, :items])
         expect(klass.stats[:specific][:example][:correct][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average])
       end
       it "creates correctly the hash with max and min and items" do
@@ -190,9 +190,9 @@ RSpec.describe NiceHttp do
         resp = http.get({path: "/", name: "exam_name"})
         resp = http.post({path: "/", name: "exam_name"})
         klass.add_stats(:example, :correct, started, Time.now, "example")
-        expect(klass.stats[:specific][:example].keys).to eq ([:num, :time_elapsed, :correct])
+        expect(klass.stats[:specific][:example].keys).to eq ([:num, :started, :finished, :real_time_elapsed, :time_elapsed, :correct])
         expect(klass.stats[:specific][:example][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average, :item_maximum, :item_minimum])
-        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :time_elapsed, :items])
+        expect(klass.stats[:specific][:example][:correct].keys).to eq ([:num, :started, :finished, :real_time_elapsed, :time_elapsed, :items])
         expect(klass.stats[:specific][:example][:correct][:time_elapsed].keys).to eq ([:total, :maximum, :minimum, :average, :item_maximum, :item_minimum])
       end
     end
