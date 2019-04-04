@@ -1,8 +1,8 @@
 Gem::Specification.new do |s|
   s.name        = 'nice_http'
   s.version     = '1.7.10'
-  s.summary     = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources."
-  s.description = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources. Manage different hosts on the fly. Easily get the value you want from the JSON strings. Use hashes on your requests."
+  s.summary     = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources. Get http logs and statistics automatically. Use hashes on your requests. Access JSON even easier."
+  s.description = "NiceHttp -- simplest library for accessing and testing HTTP and REST resources. Get http logs and statistics automatically. Use hashes on your requests. Access JSON even easier."
   s.authors     = ["Mario Ruiz"]
   s.email       = 'marioruizs@gmail.com'
   s.files       = ["lib/nice_http.rb","lib/nice_http/http_methods.rb","lib/nice_http/utils.rb",

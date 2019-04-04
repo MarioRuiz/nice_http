@@ -7,7 +7,7 @@
 
 NiceHttp the simplest library for accessing and testing HTTP and REST resources.
 
-Manage different hosts on the fly. Easily get the value you want from the JSON strings. Use hashes on your requests.
+Manage different hosts on the fly. Easily get the value you want from the JSON strings. Use hashes on your requests. Get automatically statistics of your http communication and all the logs with the requests and responses.
 
 Also you can use mock responses by using :mock_response key on the request hash and enable the use_mocks option on NiceHttp.
 
