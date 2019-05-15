@@ -2,7 +2,8 @@ require "nice_http"
 
 RSpec.describe NiceHttp, "#send_request" do
   before do
-    @http = NiceHttp.new("https://www.reqres.in")
+    NiceHttp.log_files = Hash.new()
+    @http = NiceHttp.new("https://reqres.in")
   end
 
   it "returns error in case no method supplied on request hash" do

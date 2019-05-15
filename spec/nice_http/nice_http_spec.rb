@@ -12,6 +12,7 @@ RSpec.describe NiceHttp do
       klass.headers = {uno: "one"}
       klass.debug = true
       klass.log = :screen
+      klass.log_path = './tmp/'
       klass.proxy_host = "example.com"
       klass.proxy_port = 8080
       klass.last_request = {}
@@ -33,6 +34,7 @@ RSpec.describe NiceHttp do
       expect(klass.headers).to eq ({})
       expect(klass.debug).to eq false
       expect(klass.log).to eq :fix_file
+      expect(klass.log_path).to eq ''
       expect(klass.proxy_host).to eq nil
       expect(klass.proxy_port).to eq nil
       expect(klass.last_request).to eq nil
@@ -244,7 +246,7 @@ RSpec.describe NiceHttp do
 
     it "changes :data when supplied :values_for on class defaults" do
       klass.values_for = {name: "peter"}
-      klass.host = "https://www.reqres.in"
+      klass.host = "https://reqres.in"
       http = klass.new
       request = {
         path: "/api/users",
@@ -257,7 +259,7 @@ RSpec.describe NiceHttp do
 
     it "changes :data when supplied :values_for on new class instance" do
       klass.values_for = {}
-      klass.host = "https://www.reqres.in"
+      klass.host = "https://reqres.in"
       http = klass.new(values_for: {name: "juan"})
       request = {
         path: "/api/users",
@@ -270,7 +272,7 @@ RSpec.describe NiceHttp do
 
     it "changes :data when supplied :values_for on request instead of value on class" do
       klass.values_for = {}
-      klass.host = "https://www.reqres.in"
+      klass.host = "https://reqres.in"
       http = klass.new(values_for: {name: "juan"})
       request = {
         path: "/api/users",
@@ -308,6 +310,22 @@ RSpec.describe NiceHttp do
     end
   end
 
+  describe "log_path" do
+    it "uses the class log_path by default" do
+      klass.log_path = './tmp/'
+      klass.host = "example.com"
+      klass.port = 443
+      expect(klass.new.log_path).to eq './tmp/'
+    end
+    it "can be provided an explicit log_path" do
+      klass.port = 443
+      klass.host = "localhost"
+      klass.log_path = './tmp/'
+      expect(klass.new(log_path: './tmp/tmp/').log_path).to eq ('./tmp/tmp/')
+    end
+  end
+
+
   describe "class defaults" do
     specify "port is 80" do
       expect(klass.port).to eq 80
@@ -336,6 +354,9 @@ RSpec.describe NiceHttp do
     specify "log is :fix_file" do
       expect(klass.log).to eq (:fix_file)
     end
+    specify "log_path is ''" do
+      expect(klass.log_path).to eq ('')
+    end
     specify "create_stats is false" do
       expect(klass.create_stats).to eq false
     end
@@ -349,6 +370,7 @@ RSpec.describe NiceHttp do
       expect { klass.headers = {example: "test"} }.to change { klass.headers }.to({example: "test"})
       expect { klass.values_for = {example: "test"} }.to change { klass.values_for }.to({example: "test"})
       expect { klass.log = :screen }.to change { klass.log }.to(:screen)
+      expect { klass.log_path = './tmp/' }.to change { klass.log_path }.to('./tmp/')
       expect { klass.create_stats = true }.to change { klass.create_stats }.to(true)
     end
     specify "I can set many at once with a hash" do
@@ -361,6 +383,7 @@ RSpec.describe NiceHttp do
       expect { klass.defaults = {headers: {example: "test"}} }.to change { klass.headers }.to({example: "test"})
       expect { klass.defaults = {values_for: {example: "test"}} }.to change { klass.values_for }.to({example: "test"})
       expect { klass.defaults = {log: :screen} }.to change { klass.log }.to(:screen)
+      expect { klass.defaults = {log_path: './tmp/'} }.to change { klass.log_path }.to('./tmp/')
       expect { klass.defaults = {create_stats: true} }.to change { klass.create_stats }.to(true)
     end
     specify 'setting many at once doesn\'t override unprovided values' do
@@ -391,114 +414,6 @@ RSpec.describe NiceHttp do
     end
   end
 
-  describe "log files" do
-    it "logs to file specified" do
-      klass.log = "./example.log"
-      http = klass.new("https://example.com")
-      http.logger.info "testing"
-      content = File.read("./example.log")
-      expect(content).to match /testing/
-    end
-
-    it "logs to file specified even when two connections pointing to same file" do
-      klass.host = "https://example.com"
-      http1 = klass.new({log: "./example.log"})
-      http1.logger.info "testing"
-      content = File.read("./example.log")
-      expect(content).to match /testing/
-
-      http2 = klass.new({log: http1.log})
-      http2.logger.info "example2"
-      content = File.read("./example.log")
-      expect(content).to match /example2/
-
-      http1.logger.info "testing2"
-      content = File.read("./example.log")
-      expect(content).to match /testing2/
-
-      http1.close
-
-      http2.logger.info "example3"
-      content = File.read("./example.log")
-      expect(content).to match /example3/
-    end
-
-    it "logs to nice_http.log when :fix_file specified" do
-      klass.log = :fix_file
-      http = klass.new("https://example.com")
-      http.logger.info "testing"
-      content = File.read("./nice_http.log")
-      expect(content).to match /testing/
-    end
-
-    it "logs to file running.log when :file_run specified" do
-      klass.log = :file_run
-      http = klass.new("https://example.com")
-      http.logger.info "testing XaXDo"
-      content = File.read("./spec/nice_http/nice_http_spec.rb.log")
-      expect(content).to match /testing XaXDo/
-    end
-
-    it "logs to nice_http_YY-mm-dd-HHMMSS.log when :file specified" do
-      Dir.glob("./nice_http_*.log").each { |file| File.delete(file) }
-      klass.log = :file
-      http = klass.new("https://example.com")
-      http.logger.info "testing"
-      files = Dir["./nice_http_*.log"]
-      expect(files.size).to eq 1
-
-      content = File.read(files[0])
-      expect(content).to match /testing/
-    end
-
-    it "doesn't create any log file when :no specified" do
-      Dir.glob("./*.log").each { |file| File.delete(file) }
-      klass.log = :no
-      http = klass.new("https://example.com")
-      http.logger.info "TESTING NO LOGS"
-      files = Dir["./*.log"]
-      expect(files.size).to eq 0
-    end
-
-    it "raises error if log file not possible to be created" do
-      Dir.glob("./*.log").each { |file| File.delete(file) }
-      klass.log = "./"
-      klass.new("https://example.com") rescue err = $ERROR_INFO
-      expect(err.class).to eq NiceHttp::InfoMissing
-      expect(err.attribute).to eq :log
-      expect(err.message).to match /wrong log/i
-    end
-
-    it "doesn't create any log file when exception on creating" do
-      klass.log = "./"
-      klass.new("https://example.com") rescue err = $ERROR_INFO
-      files = Dir["./*.log"]
-      expect(files.size).to eq 0
-    end
-
-    it 'logs data to relative path starting by name' do
-      Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
-      klass.log = 'nice_http_example.log'
-      klass.new("https://example.com")
-      expect(File.exist?('./spec/nice_http/nice_http_example.log')).to eq true
-    end
-
-    it 'logs data to relative path starting by slash' do
-      Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
-      klass.log = '/nice_http_example.log'
-      klass.new("https://example.com")
-      expect(File.exist?('./spec/nice_http/nice_http_example.log')).to eq true
-    end
-
-    it "cannot close a connection that is already closed" do
-      http = klass.new("https://example.com")
-      http.close
-      http.close
-      content = File.read("./nice_http.log")
-      expect(content).to match /It was not possible to close the HTTP connection, already closed/
-    end
-  end
-
   describe "proxys" do
     it "starts proxy supplied host and port" do
       klass.proxy_host = "example.com"
@@ -524,7 +439,7 @@ RSpec.describe NiceHttp do
   describe "lambda on headers" do
     it "execute lambdas on headers for every request" do
       http = klass.new("https://reqres.in/api")
-      req = {path: "/users?page=2", headers: {example: lambda {Time.now}}}
+      req = {path: "/users?page=2", headers: {example: lambda {Time.now.to_s}}}
       resp = http.get req.generate
       first_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
       expect(klass.last_request).to match /example:[\d\-\s:+]+,/
@@ -536,7 +451,7 @@ RSpec.describe NiceHttp do
     end
 
     it "execute lambdas on headers when initializing" do
-      klass.headers = {example: lambda {Time.now}}
+      klass.headers = {example: lambda {Time.now.to_s}}
       http = klass.new("https://reqres.in/api")
       resp = http.get "/users?page=2"
       first_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join

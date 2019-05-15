@@ -380,8 +380,8 @@ Other values you can supply:
 
 Example of logs:
 ```
-I, [2019-03-22T18:38:58.518964 #29412]  INFO -- : (47266856647720): Http connection created. host:www.reqres.in,  port:443,  ssl:true, mode:, proxy_host: , proxy_port:  
-I, [2019-03-22T18:38:58.537106 #29412]  INFO -- : (47266856647720): Http connection: https://www.reqres.in:443
+I, [2019-03-22T18:38:58.518964 #29412]  INFO -- : (47266856647720): Http connection created. host:reqres.in,  port:443,  ssl:true, mode:, proxy_host: , proxy_port:  
+I, [2019-03-22T18:38:58.537106 #29412]  INFO -- : (47266856647720): Http connection: https://reqres.in:443
 
 
 - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -493,7 +493,7 @@ threads = []
 40.times do |num|
     threads << Thread.new do
         Thread.current.name = num.to_s
-        http = NiceHttp.new("https://www.reqres.in")
+        http = NiceHttp.new("https://reqres.in")
         request = {
           path: '/api/users',
           data: { name: 'morpheus', job: 'leader' },
@@ -529,7 +529,7 @@ This is an example of the output:
 
 ```yaml
 ---
-www.reqres.in:443:
+reqres.in:443:
   :num_requests: 11
   :time_elapsed:
     :total: 2.947269038

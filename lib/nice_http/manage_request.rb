@@ -136,8 +136,11 @@ module NiceHttpManageRequest
               if arguments[0].include?(:values_for)
                 if arguments[0][:values_for].is_a?(Array)
                   data_n = row.set_values(arguments[0][:values_for][indx])
-                else
+                elsif arguments[0][:values_for].is_a?(Hash)
                   data_n = row.set_values(arguments[0][:values_for])
+                else
+                  @logger.fatal("Wrong format on request application/json, be sure is a Hash, Array of Hashes or JSON string. values_for needs to be an array or a hash.")
+                  return :error, :error, :error
                 end
               else
                 data_n = row

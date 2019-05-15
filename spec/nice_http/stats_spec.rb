@@ -226,6 +226,30 @@ RSpec.describe NiceHttp do
         expect(File.exist?('./nice_http_tmp_stats_all.json')).to eq true
       end
 
+      it 'generates the stats files when log_path specified and :fix_file' do
+        file = './tmp/logs/nice_http_stats_all.yaml'
+        klass.create_stats = true
+        klass.log_path = './tmp/logs/'
+        klass.log = :fix_file
+        File.delete(file) if File.exist?(file)
+        http = klass.new("http://example.com")
+        resp = http.get "/"
+        klass.save_stats()
+        expect(File.exist?(file)).to eq true
+      end
+
+      it 'generates the stats files when log_path specified and :file_run' do
+        file = './tmp/logs/nice_http_stats_all.yaml'
+        klass.create_stats = true
+        klass.log_path = './tmp/logs/'
+        klass.log = :file_run
+        File.delete(file) if File.exist?(file)
+        http = klass.new("http://example.com")
+        resp = http.get "/"
+        klass.save_stats()
+        expect(File.exist?(file)).to eq true
+      end
+
     end
   end
 end

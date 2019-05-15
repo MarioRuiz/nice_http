@@ -2,7 +2,8 @@ require "nice_http"
 
 RSpec.describe NiceHttp, "#get" do
   before do
-    @http = NiceHttp.new("https://www.reqres.in")
+    NiceHttp.log_files = Hash.new()
+    @http = NiceHttp.new("https://reqres.in")
   end
 
   it "accepts path as string parameter" do
@@ -67,7 +68,7 @@ RSpec.describe NiceHttp, "#get" do
   end
 
   it "handles correctly when http or https is on path" do
-    resp = @http.get "https://www.reqres.in/api/users?page=2"
+    resp = @http.get "https://reqres.in/api/users?page=2"
     expect(resp.code).to eq 200
     expect(resp.message).to eq "OK"
   end

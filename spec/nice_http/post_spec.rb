@@ -2,7 +2,8 @@ require "nice_http"
 
 RSpec.describe NiceHttp, "#post" do
   before do
-    @http = NiceHttp.new("https://www.reqres.in")
+    NiceHttp.log_files = Hash.new()
+    @http = NiceHttp.new("https://reqres.in")
   end
 
   it "accepts hash including keys :data and :path" do
@@ -320,7 +321,7 @@ RSpec.describe NiceHttp, "#post" do
 
   it "logs request and response when debug set to true" do
     File.delete("./nice_http_tmp.log") if File.exist?("./nice_http_tmp.log")
-    @http = NiceHttp.new({host: "https://www.reqres.in", debug: true, log: "./nice_http_tmp.log"})
+    @http = NiceHttp.new({host: "https://reqres.in", debug: true, log: "./nice_http_tmp.log"})
 
     request = {
       path: "/api/register",

@@ -16,6 +16,7 @@ require_relative "nice_http/http_methods"
 # @attr [Boolean] ssl If you use ssl or not
 # @attr [Hash] headers Contains the headers you will be using on your connection
 # @attr [Boolean] debug In case true shows all the details of the communication with the host
+# @attr [String] log_path The path where the logs will be stored. By default empty string.
 # @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".
 #   :fix_file, will log the communication on nice_http.log. (default).
 #   :no, will not generate any logs.
@@ -65,7 +66,7 @@ class NiceHttp
   end
 
   class << self
-    attr_accessor :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port,
+    attr_accessor :host, :port, :ssl, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port,
                   :last_request, :last_response, :request_id, :use_mocks, :connections,
                   :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats
   end
@@ -87,6 +88,7 @@ class NiceHttp
     @values_for = {}
     @debug = false
     @log = :fix_file
+    @log_path = ''
     @proxy_host = nil
     @proxy_port = nil
     @last_request = nil
@@ -125,13 +127,13 @@ class NiceHttp
     subclass.reset!
   end
 
-  attr_reader :host, :port, :ssl, :debug, :log, :proxy_host, :proxy_port, :response, :num_redirects
+  attr_reader :host, :port, :ssl, :debug, :log, :log_path, :proxy_host, :proxy_port, :response, :num_redirects
   attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for
 
   ######################################################
   # Change the default values for NiceHttp supplying a Hash
   #
-  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats
+  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :log_path, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats
   ######################################################
   def self.defaults=(par = {})
     @host = par[:host] if par.key?(:host)
@@ -140,6 +142,7 @@ class NiceHttp
     @headers = par[:headers].dup if par.key?(:headers)
     @values_for = par[:values_for].dup if par.key?(:values_for)
     @debug = par[:debug] if par.key?(:debug)
+    @log_path = par[:log_path] if par.key?(:log_path)
     @log = par[:log] if par.key?(:log)
     @proxy_host = par[:proxy_host] if par.key?(:proxy_host)
     @proxy_port = par[:proxy_port] if par.key?(:proxy_port)
@@ -250,7 +253,7 @@ class NiceHttp
       if self.log.is_a?(String)
         file_name = self.log
       else
-        file_name = "./nice_http.log"
+        file_name = "./#{self.log_path}nice_http.log"
       end
     end
     require "fileutils"
@@ -295,6 +298,8 @@ class NiceHttp
   #
   #             debug -- true, false (default)
   #
+  #             log_path -- string with path for the logs, empty string (default)
+  #
   #             log -- :no, :screen, :file, :fix_file (default).
   #
   #                 A string with a path can be supplied.
@@ -326,6 +331,7 @@ class NiceHttp
     @values_for = self.class.values_for.dup
     @debug = self.class.debug
     @log = self.class.log
+    @log_path = self.class.log_path
     @proxy_host = self.class.proxy_host
     @proxy_port = self.class.proxy_port
     @use_mocks = self.class.use_mocks
@@ -353,6 +359,7 @@ class NiceHttp
       @values_for = args[:values_for].dup if args.keys.include?(:values_for)
       @debug = args[:debug] if args.keys.include?(:debug)
       @log = args[:log] if args.keys.include?(:log)
+      @log_path = args[:log_path] if args.keys.include?(:log_path)
       @proxy_host = args[:proxy_host] if args.keys.include?(:proxy_host)
       @proxy_port = args[:proxy_port] if args.keys.include?(:proxy_port)
       @use_mocks = args[:use_mocks] if args.keys.include?(:use_mocks)
@@ -363,7 +370,6 @@ class NiceHttp
     if @log.kind_of?(String) or @log == :fix_file or @log == :file or @log == :file_run
       if @log.kind_of?(String)
         log_filename = @log.dup
-
         unless log_filename.start_with?(".")
           if caller.first.start_with?(Dir.pwd)
             folder = File.dirname(caller.first[/[^:]+/])
@@ -389,7 +395,29 @@ class NiceHttp
       if Thread.current.name.to_s != ""
         log_filename.gsub!(/\.log$/, "_#{Thread.current.name}.log")
       end
-      if self.class.log_files.key?(log_filename)
+      unless @log_path.to_s == ''
+        log_filename.gsub!(Dir.pwd,'.')
+        dpath = @log_path.split("/")
+        dfile = log_filename.split("/")
+        log_filenamepath = ''
+        dfile.each_with_index do |d,i|
+          if d==dpath[i]
+            log_filenamepath<<"#{d}/"
+          else
+            log_filename = @log_path + "#{log_filename.gsub(/^#{log_filenamepath}/,'')}"
+            break
+          end
+        end
+        log_filename = "./#{log_filename}" unless log_filename[0..1]=='./'
+        log_filename = ".#{log_filename}" unless log_filename[0]=='.'
+
+        unless File.exist?(log_filename)
+          require 'fileutils'
+          FileUtils.mkdir_p(File.dirname(log_filename))
+        end
+      end
+
+      if self.class.log_files.key?(log_filename) and File.exist?(log_filename)
         @logger = self.class.log_files[log_filename]
       else
         begin
