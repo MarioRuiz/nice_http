@@ -73,13 +73,15 @@ RSpec.describe NiceHttp, "#get" do
     expect(resp.message).to eq "OK"
   end
 
-  it "set the cookies when required" do
+  # todo: I need to find another ws, this one is not including set-cookie anymore
+  xit "set the cookies when required" do
     server = "https://samples.auth0.com/"
     path = "/authorize?client_id=kbyuFDidLLm280LIwVFiazOqjO3ty8KH&response_type=code"
 
     http = NiceHttp.new(server)
     http.auto_redirect = true
     resp = http.get(path)
+    p resp.keys
     expect(resp.key?(:'set-cookie')).to eq true
     expect(http.cookies["/"].key?("auth0")).to eq true
   end
@@ -98,4 +100,14 @@ RSpec.describe NiceHttp, "#get" do
     content = File.read("./nice_http.log")
     expect(content).to match /There was a problem converting to json/
   end
+
+  it 'returns on headers the time_request and time_response' do
+    started = Time.now
+    resp = @http.get "/api/users?delay=1"
+    finished = Time.now
+    expect(resp.time_request >= started)
+    expect(resp.time_request <= finished)
+    expect(resp.time_response >= finished)
+  end
+
 end

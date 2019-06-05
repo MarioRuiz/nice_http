@@ -19,6 +19,8 @@ module NiceHttpManageResponse
         @response[:time_elapsed_total] = nil
       end
       if @start_time_net.kind_of?(Time)
+        @response[:time_request] = @start_time_net
+        @response[:time_response] = @finish_time
         @response[:time_elapsed] = @finish_time - @start_time_net
         @start_time_net = nil
       else
