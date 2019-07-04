@@ -63,4 +63,8 @@ RSpec.describe NiceHttp, "#utils" do
     res = NiceHttpUtils.basic_authentication(user: "guest", password: "guest")
     expect(res).to eq "Basic Z3Vlc3Q6Z3Vlc3Q=\n"
   end
+  it "return the correct enconding for basic authentication, strict" do
+    res = NiceHttpUtils.basic_authentication(user: "guest", password: "guest", strict: true)
+    expect(res).to eq "Basic Z3Vlc3Q6Z3Vlc3Q="
+  end
 end

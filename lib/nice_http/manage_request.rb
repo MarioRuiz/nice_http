@@ -106,6 +106,7 @@ module NiceHttpManageRequest
                                       !headers_t["Content-Type"][/application\/jxml/].nil?)
           if arguments[0].include?(:values_for)
             arguments[0][:values_for].each { |key, value|
+              #todo: implement set_nested 
               data = NiceHttpUtils.set_value_xml_tag(key.to_s(), data, value.to_s(), true)
             }
           end
@@ -114,6 +115,7 @@ module NiceHttpManageRequest
           if data.kind_of?(String)
             if arguments[0].include?(:values_for)
               arguments[0][:values_for].each { |key, value|
+              #todo: implement set_nested
                 data.gsub!(/"(#{key})":\s*"([^"]*)"/, '"\1": "' + value + '"')  # "key":"value"
                 data.gsub!(/(#{key}):\s*"([^"]*)"/, '\1: "' + value + '"')  # key:"value"
                 data.gsub!(/(#{key}):\s*'([^']*)'/, '\1: \'' + value + "'")  # key:'value'
@@ -127,6 +129,7 @@ module NiceHttpManageRequest
             end
             data = data.to_json()
           elsif data.kind_of?(Array)
+            #todo: implement set_nested 
             data_arr = Array.new()
             data.each_with_index { |row, indx|
               unless row.kind_of?(Hash)

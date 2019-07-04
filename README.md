@@ -271,6 +271,8 @@ resp = @http.get("/HTTP/Basic/")
 
 ```
 
+In case you want to use strict base64 use the option `strict: true`
+
 Remember for other kind of authentication systems NiceHttp take care of the redirections and cookies that are requested to be set. In case you need to add a header with a token you can add it by using your NiceHttp object and the key headers, for example:
 
 ```ruby
