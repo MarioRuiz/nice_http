@@ -30,18 +30,21 @@ module NiceHttpManageResponse
       create_stats(resp) if @create_stats
 
       begin
-        # this is to be able to access all keys as symbols
-        new_resp = Hash.new()
-        resp.each { |key, value|
-          if key.kind_of?(String)
-            new_resp[key.to_sym] = value
-          end
-        }
-        new_resp.each { |key, value|
-          resp[key] = value
-        }
+        # this is to be able to access all keys as symbols on Ruby < 2.6.0
+        if RUBY_VERSION < '2.6.0'
+          new_resp = Hash.new()
+          resp.each { |key, value|
+            if key.kind_of?(String)
+              new_resp[key.to_sym] = value
+            end
+          }
+          new_resp.each { |key, value|
+            resp[key] = value
+          }
+        end
       rescue
       end
+
       #for mock_responses to be able to add outside of the header like content-type for example
       if resp.kind_of?(Hash) and !resp.has_key?(:header)
         resp[:header] = {}
@@ -162,7 +165,6 @@ module NiceHttpManageResponse
           @cookies[cookie_path] = Hash.new() unless @cookies.keys.include?(cookie_path)
           @cookies[cookie_path][cookie_pair[0]] = cookie_pair[1]
         }
-
         @logger.info "set-cookie added to Cookie header as required"
 
         if @headers.has_key?("X-CSRFToken")
