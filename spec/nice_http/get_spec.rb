@@ -81,7 +81,6 @@ RSpec.describe NiceHttp, "#get" do
     http = NiceHttp.new(server)
     http.auto_redirect = true
     resp = http.get(path)
-    p resp.keys
     expect(resp.key?(:'set-cookie')).to eq true
     expect(http.cookies["/"].key?("auth0")).to eq true
   end

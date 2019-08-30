@@ -76,7 +76,6 @@ RSpec.describe NiceHttp, "#put" do
 
     request.values_for = {'job.position': "worker"}
     resp = @http.put(request)
-    pp resp.data
     expect(resp.code).to eq 200
     expect(resp.data.json(:position)).to eq "worker"
   end
