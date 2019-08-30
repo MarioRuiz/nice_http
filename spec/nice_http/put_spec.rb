@@ -68,6 +68,20 @@ RSpec.describe NiceHttp, "#put" do
     expect(resp.data.json(:name)).to eq "peter"
   end
 
+  it "changes :data when supplied nested keys on :values_for" do
+    request = {
+      path: "/api/users",
+      data: {name: "morpheus", job: {position:"leader"}},
+    }
+
+    request.values_for = {'job.position': "worker"}
+    resp = @http.put(request)
+    pp resp.data
+    expect(resp.code).to eq 200
+    expect(resp.data.json(:position)).to eq "worker"
+  end
+
+
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
     server = "http://examplesinatra--tcblues.repl.co/"
     http = NiceHttp.new(server)
