@@ -28,12 +28,12 @@ Example that creates 1000 good random and unique requests to register an user an
 1. [Responses](#Responses)
 1. [Special settings](#Specialsettings)
 1. [Authentication requests](#Authenticationrequests)
-1. [Send multipart content](#Sendmultipartcontent)
   1. [Http logs](#Httplogs)
      1. [Multithreading](#Multithreading)
   1. [Http stats](#Httpstats)
   1. [Tips](#Tips)
      1. [Download a file](#Downloadafile)
+     1. [Send multipart content](#Sendmultipartcontent)
   1. [Contributing](#Contributing)
   1. [License](#License)
 
@@ -365,24 +365,7 @@ NiceHttp.headers[:Authorization] = lambda {get_token()}
 
 NiceHttp will call the get_token method you created every time a new Http connection is created.
 
-##  8. <a name='Sendmultipartcontent'></a>Send multipart content
-
-Example posting a csv file:
-
-```ruby
-
-	require 'net/http/post/multipart'
-	request = {
-		path: "/customer/profile/",
-		headers: {'Content-Type' => 'multipart/form-data'},
-		data: (Net::HTTP::Post::Multipart.new "/customer/profile/",
-		  "file" => UploadIO.new("./path/to/my/file.csv", "text/csv"))
-	}
-	response=@http.post(request)
-
-```
-
-##  9. <a name='Httplogs'></a>Http logs
+##  8. <a name='Httplogs'></a>Http logs
 
 You can set where the http logs will be stored by using the log attribute of the NiceHttp. 
 By default they will be stored in your root directory with the name nice_http.log.
@@ -505,7 +488,7 @@ RESPONSE:
 
 ```
 
-###  9.1. <a name='Multithreading'></a>Multithreading
+###  8.1. <a name='Multithreading'></a>Multithreading
 
 In case you want to use multithread and log in different files every thread, add an unique name for the thread then the logs will be stored accordingly
 
@@ -531,7 +514,7 @@ t.each(&:join)
 # log files: nice_http_0.log, nice_http_1.log... nice_http_39.log
 ```
 
-##  10. <a name='Httpstats'></a>Http stats
+##  9. <a name='Httpstats'></a>Http stats
 
 If you want to get a summarize stats of your http communication you need to set `NiceHttp.create_stats = true` 
 
@@ -621,9 +604,9 @@ NiceHttp.add_stats(:customer, :create, started, Time.now, customer_name)
 ```
 This will generate an items key that will contain an array of the values you added.
 
-##  11. <a name='Tips'></a>Tips
+##  10. <a name='Tips'></a>Tips
 
-###  11.1. <a name='Downloadafile'></a>Download a file
+###  10.1. <a name='Downloadafile'></a>Download a file
 
 ```ruby
 require 'nice_http'
@@ -631,12 +614,30 @@ resp = NiceHttp.new("https://euruko2019.org").get("/assets/images/logo.png")
 File.open('./logo.png', 'wb') { |fp| fp.write(resp.data) }
 ```
 
-##  12. <a name='Contributing'></a>Contributing
+###  10.2. <a name='Sendmultipartcontent'></a>Send multipart content
+
+Example posting a csv file:
+
+```ruby
+
+	require 'net/http/post/multipart'
+	request = {
+		path: "/customer/profile/",
+		headers: {'Content-Type' => 'multipart/form-data'},
+		data: (Net::HTTP::Post::Multipart.new "/customer/profile/",
+		  "file" => UploadIO.new("./path/to/my/file.csv", "text/csv"))
+	}
+	response=@http.post(request)
+
+```
+
+
+##  11. <a name='Contributing'></a>Contributing
 
 Bug reports are very welcome on GitHub at https://github.com/marioruiz/nice_http.
 
 If you want to contribute please follow [GitHub Flow](https://guides.github.com/introduction/flow/index.html)
 
-##  13. <a name='License'></a>License
+##  12. <a name='License'></a>License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
