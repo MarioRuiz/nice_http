@@ -3,7 +3,6 @@
 [![Gem Version](https://badge.fury.io/rb/nice_http.svg)](https://rubygems.org/gems/nice_http)
 [![Build Status](https://travis-ci.com/MarioRuiz/nice_http.svg?branch=master)](https://github.com/MarioRuiz/nice_http)
 [![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/nice_http/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/nice_http?branch=master)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http?ref=badge_shield)
 
 NiceHttp the simplest library for accessing and testing HTTP and REST resources.
 
@@ -21,14 +20,37 @@ To be able to generate random requests take a look at the documentation for nice
 
 Example that creates 1000 good random and unique requests to register an user and test that the validation of the fields are correct by the user was able to be registered. Send 800 requests where just one field is wrong and verify the user was not able to be created: https://gist.github.com/MarioRuiz/824d7a462b62fd85f02c1a09455deefb
 
-## Installation
+<!-- vscode-markdown-toc -->
+1. [Installation](#Installation)
+1. [A very simple first example](#Averysimplefirstexample)
+1. [Create a connection](#Createaconnection)
+1. [Creating requests](#Creatingrequests)
+1. [Responses](#Responses)
+1. [Special settings](#Specialsettings)
+1. [Authentication requests](#Authenticationrequests)
+1. [Send multipart content](#Sendmultipartcontent)
+  1. [Http logs](#Httplogs)
+     1. [Multithreading](#Multithreading)
+  1. [Http stats](#Httpstats)
+  1. [Tips](#Tips)
+     1. [Download a file](#Downloadafile)
+  1. [Contributing](#Contributing)
+  1. [License](#License)
+
+<!-- vscode-markdown-toc-config
+	numbering=true
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
+##  1. <a name='Installation'></a>Installation
 
 Install it yourself as:
 
     $ gem install nice_http
 
 
-## A very simple first example
+##  2. <a name='Averysimplefirstexample'></a>A very simple first example
 
 ```ruby
 require 'nice_http'
@@ -52,7 +74,7 @@ resp = http.post( {
 pp resp.data.json
 ```
 
-## Create a connection
+##  3. <a name='Createaconnection'></a>Create a connection
 
 The simplest way is just by supplying the value as an argument:
 
@@ -117,7 +139,7 @@ resp = http.get('/api2/json/gender/Love/Sun?ret=true')
 # The get request path will be: /NamSorAPIv2/api2/json/gender/Love/Sun on server v2.namsor.com
 ```
 
-## Creating requests
+##  4. <a name='Creatingrequests'></a>Creating requests
 
 You can use hash requests to simplify the management of your requests, for example creating a file specifying all the requests for your Customers API.
 
@@ -224,7 +246,7 @@ If the request hash contains a key :method with one of these possible values: :g
 ```
 
 
-## Responses
+##  5. <a name='Responses'></a>Responses
 
 The response will include at least the keys:
 
@@ -237,7 +259,7 @@ The response will include at least the keys:
 Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many more available
 
 
-## Special settings
+##  6. <a name='Specialsettings'></a>Special settings
 
 *debug*: (true or false) it will set the connecition on debug mode so you will be able to see the whole communication with the server in detail
 
@@ -253,7 +275,7 @@ Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many mo
 
 *auto_redirect*: (true or false) in case of true it will take care of the auto redirections.
 
-## Authentication requests
+##  7. <a name='Authenticationrequests'></a>Authentication requests
 
 All we need to do is to add to our request the correct authentication tokens, seeds, headers.
 
@@ -343,7 +365,7 @@ NiceHttp.headers[:Authorization] = lambda {get_token()}
 
 NiceHttp will call the get_token method you created every time a new Http connection is created.
 
-## Send multipart content
+##  8. <a name='Sendmultipartcontent'></a>Send multipart content
 
 Example posting a csv file:
 
@@ -360,7 +382,7 @@ Example posting a csv file:
 
 ```
 
-## Http logs
+##  9. <a name='Httplogs'></a>Http logs
 
 You can set where the http logs will be stored by using the log attribute of the NiceHttp. 
 By default they will be stored in your root directory with the name nice_http.log.
@@ -483,7 +505,7 @@ RESPONSE:
 
 ```
 
-### Multithreading
+###  9.1. <a name='Multithreading'></a>Multithreading
 
 In case you want to use multithread and log in different files every thread, add an unique name for the thread then the logs will be stored accordingly
 
@@ -509,7 +531,7 @@ t.each(&:join)
 # log files: nice_http_0.log, nice_http_1.log... nice_http_39.log
 ```
 
-## Http stats
+##  10. <a name='Httpstats'></a>Http stats
 
 If you want to get a summarize stats of your http communication you need to set `NiceHttp.create_stats = true` 
 
@@ -599,17 +621,22 @@ NiceHttp.add_stats(:customer, :create, started, Time.now, customer_name)
 ```
 This will generate an items key that will contain an array of the values you added.
 
-## Contributing
+##  11. <a name='Tips'></a>Tips
+
+###  11.1. <a name='Downloadafile'></a>Download a file
+
+```ruby
+require 'nice_http'
+resp = NiceHttp.new("https://euruko2019.org").get("/assets/images/logo.png")
+File.open('./logo.png', 'wb') { |fp| fp.write(resp.data) }
+```
+
+##  12. <a name='Contributing'></a>Contributing
 
 Bug reports are very welcome on GitHub at https://github.com/marioruiz/nice_http.
 
 If you want to contribute please follow [GitHub Flow](https://guides.github.com/introduction/flow/index.html)
 
-## License
+##  13. <a name='License'></a>License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
-
-
-
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FMarioRuiz%2Fnice_http?ref=badge_large)
