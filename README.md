@@ -597,6 +597,7 @@ To add the items for every specific stats to be accessed as an array you can add
 ```ruby
 NiceHttp.add_stats(:customer, :create, started, Time.now, customer_name)
 ```
+
 This will generate an items key that will contain an array of the values you added.
 
 ## Tips
@@ -610,6 +611,7 @@ resp = NiceHttp.new("https://euruko2019.org").get("/assets/images/logo.png", sav
 ```
 
 * Get the data and store it like you want:
+
 ```ruby
 resp = NiceHttp.new("https://euruko2019.org").get("/assets/images/logo.png")
 File.open('./logo.png', 'wb') { |fp| fp.write(resp.data) }
