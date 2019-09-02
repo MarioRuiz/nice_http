@@ -5,6 +5,7 @@ module NiceHttpHttpMethods
   #
   # @param arg [Hash] containing at least key :path
   # @param arg [String] the path
+  # @options save_data [String] the path or path and file name where we want to save the response data
   #
   # @return [Hash] response
   #   Including at least the symbol keys:
@@ -21,8 +22,12 @@ module NiceHttpHttpMethods
   # @example
   #   resp = @http.get("/customers/1223")
   #   assert resp.message == "OK"
+  # @example
+  #   resp = @http.get("/assets/images/logo.png", save_data: './tmp/')
+  # @example
+  #   resp = @http.get("/assets/images/logo.png", save_data: './tmp/example.png')
   ######################################################
-  def get(arg)
+  def get(arg, save_data: '')
     begin
       path, data, headers_t = manage_request(arg)
 
@@ -109,6 +114,24 @@ module NiceHttpHttpMethods
         end
       else
         @num_redirects = 0
+      end
+      if save_data!=''
+        require 'pathname'
+        pn_get = Pathname.new(path)
+
+        if Dir.exist?(save_data)
+          save = save_data + "/" + pn_get.basename.to_s
+        elsif save_data[-1]=="/"
+          save = save_data + pn_get.basename.to_s
+        else
+          save = save_data
+        end
+        if Dir.exist?(Pathname.new(save).dirname)
+          File.open(save, 'wb') { |fp| fp.write(@response.data) }
+        else
+          @logger.fatal "The folder #{Pathname.new(save).dirname} doesn't exist"
+        end
+#jal9
       end
       return @response
     rescue Exception => stack

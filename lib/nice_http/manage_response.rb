@@ -107,19 +107,27 @@ module NiceHttpManageResponse
             if key.kind_of?(Symbol)
               if key == :code or key == :data or key == :header or key == :message
                 if key == :data and !@response[:'content-type'].to_s.include?("text/html")
-                  begin
-                    JSON.parse(value_orig)
-                    data_s = JSON.pretty_generate(JSON.parse(value_orig))
-                  rescue
-                    data_s = value_orig
-                  end
-                  if @debug
-                    self.class.last_response += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
-                  end
-                  if value_orig != value
-                    message += "\n " + key.to_s() + ": '" + value.gsub("<", "&lt;") + "'\n"
+                  if key == :data and 
+                    (!@response[:'content-type'].include?('text') and 
+                     !@response[:'content-type'].include?('json') and
+                     !@response[:'content-type'].include?('xml') and
+                     !@response[:'content-type'].include?('charset=utf-8'))
+                    message += "\n data: It's not text data so won't be in the logs."
                   else
-                    message += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
+                    begin
+                      JSON.parse(value_orig)
+                      data_s = JSON.pretty_generate(JSON.parse(value_orig))
+                    rescue
+                      data_s = value_orig
+                    end
+                    if @debug
+                      self.class.last_response += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
+                    end
+                    if value_orig != value
+                      message += "\n " + key.to_s() + ": '" + value.gsub("<", "&lt;") + "'\n"
+                    else
+                      message += "\n " + key.to_s() + ": '" + data_s.gsub("<", "&lt;") + "'\n"
+                    end
                   end
                 else
                   if @debug

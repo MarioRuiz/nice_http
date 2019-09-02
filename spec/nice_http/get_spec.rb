@@ -109,4 +109,47 @@ RSpec.describe NiceHttp, "#get" do
     expect(resp.time_response >= finished)
   end
 
+  it 'downloads into the specified folder' do
+    Dir.mkdir('./tmp/') unless Dir.exist?('./tmp')
+    File.delete('./tmp/logo.png') if File.exist?('./tmp/logo.png')
+
+    http = NiceHttp.new("https://euruko2019.org")
+    http.get("/assets/images/logo.png", save_data: './tmp/')
+    expect(File.exist?('./tmp/logo.png')).to eq true
+  end
+
+  it 'downloads into the specified folder finished not on slash' do
+    Dir.mkdir('./tmp/') unless Dir.exist?('./tmp')
+    File.delete('./tmp/logo.png') if File.exist?('./tmp/logo.png')
+
+    http = NiceHttp.new("https://euruko2019.org")
+    http.get("/assets/images/logo.png", save_data: './tmp')
+    expect(File.exist?('./tmp/logo.png')).to eq true
+  end
+
+  it 'downloads into the specified path' do
+    Dir.mkdir('./tmp/') unless Dir.exist?('./tmp')
+    File.delete('./tmp/logo2.png') if File.exist?('./tmp/logo2.png')
+    http = NiceHttp.new("https://euruko2019.org")
+    http.get("/assets/images/logo.png", save_data: './tmp/logo2.png')
+    expect(File.exist?('./tmp/logo2.png')).to eq true
+  end
+
+  it 'downloads a json into the specified path' do
+    Dir.mkdir('./tmp/') unless Dir.exist?('./tmp')
+    File.delete('./tmp/users.json') if File.exist?('./tmp/users.json')
+    resp = @http.get("/api/users?page=2", save_data: './tmp/users.json')
+    expect(resp.code).to eq 200
+    expect(resp.message).to eq "OK"
+    expect(File.exist?('./tmp/users.json')).to eq true
+  end
+
+  it 'doens\'t save if path not reachable' do
+    Dir.mkdir('./tmpx/') if Dir.exist?('./tmpx')
+    File.delete('./tmp/logo.png') if File.exist?('./tmp/logo.png')
+    http = NiceHttp.new("https://euruko2019.org")
+    http.get("/assets/images/logo.png", save_data: './tmpx/')
+    expect(File.exist?('./tmp/logo.png')).to eq false
+  end
+
 end
