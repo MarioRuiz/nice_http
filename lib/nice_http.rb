@@ -6,9 +6,9 @@ require_relative "nice_http/manage_response"
 require_relative "nice_http/http_methods"
 
 ######################################################
-# Attributes you can access using NiceHttp.the_attribute:
-#   :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port,
-#   :last_request, :last_response, :request_id, :use_mocks, :connections,
+# Attributes you can access using NiceHttp.the_attribute:  
+#   :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port,  
+#   :last_request, :last_response, :request_id, :use_mocks, :connections,  
 #   :active, :auto_redirect, :values_for, :create_stats, :stats
 #
 # @attr [String] host The host to be accessed
@@ -17,12 +17,12 @@ require_relative "nice_http/http_methods"
 # @attr [Hash] headers Contains the headers you will be using on your connection
 # @attr [Boolean] debug In case true shows all the details of the communication with the host
 # @attr [String] log_path The path where the logs will be stored. By default empty string.
-# @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".
-#   :fix_file, will log the communication on nice_http.log. (default).
-#   :no, will not generate any logs.
-#   :screen, will print the logs on the screen.
-#   :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.
-#   :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log
+# @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".  
+#   :fix_file, will log the communication on nice_http.log. (default).  
+#   :no, will not generate any logs.  
+#   :screen, will print the logs on the screen.  
+#   :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.  
+#   :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log  
 #   String the path and file name where the logs will be stored.
 # @attr [String] proxy_host the proxy host to be used
 # @attr [Integer] proxy_port the proxy port to be used
@@ -36,10 +36,10 @@ require_relative "nice_http/http_methods"
 # @attr [Hash] response Contains the full response hash
 # @attr [Integer] num_redirects Number of consecutive redirections managed
 # @attr [Hash] headers The updated headers of the communication
-# @attr [Hash] cookies Cookies set. The key is the path (String) where cookies are set and the value a Hash with pairs of cookie keys and values, example:
+# @attr [Hash] cookies Cookies set. The key is the path (String) where cookies are set and the value a Hash with pairs of cookie keys and values, example:  
 #   { '/' => { "cfid" => "d95adfas2550255", "amddom.settings" => "doom" } }
-# @attr [Logger] logger An instance of the Logger class where logs will be stored. You can access on anytime to store specific data, for example:
-#   my_http.logger.info "add this to the log file"
+# @attr [Logger] logger An instance of the Logger class where logs will be stored. You can access on anytime to store specific data, for example:  
+#   my_http.logger.info "add this to the log file"  
 #   @see https://ruby-doc.org/stdlib-2.5.0/libdoc/logger/rdoc/Logger.html
 # @attr [Hash] values_for The default values to set on the data in case not specified others
 # @attr [Boolean] create_stats If true, NiceHttp will create stats of the http communication and store them on NiceHttp.stats hash
@@ -152,7 +152,7 @@ class NiceHttp
   end
 
   ######################################################
-  # To add specific stats
+  # To add specific stats  
   # The stats will be added to NiceHttp.stats[:specific]
   #
   # @param name [Symbol] name to group your specific stats
@@ -238,9 +238,9 @@ class NiceHttp
   ######################################################
   # It will save the NiceHttp.stats on different files, each key of the hash in a different file.
   #
-  # @param file_name [String] path and file name to be used to store the stats.
-  #   In case no one supplied it will be used the value in NiceHttp.log and it will be saved on YAML format.
-  #   In case extension is .yaml will be saved on YAML format.
+  # @param file_name [String] path and file name to be used to store the stats.  
+  #   In case no one supplied it will be used the value in NiceHttp.log and it will be saved on YAML format.  
+  #   In case extension is .yaml will be saved on YAML format.  
   #   In case extension is .json will be saved on JSON format.
   #
   # @example
@@ -284,32 +284,19 @@ class NiceHttp
   #   http = NiceHttp.new("example.com:8999")
   # @example
   #   http = NiceHttp.new("localhost:8322")
-  # @param args [Hash] containing these possible keys:
-  #
-  #             host -- example.com. (default blank screen)
-  #
-  #             port -- port for the connection. 80 (default)
-  #
-  #             ssl -- true, false (default)
-  #
-  #             headers -- hash with the headers
-  #
-  #             values_for -- hash with the values_for
-  #
-  #             debug -- true, false (default)
-  #
-  #             log_path -- string with path for the logs, empty string (default)
-  #
-  #             log -- :no, :screen, :file, :fix_file (default).
-  #
-  #                 A string with a path can be supplied.
-  #
-  #                 If :fix_file: nice_http.log
-  #
-  #                 In case :file it will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log
-  #
-  #             proxy_host
-  #
+  # @param args [Hash] containing these possible keys:  
+  #             host -- example.com. (default blank screen)  
+  #             port -- port for the connection. 80 (default)  
+  #             ssl -- true, false (default)  
+  #             headers -- hash with the headers  
+  #             values_for -- hash with the values_for  
+  #             debug -- true, false (default)  
+  #             log_path -- string with path for the logs, empty string (default)  
+  #             log -- :no, :screen, :file, :fix_file (default).  
+  #                 A string with a path can be supplied.  
+  #                 If :fix_file: nice_http.log  
+  #                 In case :file it will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log  
+  #             proxy_host  
   #             proxy_port
   # @example
   #   http2 = NiceHttp.new( host: "reqres.in", port: 443, ssl: true )

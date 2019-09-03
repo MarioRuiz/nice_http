@@ -1,12 +1,10 @@
 module NiceHttpUtils
   ##################################################
   # get a value of xml tag
-  # input:
-  #   tag_name
-  #   xml_string
-  #   take_off_prefix: boolean (optional). true, false(default)
-  # output:
-  #   the value or an array of all values found with this tag_name
+  # @param tag_name [String]
+  # @param xml_string [String]
+  # @param take_off_prefix [Boolean] (optional). true, false(default)
+  # @return [String, Array] the value or an array of all values found with this tag_name
   ####################################################
   def self.get_value_xml_tag(tag_name, xml_string, take_off_prefix = false)
     return nil if xml_string.nil?
@@ -65,13 +63,11 @@ module NiceHttpUtils
 
   ##################################################
   # set a value on xml tag
-  # input:
-  #   tag_name
-  #   xml_string
-  #   value
-  #   take_off_prefix: boolean (optional). true, false(default)
-  # output:
-  #   xml_string with the new value
+  # @param tag_name [String]
+  # @param xml_string [String]
+  # @param value [String]
+  # @param take_off_prefix [Boolean] (optional). true, false(default)
+  # @return [String] with the new value
   ####################################################
   def self.set_value_xml_tag(tag_name, xml_string, value, take_off_prefix = false)
     tag_name = tag_name.to_s
@@ -95,12 +91,10 @@ module NiceHttpUtils
 
   ##################################################
   # returns the seed for Basic authentication
-  # input:
-  #   user
-  #   password
-  #   strict: (default: false) use strict_encode64 if true, if not encode64
-  # output:
-  #   seed string to be used on Authorization key header on a get request
+  # @param user [String]
+  # @param password [String]
+  # @param strict [Boolean] (default: false) use strict_encode64 if true, if not encode64
+  # @return [String] seed string to be used on Authorization key header on a get request
   ####################################################
   def self.basic_authentication(user:, password:, strict: false)
     require "base64"

@@ -3,18 +3,17 @@ module NiceHttpHttpMethods
   ######################################################
   # Get data from path
   #
-  # @param arg [Hash] containing at least key :path
-  # @param arg [String] the path
-  # @options save_data [String] the path or path and file name where we want to save the response data
+  # @param arg [Hash, String] hash containing at least key :path or a string with the path
+  # @param save_data [String] the path or path and file name where we want to save the response data
   #
-  # @return [Hash] response
-  #   Including at least the symbol keys:
-  #     :data = the response data body.
-  #     :message = plain text response.
-  #     :code = code response (200=ok,500=wrong...).
-  #   All keys in response are lowercase.
-  #   data, message and code can also be accessed as attributes like .message .code .data.
-  #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
+  # @return [Hash] response.  
+  #   Including at least the symbol keys:  
+  #     :data = the response data body.  
+  #     :message = plain text response.  
+  #     :code = code response (200=ok,500=wrong...).  
+  #   All keys in response are lowercase.  
+  #   data, message and code can also be accessed as attributes like .message .code .data.  
+  #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }  
   #
   # @example
   #   resp = @http.get(Requests::Customer.get_profile)
@@ -131,7 +130,6 @@ module NiceHttpHttpMethods
         else
           @logger.fatal "The folder #{Pathname.new(save).dirname} doesn't exist"
         end
-#jal9
       end
       return @response
     rescue Exception => stack
@@ -142,20 +140,20 @@ module NiceHttpHttpMethods
 
   ######################################################
   # Post data to path
-  # @param arguments [Hash] containing at least keys :data and :path.
+  # @param arguments [Hash] containing at least keys :data and :path.  
   #   In case :data not supplied and :data_examples array supplied, it will be taken the first example as :data.
-  # @param arguments [Array<path, data, additional_headers>]
-  #   path (string).
-  #   data (json data for example).
+  # @param arguments [Array<path, data, additional_headers>]  
+  #   path (string).  
+  #   data (json data for example).  
   #   additional_headers (Hash key=>value).
-  # @return [Hash] response
-  #   Including at least the symbol keys:
-  #     :data = the response data body.
-  #     :message = plain text response.
-  #     :code = code response (200=ok,500=wrong...).
-  #   All keys in response are lowercase.
-  #   data, message and code can also be accessed as attributes like .message .code .data.
-  #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
+  # @return [Hash] response  
+  #   Including at least the symbol keys:  
+  #     :data = the response data body.  
+  #     :message = plain text response.  
+  #     :code = code response (200=ok,500=wrong...).  
+  #   All keys in response are lowercase.  
+  #   data, message and code can also be accessed as attributes like .message .code .data.  
+  #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }  
   # @example
   #   resp = @http.post(Requests::Customer.update_customer)
   #   assert resp.code == 201
@@ -238,19 +236,19 @@ module NiceHttpHttpMethods
 
   ######################################################
   # Put data to path
-  # @param arguments [Hash] containing at least keys :data and :path.
+  # @param arguments [Hash] containing at least keys :data and :path.  
   #   In case :data not supplied and :data_examples array supplied, it will be taken the first example as :data.
-  # @param arguments [Array<path, data, additional_headers>]
-  #   path (string).
-  #   data (json data for example).
-  #   additional_headers (Hash key=>value).
-  # @return [Hash] response
-  #   Including at least the symbol keys:
-  #     :data = the response data body.
-  #     :message = plain text response.
-  #     :code = code response (200=ok,500=wrong...).
-  #   All keys in response are lowercase.
-  #   data, message and code can also be accessed as attributes like .message .code .data.
+  # @param arguments [Array<path, data, additional_headers>]  
+  #   path (string).  
+  #   data (json data for example).  
+  #   additional_headers (Hash key=>value).  
+  # @return [Hash] response  
+  #   Including at least the symbol keys:  
+  #     :data = the response data body.  
+  #     :message = plain text response.  
+  #     :code = code response (200=ok,500=wrong...).  
+  #   All keys in response are lowercase.  
+  #   data, message and code can also be accessed as attributes like .message .code .data.  
   #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
   # @example
   #   resp = @http.put(Requests::Customer.remove_phone)
@@ -304,19 +302,20 @@ module NiceHttpHttpMethods
 
   ######################################################
   # Patch data to path
-  # @param arguments [Hash] containing at least keys :data and :path.
+  #
+  # @param arguments [Hash] containing at least keys :data and :path.  
   #   In case :data not supplied and :data_examples array supplied, it will be taken the first example as :data.
-  # @param arguments [Array<path, data, additional_headers>]
-  #   path (string).
-  #   data (json data for example).
+  # @param arguments [Array<path, data, additional_headers>]  
+  #   path (string).  
+  #   data (json data for example).  
   #   additional_headers (Hash key=>value).
-  # @return [Hash] response
-  #   Including at least the symbol keys:
-  #     :data = the response data body.
-  #     :message = plain text response.
-  #     :code = code response (200=ok,500=wrong...).
-  #   All keys in response are lowercase.
-  #   data, message and code can also be accessed as attributes like .message .code .data.
+  # @return [Hash] response  
+  #   Including at least the symbol keys:  
+  #     :data = the response data body.  
+  #     :message = plain text response.  
+  #     :code = code response (200=ok,500=wrong...).  
+  #   All keys in response are lowercase.  
+  #   data, message and code can also be accessed as attributes like .message .code .data.  
   #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
   # @example
   #   resp = @http.patch(Requests::Customer.unrelease_account)
@@ -385,16 +384,15 @@ module NiceHttpHttpMethods
 
   ######################################################
   # Delete an existing resource
-  # @param arg [Hash] containing at least key :path
-  # @param arg [String] the path
+  # @param argument [Hash, String]  hash containing at least key :path or a string with the path
   #
-  # @return [Hash] response
-  #   Including at least the symbol keys:
-  #     :data = the response data body.
-  #     :message = plain text response.
-  #     :code = code response (200=ok,500=wrong...).
-  #   All keys in response are lowercase.
-  #   data, message and code can also be accessed as attributes like .message .code .data.
+  # @return [Hash] response  
+  #   Including at least the symbol keys:  
+  #     :data = the response data body.  
+  #     :message = plain text response.  
+  #     :code = code response (200=ok,500=wrong...).  
+  #   All keys in response are lowercase.  
+  #   data, message and code can also be accessed as attributes like .message .code .data.  
   #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
   # @example
   #   resp = @http.delete(Requests::Customer.remove_session)
@@ -451,18 +449,17 @@ module NiceHttpHttpMethods
   end
 
   ######################################################
-  # Implementation of the http HEAD method.
-  # Asks for the response identical to the one that would correspond to a GET request, but without the response body.
+  # Implementation of the http HEAD method.  
+  # Asks for the response identical to the one that would correspond to a GET request, but without the response body.  
   # This is useful for retrieving meta-information written in response headers, without having to transport the entire content.
-  # @param arg [Hash] containing at least key :path
-  # @param arg [String] the path
+  # @param argument [Hash, String] hash containing at least key :path or directly an string with the path
   #
-  # @return [Hash] response
-  #   Including at least the symbol keys:
-  #     :message = plain text response.
-  #     :code = code response (200=ok,500=wrong...).
-  #   All keys in response are lowercase.
-  #   message and code can also be accessed as attributes like .message .code.
+  # @return [Hash] response  
+  #   Including at least the symbol keys:  
+  #     :message = plain text response.  
+  #     :code = code response (200=ok,500=wrong...).  
+  #   All keys in response are lowercase.  
+  #   message and code can also be accessed as attributes like .message .code.  
   #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil }
   ######################################################
   def head(argument)
@@ -503,18 +500,18 @@ module NiceHttpHttpMethods
   end
 
   ######################################################
-  # It will send the request depending on the :method declared on the request hash
+  # It will send the request depending on the :method declared on the request hash  
   # Take a look at https://github.com/MarioRuiz/Request-Hash
   #
   # @param request_hash [Hash] containing at least key :path and :method. The methods that are accepted are: :get, :head, :post, :put, :delete, :patch
   #
-  # @return [Hash] response
-  #   Including at least the symbol keys:
-  #     :data = the response data body.
-  #     :message = plain text response.
-  #     :code = code response (200=ok,500=wrong...).
-  #   All keys in response are lowercase.
-  #   data, message and code can also be accessed as attributes like .message .code .data.
+  # @return [Hash] response  
+  #   Including at least the symbol keys:  
+  #     :data = the response data body.  
+  #     :message = plain text response.  
+  #     :code = code response (200=ok,500=wrong...).  
+  #   All keys in response are lowercase.  
+  #   data, message and code can also be accessed as attributes like .message .code .data.  
   #   In case of fatal error returns { fatal_error: "the error description", code: nil, message: nil, data: '' }
   # @example
   #   resp = @http.send_request Requests::Customer.remove_session
