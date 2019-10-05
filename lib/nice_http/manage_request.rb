@@ -196,7 +196,23 @@ module NiceHttpManageRequest
       end
 
       headers_ts = ""
-      headers_t.each { |key, val| headers_ts += key.to_s + ":" + val.to_s() + ", " }
+
+      if @log_headers == :none
+        @logger.info "No header values since option log_headers is set to :none"
+        headers_t.each { |key, val| headers_ts += key.to_s + ":" + "''" + ", " }
+      elsif @log_headers == :partial
+        @logger.info "Just the last 10 characters on header values since option log_headers is set to :partial"
+        headers_t.each { |key, val| 
+          if val.to_s.size>10
+            headers_ts += key.to_s + ": ..." + (val.to_s[-10..-1] || val.to_s) + ", " 
+          else
+            headers_ts += key.to_s + ":" + (val.to_s[-10..-1] || val.to_s) + ", " 
+          end
+        }
+      else
+        headers_t.each { |key, val| headers_ts += key.to_s + ":" + val.to_s() + ", " }
+      end
+
       message = "\n\n#{"- " * 25}\n"
       if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
         message += "#{method_s.upcase} Request: #{arguments[0][:name]}"

@@ -2,8 +2,9 @@
 --title 'nice_http - NiceHttp -- simplest library for accessing and testing HTTP and REST resources.'
 --charset utf-8
 --markup markdown
-'lib/nice_http.rb' 
-'lib/nice_http/http_methods.rb' 
-'lib/nice_http/utils.rb' 
-'*.md' 
-'LICENSE'
+-
+lib/nice_http.rb
+lib/nice_http/http_methods.rb
+lib/nice_http/utils.rb
+
+LICENSE

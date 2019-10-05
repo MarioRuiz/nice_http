@@ -22,6 +22,7 @@ RSpec.describe NiceHttp do
       klass.connections = [1, 1]
       klass.active = 1
       klass.auto_redirect = false
+      klass.log_headers = :none
       klass.values_for = {one: 1}
       klass.create_stats = true
       klass.stats = {one: 1}
@@ -44,6 +45,7 @@ RSpec.describe NiceHttp do
       expect(klass.connections).to eq []
       expect(klass.active).to eq 0
       expect(klass.auto_redirect).to eq true
+      expect(klass.log_headers).to eq :all
       expect(klass.values_for).to eq ({})
       expect(klass.create_stats).to eq false
       expect(klass.stats[:all][:num_requests]).to eq 0
@@ -160,7 +162,7 @@ RSpec.describe NiceHttp do
       klass.port = 443
       klass.host = "localhost"
       klass.auto_redirect = true
-      expect(klass.new(auto_redirect: false).debug).to eq false
+      expect(klass.new(auto_redirect: false).auto_redirect).to eq false
     end
     it 'raises an error when it can\'t figure out the auto_redirect' do
       klass.auto_redirect = nil
@@ -170,6 +172,30 @@ RSpec.describe NiceHttp do
       expect(err.class).to eq NiceHttp::InfoMissing
       expect(err.attribute).to eq :auto_redirect
       expect(err.message).to match /wrong auto_redirect/i
+    end
+  end
+
+  describe "log_headers" do
+    it "uses the class log_headers by default" do
+      klass.host = "example.com"
+      klass.port = 443
+      klass.log_headers = :none
+      expect(klass.new.log_headers).to eq :none
+    end
+    it "can be provided an explicit log_headers" do
+      klass.port = 443
+      klass.host = "localhost"
+      klass.log_headers = :all
+      expect(klass.new(log_headers: :partial).log_headers).to eq :partial
+    end
+    it 'raises an error when it can\'t figure out the log_headers' do
+      klass.log_headers = nil
+      klass.host = "example.com"
+      klass.port = 443
+      klass.new rescue err = $ERROR_INFO
+      expect(err.class).to eq NiceHttp::InfoMissing
+      expect(err.attribute).to eq :log_headers
+      expect(err.message).to match(/wrong log_headers/i)
     end
   end
 
@@ -186,7 +212,7 @@ RSpec.describe NiceHttp do
       klass.use_mocks = false
       expect(klass.new(use_mocks: true).use_mocks).to eq true
     end
-    it 'raises an error when it can\'t figure out the auto_redirect' do
+    it 'raises an error when it can\'t figure out the use_mocks' do
       klass.use_mocks = nil
       klass.host = "example.com"
       klass.port = 443
@@ -325,7 +351,6 @@ RSpec.describe NiceHttp do
     end
   end
 
-
   describe "class defaults" do
     specify "port is 80" do
       expect(klass.port).to eq 80
@@ -341,6 +366,9 @@ RSpec.describe NiceHttp do
     end
     specify "auto_redirect is true" do
       expect(klass.auto_redirect).to eq true
+    end
+    specify "log_headers is :all" do
+      expect(klass.log_headers).to eq :all
     end
     specify "use_mocks is false" do
       expect(klass.use_mocks).to eq false
@@ -366,6 +394,7 @@ RSpec.describe NiceHttp do
       expect { klass.ssl = true }.to change { klass.ssl }.to(true)
       expect { klass.debug = true }.to change { klass.debug }.to(true)
       expect { klass.auto_redirect = false }.to change { klass.auto_redirect }.to(false)
+      expect { klass.log_headers = :partial }.to change { klass.log_headers }.to(:partial)
       expect { klass.use_mocks = true }.to change { klass.use_mocks }.to(true)
       expect { klass.headers = {example: "test"} }.to change { klass.headers }.to({example: "test"})
       expect { klass.values_for = {example: "test"} }.to change { klass.values_for }.to({example: "test"})
@@ -379,6 +408,7 @@ RSpec.describe NiceHttp do
       expect { klass.defaults = {ssl: true} }.to change { klass.ssl }.to(true)
       expect { klass.defaults = {debug: true} }.to change { klass.debug }.to(true)
       expect { klass.defaults = {auto_redirect: false} }.to change { klass.auto_redirect }.to(false)
+      expect { klass.defaults = {log_headers: :none} }.to change { klass.log_headers }.to(:none)
       expect { klass.defaults = {use_mocks: true} }.to change { klass.use_mocks }.to(true)
       expect { klass.defaults = {headers: {example: "test"}} }.to change { klass.headers }.to({example: "test"})
       expect { klass.defaults = {values_for: {example: "test"}} }.to change { klass.values_for }.to({example: "test"})

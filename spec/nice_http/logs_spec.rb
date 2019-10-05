@@ -145,5 +145,39 @@ RSpec.describe NiceHttp, "#logs" do
       content = File.read("./nice_http.log")
       expect(content).to match /It was not possible to close the HTTP connection, already closed/
     end
-  end
+
+    it 'logs all the headers if log_headers is :all' do
+      http = klass.new("http://example.com")
+      http.log_headers = :all
+      http.headers = {uno: 'abcdefghijklmnopqrstuvwxyz', dos: '2', tres: '00000000001234567890'}
+      http.get('/')
+      content = File.read("./nice_http.log")
+      expected = "headers: {uno:abcdefghijklmnopqrstuvwxyz, dos:2, tres:00000000001234567890,"
+      expect(content).to match(expected)
+    end
+
+    it 'doesn\'t log any headers if log_headers is :none' do
+      http = klass.new("http://example.com")
+      http.log_headers = :none
+      http.headers = {uno: 'abcdefghijklmnopqrstuvwxyz', dos: '2', tres: '00000000001234567890'}
+      http.get('/')
+      content = File.read("./nice_http.log")
+      expected = "headers: {uno:'', dos:'', tres:'',"
+      expect(content).to match(expected)
+      expect(content).to match('No header values since option log_headers is set to :none')      
+    end
+
+    it 'logs only 10 last chars of headers if log_headers is :partial' do
+      http = klass.new("http://example.com")
+      http.log_headers = :partial
+      http.headers = {uno: 'abcdefghijklmnopqrstuvwxyz', dos: '2', tres: '00000000001234567890'}
+      http.get('/')
+      content = File.read("./nice_http.log")
+      expected = "{uno: ...qrstuvwxyz, dos:2, tres: ...1234567890"
+      expect(content).to match(expected)
+      expect(content).to match('Just the last 10 characters on header values since option log_headers is set to :partial')      
+    end
+    
+  
+  end  
 end

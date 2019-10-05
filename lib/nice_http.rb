@@ -7,7 +7,7 @@ require_relative "nice_http/http_methods"
 
 ######################################################
 # Attributes you can access using NiceHttp.the_attribute:  
-#   :host, :port, :ssl, :headers, :debug, :log, :proxy_host, :proxy_port,  
+#   :host, :port, :ssl, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,  
 #   :last_request, :last_response, :request_id, :use_mocks, :connections,  
 #   :active, :auto_redirect, :values_for, :create_stats, :stats
 #
@@ -24,6 +24,7 @@ require_relative "nice_http/http_methods"
 #   :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.  
 #   :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log  
 #   String the path and file name where the logs will be stored.
+# @attr [Symbol] log_headers. :all, :partial, :none (default :all) If :all will log all the headers. If :partial will log the last 10 characters. If :none no headers.
 # @attr [String] proxy_host the proxy host to be used
 # @attr [Integer] proxy_port the proxy port to be used
 # @attr [String] last_request The last request with all the content sent
@@ -66,7 +67,7 @@ class NiceHttp
   end
 
   class << self
-    attr_accessor :host, :port, :ssl, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port,
+    attr_accessor :host, :port, :ssl, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port, :log_headers,
                   :last_request, :last_response, :request_id, :use_mocks, :connections,
                   :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats
   end
@@ -89,6 +90,7 @@ class NiceHttp
     @debug = false
     @log = :fix_file
     @log_path = ''
+    @log_headers = :all
     @proxy_host = nil
     @proxy_port = nil
     @last_request = nil
@@ -128,12 +130,12 @@ class NiceHttp
   end
 
   attr_reader :host, :port, :ssl, :debug, :log, :log_path, :proxy_host, :proxy_port, :response, :num_redirects
-  attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for
+  attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for, :log_headers
 
   ######################################################
   # Change the default values for NiceHttp supplying a Hash
   #
-  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :log_path, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats
+  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :log_path, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats, :log_headers
   ######################################################
   def self.defaults=(par = {})
     @host = par[:host] if par.key?(:host)
@@ -144,6 +146,7 @@ class NiceHttp
     @debug = par[:debug] if par.key?(:debug)
     @log_path = par[:log_path] if par.key?(:log_path)
     @log = par[:log] if par.key?(:log)
+    @log_headers = par[:log_headers] if par.key?(:log_headers)
     @proxy_host = par[:proxy_host] if par.key?(:proxy_host)
     @proxy_port = par[:proxy_port] if par.key?(:proxy_port)
     @use_mocks = par[:use_mocks] if par.key?(:use_mocks)
@@ -293,6 +296,7 @@ class NiceHttp
   #             debug -- true, false (default)  
   #             log_path -- string with path for the logs, empty string (default)  
   #             log -- :no, :screen, :file, :fix_file (default).  
+  #             log_headers -- :all, :none, :partial (default).  
   #                 A string with a path can be supplied.  
   #                 If :fix_file: nice_http.log  
   #                 In case :file it will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log  
@@ -319,6 +323,7 @@ class NiceHttp
     @debug = self.class.debug
     @log = self.class.log
     @log_path = self.class.log_path
+    @log_headers = self.class.log_headers
     @proxy_host = self.class.proxy_host
     @proxy_port = self.class.proxy_port
     @use_mocks = self.class.use_mocks
@@ -347,6 +352,7 @@ class NiceHttp
       @debug = args[:debug] if args.keys.include?(:debug)
       @log = args[:log] if args.keys.include?(:log)
       @log_path = args[:log_path] if args.keys.include?(:log_path)
+      @log_headers = args[:log_headers] if args.keys.include?(:log_headers)
       @proxy_host = args[:proxy_host] if args.keys.include?(:proxy_host)
       @proxy_port = args[:proxy_port] if args.keys.include?(:proxy_port)
       @use_mocks = args[:use_mocks] if args.keys.include?(:use_mocks)
@@ -433,7 +439,6 @@ class NiceHttp
       @ssl = true if !uri.scheme.nil? && (uri.scheme == "https")
       @prepath = uri.path unless uri.path == "/"
     end
-
     raise InfoMissing, :port if @port.to_s == ""
     raise InfoMissing, :host if @host.to_s == ""
     raise InfoMissing, :ssl unless @ssl.is_a?(TrueClass) or @ssl.is_a?(FalseClass)
@@ -442,6 +447,7 @@ class NiceHttp
     raise InfoMissing, :use_mocks unless @use_mocks.is_a?(TrueClass) or @use_mocks.is_a?(FalseClass)
     raise InfoMissing, :headers unless @headers.is_a?(Hash)
     raise InfoMissing, :values_for unless @values_for.is_a?(Hash)
+    raise InfoMissing, :log_headers unless [:all, :none, :partial].include?(@log_headers)
 
     begin
       if !@proxy_host.nil? && !@proxy_port.nil?

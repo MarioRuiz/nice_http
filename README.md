@@ -380,6 +380,11 @@ Other values you can supply:
 * :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log
 * String, the path and file name where the logs will be stored.
 
+In case you want to hide the header values from the requests on the logs use the option `log_headers`. Possible values:
+* :all, (default), will log all header values.
+* :none, won't log any value of the headers.
+* :partial, will log only the last 10 characters of the header values.
+
 Example of logs:
 ```
 I, [2019-03-22T18:38:58.518964 #29412]  INFO -- : (47266856647720): Http connection created. host:reqres.in,  port:443,  ssl:true, mode:, proxy_host: , proxy_port:  
