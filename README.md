@@ -35,6 +35,7 @@ Example that creates 1000 good random and unique requests to register an user an
 - [Tips](#Tips)
     - [Download a file](#Download-a-file)
     - [Send multipart content](#Send-multipart-content)
+    - [Send x-www-form-urlencoded](#Send-x-www-form-urlencoded)
 - [Contributing](#Contributing)
 - [License](#License)
 
@@ -639,6 +640,18 @@ Example posting a csv file:
 
 ```
 
+### Send x-www-form-urlencoded
+
+``` ruby
+    request = {
+      headers: { 'Content-Type': "application/x-www-form-urlencoded"},
+      path: "/register",
+      data: {
+        "firstname": "test@example.com",
+        "lastname": "example"
+      }
+    }
+```
 
 ## Contributing
 

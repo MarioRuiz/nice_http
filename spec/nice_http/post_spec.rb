@@ -338,6 +338,10 @@ RSpec.describe NiceHttp, "#post" do
     expect(content).not_to match /Same as the last request/
   end
 
+  # todo:
+  xit 'accepts application/x-www-form-urlencoded' do
+  end
+  
   #todo: add tests encoding and cookies
 
 end
