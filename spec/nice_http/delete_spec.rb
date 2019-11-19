@@ -68,4 +68,10 @@ RSpec.describe NiceHttp, "#delete" do
     content = File.read("./nice_http.log")
     expect(content).to match /There was a problem converting to json/
   end
+
+  it "accepts data to be part of the request to send" do
+    resp = @http.delete({path: "/api/users/2", data: [33]})
+    expect(resp.code).to eq 204
+  end
+
 end

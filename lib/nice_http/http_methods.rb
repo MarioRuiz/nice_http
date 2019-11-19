@@ -433,7 +433,13 @@ module NiceHttpHttpMethods
 
       begin
         @start_time_net = Time.now if @start_time_net.nil?
-        resp = @http.delete(path, headers_t)
+        if data.to_s == ""
+          resp = @http.delete(path, headers_t)
+        else
+          request = Net::HTTP::Delete.new(path, headers_t)
+          request.body = data
+          resp = @http.request(request)
+        end
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
