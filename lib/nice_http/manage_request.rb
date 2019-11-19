@@ -84,7 +84,7 @@ module NiceHttpManageRequest
         elsif headers_t["Content-Type"].to_s() != ""
           content_type_included = true
         end
-        if !content_type_included and data.kind_of?(Hash)
+        if !content_type_included and (data.kind_of?(Hash) or data.kind_of?(Array))
           headers_t["Content-Type"] = "application/json"
           content_type_included = true
         end
@@ -132,10 +132,6 @@ module NiceHttpManageRequest
             #todo: implement set_nested 
             data_arr = Array.new()
             data.each_with_index { |row, indx|
-              unless row.kind_of?(Hash)
-                @logger.fatal("Wrong format on request application/json, be sure is a Hash, Array of Hashes or JSON string")
-                return :error, :error, :error
-              end
               if arguments[0].include?(:values_for)
                 if arguments[0][:values_for].is_a?(Array)
                   data_n = row.set_values(arguments[0][:values_for][indx])

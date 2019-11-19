@@ -198,7 +198,7 @@ module NiceHttpHttpMethods
             arguments[0][:data].add_field(key, value) #add to Headers
           }
           resp = @http.request(arguments[0][:data])
-        elsif headers_t["Content-Type"].include?("application/x-www-form-urlencoded")
+        elsif headers_t["Content-Type"].to_s.include?("application/x-www-form-urlencoded")
           encoded_form = URI.encode_www_form(arguments[0][:data])
           resp = @http.request_post(path, encoded_form, headers_t)
           data = resp.body

@@ -108,6 +108,16 @@ RSpec.describe NiceHttp, "#put" do
     expect(content).to match /There was a problem converting to json/
   end
 
+  it 'accepts a json array on first level request' do
+    request = {
+      path: "/api/users",
+      data: [20, 30, 40]
+    }
+    resp = @http.post(request)
+    expect(resp.code).to eq 201
+    expect(resp.data.json).to eq [20, 30, 40]
+  end
+
   #todo: add tests for headers, encoding and cookies
 
 end

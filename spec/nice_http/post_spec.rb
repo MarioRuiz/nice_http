@@ -205,21 +205,6 @@ RSpec.describe NiceHttp, "#post" do
     expect(resp.data.json(:job)).to eq ["dev", "dev"]
   end
 
-  it "shows wrong format on request when not array of hashes" do
-    request = {
-      path: "/api/users",
-      headers: {"Content-Type": "application/json"},
-      data: [
-        {name: "morpheus", job: "leader"},
-        {name: "peter", job: "vicepresident"},
-        100,
-      ],
-    }
-    resp = @http.post(request)
-    content = File.read("./nice_http.log")
-    expect(content).to match /Wrong format on request/
-  end
-
   it "changes all values on array request when values_for is array of hashes" do
     request = {
       path: "/api/users",
