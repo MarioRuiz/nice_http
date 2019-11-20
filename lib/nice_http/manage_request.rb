@@ -132,7 +132,7 @@ module NiceHttpManageRequest
             #todo: implement set_nested 
             data_arr = Array.new()
             data.each_with_index { |row, indx|
-              if arguments[0].include?(:values_for)
+              if arguments[0].include?(:values_for) and (row.is_a?(Array) or row.is_a?(Hash))
                 if arguments[0][:values_for].is_a?(Array)
                   data_n = row.set_values(arguments[0][:values_for][indx])
                 elsif arguments[0][:values_for].is_a?(Hash)
