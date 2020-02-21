@@ -26,6 +26,7 @@ RSpec.describe NiceHttp do
       klass.values_for = {one: 1}
       klass.create_stats = true
       klass.stats = {one: 1}
+      klass.capture = true
 
       klass.reset!
 
@@ -49,6 +50,7 @@ RSpec.describe NiceHttp do
       expect(klass.values_for).to eq ({})
       expect(klass.create_stats).to eq false
       expect(klass.stats[:all][:num_requests]).to eq 0
+      expect(klass.capture).to eq false
     end
   end
 
@@ -388,6 +390,9 @@ RSpec.describe NiceHttp do
     specify "create_stats is false" do
       expect(klass.create_stats).to eq false
     end
+    specify "capture is false" do
+      expect(klass.capture).to eq false
+    end
     specify "I can set/get them with accessors" do
       expect { klass.port = 8888 }.to change { klass.port }.to(8888)
       expect { klass.host = "localhost" }.to change { klass.host }.to("localhost")
@@ -401,6 +406,7 @@ RSpec.describe NiceHttp do
       expect { klass.log = :screen }.to change { klass.log }.to(:screen)
       expect { klass.log_path = './tmp/' }.to change { klass.log_path }.to('./tmp/')
       expect { klass.create_stats = true }.to change { klass.create_stats }.to(true)
+      expect { klass.capture = true }.to change { klass.capture }.to(true)
     end
     specify "I can set many at once with a hash" do
       expect { klass.defaults = {port: 8888} }.to change { klass.port }.to(8888)
@@ -415,6 +421,7 @@ RSpec.describe NiceHttp do
       expect { klass.defaults = {log: :screen} }.to change { klass.log }.to(:screen)
       expect { klass.defaults = {log_path: './tmp/'} }.to change { klass.log_path }.to('./tmp/')
       expect { klass.defaults = {create_stats: true} }.to change { klass.create_stats }.to(true)
+      expect { klass.defaults = {capture: true} }.to change { klass.capture }.to(true)
     end
     specify 'setting many at once doesn\'t override unprovided values' do
       expect { klass.defaults = {host: "http://whatevz.com"} }.to_not change { klass.port }

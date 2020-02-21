@@ -489,6 +489,10 @@ RESPONSE:
 
 ```
 
+If you want to get the last request sent or the last response use `NiceHttp.last_request` or `NiceHttp.last_response`
+
+Also you can collect all data sent and received by setting `NiceHttp.capture = true` and all data will be stored on `NiceHttp.captured` as an Array of Strings (Request+Response).
+
 ### Multithreading
 
 In case you want to use multithread and log in different files every thread, add an unique name for the thread then the logs will be stored accordingly

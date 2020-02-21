@@ -9,7 +9,7 @@ require_relative "nice_http/http_methods"
 # Attributes you can access using NiceHttp.the_attribute:  
 #   :host, :port, :ssl, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,  
 #   :last_request, :last_response, :request_id, :use_mocks, :connections,  
-#   :active, :auto_redirect, :values_for, :create_stats, :stats
+#   :active, :auto_redirect, :values_for, :create_stats, :stats, :capture, :captured
 #
 # @attr [String] host The host to be accessed
 # @attr [Integer] port The port number
@@ -45,6 +45,8 @@ require_relative "nice_http/http_methods"
 # @attr [Hash] values_for The default values to set on the data in case not specified others
 # @attr [Boolean] create_stats If true, NiceHttp will create stats of the http communication and store them on NiceHttp.stats hash
 # @attr [Hash] stats It contains detailed stats of the http communication
+# @attr [Boolean] capture If true, NiceHttp will store all requests and responses on NiceHttp.captured as strings
+# @attr [Array] captured It contains all the http requests and responses if NiceHttp.capture is set to true
 ######################################################
 class NiceHttp
   include NiceHttpManageRequest
@@ -69,7 +71,7 @@ class NiceHttp
   class << self
     attr_accessor :host, :port, :ssl, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port, :log_headers,
                   :last_request, :last_response, :request_id, :use_mocks, :connections,
-                  :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats
+                  :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats, :capture, :captured
   end
 
   at_exit do
@@ -119,6 +121,8 @@ class NiceHttp
       path: {},
       name: {},
     }
+    @capture = false
+    @captured = []
   end
   reset!
 
@@ -135,7 +139,7 @@ class NiceHttp
   ######################################################
   # Change the default values for NiceHttp supplying a Hash
   #
-  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :log_path, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats, :log_headers
+  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :log_path, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats, :log_headers, :capture
   ######################################################
   def self.defaults=(par = {})
     @host = par[:host] if par.key?(:host)
@@ -152,6 +156,7 @@ class NiceHttp
     @use_mocks = par[:use_mocks] if par.key?(:use_mocks)
     @auto_redirect = par[:auto_redirect] if par.key?(:auto_redirect)
     @create_stats = par[:create_stats] if par.key?(:create_stats)
+    @capture = par[:capture] if par.key?(:capture)
   end
 
   ######################################################
@@ -331,6 +336,7 @@ class NiceHttp
     auto_redirect = self.class.auto_redirect
     @num_redirects = 0
     @create_stats = self.class.create_stats
+    @capture = self.class.capture
 
     #todo: set only the cookies for the current domain
     #key: path, value: hash with key is the name of the cookie and value the value

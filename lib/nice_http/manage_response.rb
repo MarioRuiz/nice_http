@@ -143,8 +143,10 @@ module NiceHttpManageResponse
             end
           end
         }
+        self.class.captured << "#{self.class.last_request}\n#{self.class.last_response}" if self.class.capture
       else
         message += "\n Same as the last response."
+        self.class.captured << "#{self.class.last_request}\n#{message}" if self.class.capture
       end
       @logger.info message
       if @response.kind_of?(Hash)
