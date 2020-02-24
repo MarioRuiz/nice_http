@@ -16,10 +16,10 @@ RSpec.describe NiceHttp, "#logs" do
     end
 
     it "logs to file and log_path specified" do
-      file = './tmp/example/example.log'
+      file = './tmp/example/example1.log'
       File.delete(file) if File.exist?(file)
       klass.log_path = './tmp/example/'
-      klass.log = "./example.log"
+      klass.log = "./example1.log"
       http = klass.new("https://example.com")
       http.logger.info "testingxl"
       content = File.read(file)
@@ -59,7 +59,6 @@ RSpec.describe NiceHttp, "#logs" do
 
     it "logs to nice_http.log when :fix_file and file_path specified" do
       file = './tmp/example/nice_http.log'
-      File.delete(file) if File.exist?(file)
       klass.log_path = './tmp/example/'
       klass.log = :fix_file
       http = klass.new("https://example.com")
@@ -100,11 +99,12 @@ RSpec.describe NiceHttp, "#logs" do
     end
 
     it "doesn't create any log file when :no specified" do
-      Dir.glob("./*.log").each { |file| File.delete(file) }
+      Dir.glob("./lgs/*.log").each { |file| File.delete(file) }
       klass.log = :no
+      klass.log_path = './tmp/example11/'
       http = klass.new("https://example.com")
       http.logger.info "TESTING NO LOGS"
-      files = Dir["./*.log"]
+      files = Dir["./tmp/example11/*.log"]
       expect(files.size).to eq 0
     end
 
