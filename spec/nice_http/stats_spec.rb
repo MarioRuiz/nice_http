@@ -200,8 +200,8 @@ RSpec.describe NiceHttp do
       it 'generates the files when no file_name supplied' do
         klass.create_stats = true
         klass.log = './nice_http_tmp.log'
-        File.delete(klass.log) if File.exist?(klass.log)
-        File.delete('./nice_http_tmp_stats_all.yaml') if File.exist?('./nice_http_tmp_stats_all.yaml')
+        #File.delete(klass.log) if File.exist?(klass.log)
+        #File.delete('./nice_http_tmp_stats_all.yaml') if File.exist?('./nice_http_tmp_stats_all.yaml')
         http = klass.new("http://example.com")
         resp = http.get "/"
         klass.save_stats()
