@@ -371,11 +371,11 @@ class NiceHttp
         log_filename = @log.dup
         unless log_filename.start_with?(".")
           if caller.first.start_with?(Dir.pwd)
-            folder = File.dirname(caller.first[/[^:]+/])
+            folder = File.dirname(caller.first.scan(/(.+):\d/).join)
           else
-            folder = File.dirname("#{Dir.pwd}/#{caller.first[/[^:]+/]}")
+            folder = File.dirname("#{Dir.pwd}/#{caller.first.scan(/(.+):\d/).join}")
           end
-          folder += "/" unless log_filename.start_with?("/")
+          folder += "/" unless log_filename.start_with?("/") or log_filename.start_with?(/\w+:/)
           log_filename = folder + log_filename
         end
         require "fileutils"
@@ -389,7 +389,7 @@ class NiceHttp
       elsif @log == :file
         log_filename = "nice_http_#{Time.now.strftime("%Y-%m-%d-%H%M%S")}.log"
       elsif @log == :file_run
-        log_filename = "#{caller.first[/[^:]+/]}.log"
+        log_filename = "#{caller.first.scan(/(.+):\d/).join}.log"
       end
       if Thread.current.name.to_s != ""
         log_filename.gsub!(/\.log$/, "_#{Thread.current.name}.log")
