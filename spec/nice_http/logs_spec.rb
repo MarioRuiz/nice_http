@@ -87,14 +87,16 @@ RSpec.describe NiceHttp, "#logs" do
     end
 
     it "logs to nice_http_YY-mm-dd-HHMMSS.log when :file specified" do
-      Dir.glob("./*.log").each { |file| File.delete(file) }
+      sleep 1
+      #Dir.glob("./*.log").each { |file| File.delete(file) }
+      files_orig = Dir["./nice_http_20*.log"]
       klass.log = :file
       http = klass.new("https://example.com")
       http.logger.info "testing"
-      files = Dir["./nice_http_*.log"]
-      expect(files.size).to eq 1
-
-      content = File.read(files[0])
+      files_final = Dir["./nice_http_20*.log"]
+      files_final.sort!
+      expect(files_final.size-files_orig.size).to eq 1
+      content = File.read(files_final[-1])
       expect(content).to match /testing/
     end
 
@@ -109,7 +111,7 @@ RSpec.describe NiceHttp, "#logs" do
     end
 
     it "raises error if log file not possible to be created" do
-      Dir.glob("./*.log").each { |file| File.delete(file) }
+      #Dir.glob("./*.log").each { |file| File.delete(file) }
       klass.log = "./"
       klass.new("https://example.com") rescue err = $ERROR_INFO
       expect(err.class).to eq NiceHttp::InfoMissing
@@ -118,9 +120,9 @@ RSpec.describe NiceHttp, "#logs" do
     end
 
     it "doesn't create any log file when exception on creating" do
-      klass.log = "./"
+      klass.log = "./tmp/lgs11/"
       klass.new("https://example.com") rescue err = $ERROR_INFO
-      files = Dir["./*.log"]
+      files = Dir["./tmp/lgs11/*.log"]
       expect(files.size).to eq 0
     end
 
@@ -132,10 +134,11 @@ RSpec.describe NiceHttp, "#logs" do
     end
 
     it 'logs data to relative path starting by slash' do
-      Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
-      klass.log = '/nice_http_example.log'
+      #Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
+      klass.log = '/nice_http_example123.log'
+      File.delete(klass.log) if File.exists?(klass.log)
       klass.new("https://example.com")
-      expect(File.exist?('./spec/nice_http/nice_http_example.log')).to eq true
+      expect(File.exist?('./spec/nice_http/nice_http_example123.log')).to eq true
     end
 
     it "cannot close a connection that is already closed" do
