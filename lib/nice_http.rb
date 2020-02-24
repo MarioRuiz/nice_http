@@ -375,7 +375,7 @@ class NiceHttp
           else
             folder = File.dirname("#{Dir.pwd}/#{caller.first.scan(/(.+):\d/).join}")
           end
-          folder += "/" unless log_filename.start_with?("/") or log_filename.start_with?(/\w+:/)
+          folder += "/" unless log_filename.start_with?("/") or log_filename.match?(/^\w+:/)
           log_filename = folder + log_filename
         end
         require "fileutils"
