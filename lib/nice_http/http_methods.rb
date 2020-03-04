@@ -86,9 +86,17 @@ module NiceHttpHttpMethods
           @start_time_net = Time.now if @start_time_net.nil?
           resp = @http.get(path, headers_t)
           if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
-            @logger.warn "Not authorized. Trying to generate a new token."
-            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
-            resp = @http.get(path, headers_t)
+            try = false
+            @headers_orig.each do |k,v| 
+              if v.is_a?(Proc) and headers_t.key?(k)
+                try = true
+                headers_t[k] = v.call 
+              end
+            end
+            if try
+              @logger.warn "Not authorized. Trying to generate a new token."
+              resp = @http.get(path, headers_t)
+            end
           end
           data = resp.body
           manage_response(resp, data)
@@ -211,9 +219,17 @@ module NiceHttpHttpMethods
           resp = @http.post(path, data, headers_t)
           #todo: do it also for forms and multipart
           if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
-            @logger.warn "Not authorized. Trying to generate a new token."
-            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
-            resp = @http.post(path, data, headers_t)
+            try = false
+            @headers_orig.each do |k,v| 
+              if v.is_a?(Proc) and headers_t.key?(k)
+                try = true
+                headers_t[k] = v.call 
+              end
+            end
+            if try
+              @logger.warn "Not authorized. Trying to generate a new token."
+              resp = @http.post(path, data, headers_t)
+            end
           end
           data = resp.body
         end
@@ -298,9 +314,17 @@ module NiceHttpHttpMethods
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.send_request("PUT", path, data, headers_t)
         if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
-          @logger.warn "Not authorized. Trying to generate a new token."
-          @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
-          resp = @http.send_request("PUT", path, data, headers_t)
+          try = false
+          @headers_orig.each do |k,v| 
+            if v.is_a?(Proc) and headers_t.key?(k)
+              try = true
+              headers_t[k] = v.call 
+            end
+          end
+          if try
+            @logger.warn "Not authorized. Trying to generate a new token."
+            resp = @http.send_request("PUT", path, data, headers_t)
+          end
         end
         data = resp.body
       rescue Exception => stack
@@ -370,9 +394,17 @@ module NiceHttpHttpMethods
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.patch(path, data, headers_t)
         if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
-          @logger.warn "Not authorized. Trying to generate a new token."
-          @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
-          resp = @http.patch(path, data, headers_t)
+          try = false
+          @headers_orig.each do |k,v| 
+            if v.is_a?(Proc) and headers_t.key?(k)
+              try = true
+              headers_t[k] = v.call 
+            end
+          end
+          if try
+            @logger.warn "Not authorized. Trying to generate a new token."
+            resp = @http.patch(path, data, headers_t)
+          end
         end
         data = resp.body
       rescue Exception => stack
@@ -457,20 +489,36 @@ module NiceHttpHttpMethods
         if data.to_s == ""
           resp = @http.delete(path, headers_t)
           if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
-            @logger.warn "Not authorized. Trying to generate a new token."
-            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
-            resp = @http.delete(path, headers_t)
+            try = false
+            @headers_orig.each do |k,v| 
+              if v.is_a?(Proc) and headers_t.key?(k)
+                try = true
+                headers_t[k] = v.call 
+              end
+            end
+            if try
+              @logger.warn "Not authorized. Trying to generate a new token."
+              resp = @http.delete(path, headers_t)
+            end
           end
         else
           request = Net::HTTP::Delete.new(path, headers_t)
           request.body = data
           resp = @http.request(request)
           if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
-            @logger.warn "Not authorized. Trying to generate a new token."
-            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
-            request = Net::HTTP::Delete.new(path, headers_t)
-            request.body = data
-            resp = @http.request(request)
+            try = false
+            @headers_orig.each do |k,v| 
+              if v.is_a?(Proc) and headers_t.key?(k)
+                try = true
+                headers_t[k] = v.call 
+              end
+            end
+            if try
+              @logger.warn "Not authorized. Trying to generate a new token."
+              request = Net::HTTP::Delete.new(path, headers_t)
+              request.body = data
+              resp = @http.request(request)
+            end
           end
         end
         data = resp.body
@@ -526,9 +574,17 @@ module NiceHttpHttpMethods
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.head(path, headers_t)
         if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
-          @logger.warn "Not authorized. Trying to generate a new token."
-          @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
-          resp = @http.head(path, headers_t)
+          try = false
+          @headers_orig.each do |k,v| 
+            if v.is_a?(Proc) and headers_t.key?(k)
+              try = true
+              headers_t[k] = v.call 
+            end
+          end
+          if try
+            @logger.warn "Not authorized. Trying to generate a new token."
+            resp = @http.head(path, headers_t)
+          end
         end
         data = resp.body
       rescue Exception => stack
