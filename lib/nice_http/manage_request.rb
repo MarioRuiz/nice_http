@@ -13,7 +13,7 @@ module NiceHttpManageRequest
     require "json"
 
     @prev_request = Hash.new() if @prev_request.nil?
-    @prev_request[:contains_lambda] = false
+
     begin
       content_type_included = false
       path = ""
@@ -239,7 +239,6 @@ module NiceHttpManageRequest
         # for lambdas
         if v.is_a?(Proc)
           headers_t[k] = v.call 
-          @prev_request[:contains_lambda] = true
         end
       end
       @prev_request[:path] = path

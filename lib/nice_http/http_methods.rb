@@ -85,9 +85,9 @@ module NiceHttpHttpMethods
         else
           @start_time_net = Time.now if @start_time_net.nil?
           resp = @http.get(path, headers_t)
-          if resp.code == 401 and @prev_request[:contains_lambda]
+          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
             @logger.warn "Not authorized. Trying to generate a new token."
-            path, data, headers_t = manage_request(arg)
+            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
             resp = @http.get(path, headers_t)
           end
           data = resp.body
@@ -210,9 +210,9 @@ module NiceHttpHttpMethods
         else
           resp = @http.post(path, data, headers_t)
           #todo: do it also for forms and multipart
-          if resp.code == 401 and @prev_request[:contains_lambda]
+          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
             @logger.warn "Not authorized. Trying to generate a new token."
-            path, data, headers_t = manage_request(*arguments)
+            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
             resp = @http.post(path, data, headers_t)
           end
           data = resp.body
@@ -297,9 +297,9 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.send_request("PUT", path, data, headers_t)
-        if resp.code == 401 and @prev_request[:contains_lambda]
+        if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
           @logger.warn "Not authorized. Trying to generate a new token."
-          path, data, headers_t = manage_request(*arguments)
+          @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
           resp = @http.send_request("PUT", path, data, headers_t)
         end
         data = resp.body
@@ -369,9 +369,9 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.patch(path, data, headers_t)
-        if resp.code == 401 and @prev_request[:contains_lambda]
+        if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
           @logger.warn "Not authorized. Trying to generate a new token."
-          path, data, headers_t = manage_request(*arguments)
+          @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
           resp = @http.patch(path, data, headers_t)
         end
         data = resp.body
@@ -456,18 +456,20 @@ module NiceHttpHttpMethods
         @start_time_net = Time.now if @start_time_net.nil?
         if data.to_s == ""
           resp = @http.delete(path, headers_t)
-          if resp.code == 401 and @prev_request[:contains_lambda]
+          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
             @logger.warn "Not authorized. Trying to generate a new token."
-            path, data, headers_t = manage_request(argument)
+            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
             resp = @http.delete(path, headers_t)
           end
         else
           request = Net::HTTP::Delete.new(path, headers_t)
           request.body = data
           resp = @http.request(request)
-          if resp.code == 401 and @prev_request[:contains_lambda]
+          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
             @logger.warn "Not authorized. Trying to generate a new token."
-            path, data, headers_t = manage_request(argument)
+            @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
+            request = Net::HTTP::Delete.new(path, headers_t)
+            request.body = data
             resp = @http.request(request)
           end
         end
@@ -523,9 +525,9 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.head(path, headers_t)
-        if resp.code == 401 and @prev_request[:contains_lambda]
+        if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
           @logger.warn "Not authorized. Trying to generate a new token."
-          path, data, headers_t = manage_request(argument)
+          @headers_orig.each { |k,v| headers_t[k] = v.call if v.is_a?(Proc)}
           resp = @http.head(path, headers_t)
         end
         data = resp.body

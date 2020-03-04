@@ -487,6 +487,7 @@ class NiceHttp
       end
       @auto_redirect = auto_redirect
       # for the case we have headers following nice_hash implementation
+      @headers_orig = @headers.dup
       @headers = @headers.generate
 
       self.class.active += 1
