@@ -85,6 +85,11 @@ module NiceHttpHttpMethods
         else
           @start_time_net = Time.now if @start_time_net.nil?
           resp = @http.get(path, headers_t)
+          if resp.code == 401 and @prev_request[:contains_lambda]
+            @logger.warn "Not authorized. Trying to generate a new token."
+            path, data, headers_t = manage_request(arg)
+            resp = @http.get(path, headers_t)
+          end
           data = resp.body
           manage_response(resp, data)
         end
@@ -204,6 +209,12 @@ module NiceHttpHttpMethods
           data = resp.body
         else
           resp = @http.post(path, data, headers_t)
+          #todo: do it also for forms and multipart
+          if resp.code == 401 and @prev_request[:contains_lambda]
+            @logger.warn "Not authorized. Trying to generate a new token."
+            path, data, headers_t = manage_request(*arguments)
+            resp = @http.post(path, data, headers_t)
+          end
           data = resp.body
         end
       rescue Exception => stack
@@ -286,6 +297,11 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.send_request("PUT", path, data, headers_t)
+        if resp.code == 401 and @prev_request[:contains_lambda]
+          @logger.warn "Not authorized. Trying to generate a new token."
+          path, data, headers_t = manage_request(*arguments)
+          resp = @http.send_request("PUT", path, data, headers_t)
+        end
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
@@ -353,6 +369,11 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.patch(path, data, headers_t)
+        if resp.code == 401 and @prev_request[:contains_lambda]
+          @logger.warn "Not authorized. Trying to generate a new token."
+          path, data, headers_t = manage_request(*arguments)
+          resp = @http.patch(path, data, headers_t)
+        end
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
@@ -435,10 +456,20 @@ module NiceHttpHttpMethods
         @start_time_net = Time.now if @start_time_net.nil?
         if data.to_s == ""
           resp = @http.delete(path, headers_t)
+          if resp.code == 401 and @prev_request[:contains_lambda]
+            @logger.warn "Not authorized. Trying to generate a new token."
+            path, data, headers_t = manage_request(argument)
+            resp = @http.delete(path, headers_t)
+          end
         else
           request = Net::HTTP::Delete.new(path, headers_t)
           request.body = data
           resp = @http.request(request)
+          if resp.code == 401 and @prev_request[:contains_lambda]
+            @logger.warn "Not authorized. Trying to generate a new token."
+            path, data, headers_t = manage_request(argument)
+            resp = @http.request(request)
+          end
         end
         data = resp.body
       rescue Exception => stack
@@ -492,6 +523,11 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.head(path, headers_t)
+        if resp.code == 401 and @prev_request[:contains_lambda]
+          @logger.warn "Not authorized. Trying to generate a new token."
+          path, data, headers_t = manage_request(argument)
+          resp = @http.head(path, headers_t)
+        end
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
