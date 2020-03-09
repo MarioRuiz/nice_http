@@ -107,7 +107,8 @@ module NiceHttpHttpMethods
         @http.finish()
         @http.start()
         @start_time_net = Time.now if @start_time_net.nil?
-        resp = @http.get(path)
+        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
+        resp = @http.get(path, headers_t)
         data = resp.body
         manage_response(resp, data)
       end
@@ -239,6 +240,7 @@ module NiceHttpHttpMethods
         @http.finish()
         @http.start()
         @start_time_net = Time.now if @start_time_net.nil?
+        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
         resp, data = @http.post(path, data, headers_t)
       end
       manage_response(resp, data)
@@ -332,6 +334,7 @@ module NiceHttpHttpMethods
         @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
         @http.finish()
         @http.start()
+        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
         @start_time_net = Time.now if @start_time_net.nil?
         resp, data = @http.send_request("PUT", path, data, headers_t)
       end
@@ -412,6 +415,7 @@ module NiceHttpHttpMethods
         @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
         @http.finish()
         @http.start()
+        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
         @start_time_net = Time.now if @start_time_net.nil?
         resp, data = @http.patch(path, data, headers_t)
       end
@@ -527,8 +531,9 @@ module NiceHttpHttpMethods
         @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
         @http.finish()
         @http.start()
+        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
         @start_time_net = Time.now if @start_time_net.nil?
-        resp, data = @http.delete(path)
+        resp, data = @http.delete(path, headers_t)
       end
       manage_response(resp, data)
 
@@ -592,8 +597,9 @@ module NiceHttpHttpMethods
         @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
         @http.finish()
         @http.start()
+        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
         @start_time_net = Time.now if @start_time_net.nil?
-        resp, data = @http.head(path)
+        resp, data = @http.head(path, headers_t)
       end
       manage_response(resp, data)
       return @response
