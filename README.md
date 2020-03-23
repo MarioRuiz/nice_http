@@ -29,6 +29,11 @@ Example that creates 1000 good random and unique requests to register an user an
 - [Responses](#Responses)
 - [Special settings](#Special-settings)
 - [Authentication requests](#Authentication-requests)
+    - [Basic Authentication](#Basic-Authentication)
+    - [OpenID](#OpenID)
+    - [OAuth2](#OAuth2)
+    - [JWT Token](#JWT-Token)
+    - [lambda on headers](#lambda-on-headers)
 - [Http logs](#Http-logs)
     - [Multithreading](#Multithreading)
 - [Http stats](#Http-stats)
@@ -275,6 +280,8 @@ Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many mo
 
 All we need to do is to add to our request the correct authentication tokens, seeds, headers.
 
+### Basic Authentication
+
 For example for Basic Authentication we need to add to the authorization header a seed generated with the user and password we want ot authenticate
 
 ```ruby
@@ -304,6 +311,8 @@ Remember for other kind of authentication systems NiceHttp take care of the redi
 ```
 
 In case you want or need to control the redirections by yourself instead of allowing NiceHttp to do it, then set ```@http.auto_redirect = false```
+
+### OpenID
 
 An example using OpenID authentication:
 
@@ -349,9 +358,57 @@ The output:
 
 ```
 
+### OAuth2
+
 You can see on the next link how to get the OAuth2 token for Microsoft Azure and add it to your Http connection header. 
 
 https://gist.github.com/MarioRuiz/d3525185024737885c0c9afa6dc8b9e5
+
+### JWT token
+
+An example for Google using JWT
+
+my_json_key_file.json:
+```json
+{
+  "type": "service_account",
+  "project_id": "example",
+  "private_key_id": "fjdslkafldkasfadsjflkjdsaklfjasdklfjlkdsjfl",
+  "private_key": "-----BEGIN PRIVATE KEY-----....==\n-----END PRIVATE KEY-----\n",
+  "client_email": "example@example.iam.gserviceaccount.com",
+  "client_id": "46545646",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/example%40example.iam.gserviceaccount.com"
+}
+```
+
+```ruby
+    require 'jwt'
+    require 'nice_hash'
+    def generate_jwt(audience, json_key_file)
+      json = File.open(json_key_file).read.json
+      now = Time.new
+      payload = {
+        iss: json.client_email,
+        sub: json.client_email,
+        aud: audience,
+        exp: (now + 3600).to_i,
+        iat: (now - 60).to_i,
+        kid: json.private_key_id
+      }
+      jwt_token = JWT.encode payload, OpenSSL::PKey::RSA.new(json.private_key), "RS256"
+      return jwt_token
+    end
+
+    NiceHttp.headers = {
+      Authorization: lambda { "Bearer " + generate_jwt('https:/myhost.com', './my_json_key_file.json') }
+    }
+
+```
+
+### lambda on headers
 
 If you need a new token every time a new http connection is created you can use `lambda`
 
