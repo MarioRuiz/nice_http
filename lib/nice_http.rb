@@ -9,7 +9,7 @@ require_relative "nice_http/http_methods"
 # Attributes you can access using NiceHttp.the_attribute:  
 #   :host, :port, :ssl, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,  
 #   :last_request, :last_response, :request_id, :use_mocks, :connections,  
-#   :active, :auto_redirect, :values_for, :create_stats, :stats, :capture, :captured
+#   :active, :auto_redirect, :values_for, :create_stats, :stats, :capture, :captured, :request, :requests
 #
 # @attr [String] host The host to be accessed
 # @attr [Integer] port The port number
@@ -29,6 +29,8 @@ require_relative "nice_http/http_methods"
 # @attr [Integer] proxy_port the proxy port to be used
 # @attr [String] last_request The last request with all the content sent
 # @attr [String] last_response Only in case :debug is true, the last response with all the content
+# @attr [Hash] request The last request with all the content sent
+# @attr [Hash] requests The defaults for all requests. keys: :headers and :data
 # @attr [String] request_id If the response includes a requestId, will be stored here
 # @attr [Boolean] use_mocks If true, in case the request hash includes a :mock_response key, it will be used as the response instead
 # @attr [Array] connections It will include all the active connections (NiceHttp instances)
@@ -70,8 +72,8 @@ class NiceHttp
 
   class << self
     attr_accessor :host, :port, :ssl, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port, :log_headers,
-                  :last_request, :last_response, :request_id, :use_mocks, :connections,
-                  :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats, :capture, :captured
+                  :last_request, :last_response, :request, :request_id, :use_mocks, :connections,
+                  :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats, :capture, :captured, :requests
   end
 
   at_exit do
@@ -96,6 +98,8 @@ class NiceHttp
     @proxy_host = nil
     @proxy_port = nil
     @last_request = nil
+    @request = nil
+    @requests = nil
     @last_response = nil
     @request_id = ""
     @use_mocks = false

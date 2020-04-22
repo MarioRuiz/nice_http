@@ -246,6 +246,19 @@ If the request hash contains a key :method with one of these possible values: :g
      resp = @http.send_request req
 ```
 
+You can always access to the last request as a Hash object by: `NiceHttp.request`
+
+If you want to change the value of all headers using the value of the request on runtime, use `lambda`, `NiceHttp.requests` and `NiceHttp.request`:
+
+```ruby
+NiceHttp.requests = {
+  headers: {
+    Referer: lambda { "http://myserver.com" + NiceHttp.request.path }
+  }
+}
+```
+
+You can use `NiceHttp.requests` to specify certain `headers` or `data` that will apply on all requests sent.
 
 ## Responses
 
@@ -416,7 +429,7 @@ If you need a new token every time a new http connection is created you can use 
 NiceHttp.headers[:Authorization] = lambda {get_token()}
 ```
 
-NiceHttp will call the get_token method you created every time a new Http connection is created.
+NiceHttp will call the get_token method you created every time a new connection is created.
 
 ## Http logs
 
@@ -546,7 +559,7 @@ RESPONSE:
 
 ```
 
-If you want to get the last request sent or the last response use `NiceHttp.last_request` or `NiceHttp.last_response`
+If you want to get the last request sent or the last response as a message use `NiceHttp.last_request` or `NiceHttp.last_response`. If you want to access the last request as a Hash use `NiceHttp.request`
 
 Also you can collect all data sent and received by setting `NiceHttp.capture = true` and all data will be stored on `NiceHttp.captured` as an Array of Strings (Request+Response).
 

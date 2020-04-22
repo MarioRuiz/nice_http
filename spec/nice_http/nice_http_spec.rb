@@ -16,6 +16,7 @@ RSpec.describe NiceHttp do
       klass.proxy_host = "example.com"
       klass.proxy_port = 8080
       klass.last_request = {}
+      klass.request = ''
       klass.last_response = {}
       klass.request_id = "3344"
       klass.use_mocks = true
@@ -40,6 +41,7 @@ RSpec.describe NiceHttp do
       expect(klass.proxy_host).to eq nil
       expect(klass.proxy_port).to eq nil
       expect(klass.last_request).to eq nil
+      expect(klass.request).to eq nil
       expect(klass.last_response).to eq nil
       expect(klass.request_id).to eq ""
       expect(klass.use_mocks).to eq false
@@ -498,6 +500,89 @@ RSpec.describe NiceHttp do
       second_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
       expect(klass.last_request).to match /example:[\d\-\s:+]+,/
       expect(second_request).to be == first_request
+    end
+
+  end
+
+  describe "request object" do
+    it "accesses request object after sent" do
+      klass.host = "https://reqres.in"
+      http = klass.new
+      request = {
+        path: "/api/users",
+        data: {name: "peter", job: "leader", city: "london"},
+      }
+      resp = http.post(request)
+      expect(klass.request.path).to eq request.path
+      expect(klass.request.data.json).to eq request.data
+
+      request = {
+        path: "/api/users/",
+        data: {name: "petera", job: "slave"},
+      }
+      resp = http.post(request)
+      expect(klass.request.path).to eq request.path
+      expect(klass.request.data.json).to eq request.data
+
+    end
+
+    it 'can access the object with lambda' do
+      klass.host = "https://reqres.in"
+      klass.requests = {
+        headers: {
+          Referer: lambda { klass.host + klass.request.path }
+        }
+      }
+      http = klass.new
+      request = {
+        path: "/api/users",
+        data: {name: "peter", job: "leader", city: "london"},
+      }
+      resp = http.post(request)
+      expect(klass.request.headers[:Referer]).to eq (klass.host + request.path)
+    end
+
+  end
+
+  describe "requests object" do
+    it "supplies :headers specified to all requests" do
+      klass.host = "https://reqres.in"
+      klass.requests = {
+        headers: {
+          Referer: lambda { klass.host + klass.request.path }
+        }
+      }
+      http = klass.new
+      request = {
+        path: "/api/users",
+        data: {name: "peter", job: "leader", city: "london"},
+      }
+      resp = http.post(request)
+      expect(klass.request.headers[:Referer]).to eq (klass.host + request.path)
+      request = {
+        path: "/api/users/?page=2",
+      }
+      resp = http.get(request)
+      expect(klass.request.headers[:Referer]).to eq (klass.host + request.path)
+    end
+
+    it "supplies :data specified to all requests" do
+      klass.host = "https://reqres.in"
+      klass.requests = {
+        data: {
+          namelambda: lambda { 'petera' },
+          name: 'peter'
+        }
+      }
+      http = klass.new
+      request = {
+        path: "/api/users",
+        data: {job: "leader", city: "london"},
+      }
+      resp = http.post(request)
+      expect(klass.request.data.json.name).to eq 'peter'
+      expect(klass.request.data.json.namelambda).to eq 'petera'
+
     end
 
   end

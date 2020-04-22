@@ -13,6 +13,9 @@ module NiceHttpManageRequest
     require "json"
 
     @prev_request = Hash.new() if @prev_request.nil?
+    @defaults_request = self.class.requests if @defaults_request.nil? and self.class.requests.is_a?(Hash)
+    @request = Hash.new() if @request.nil?
+    @defaults_request = Hash.new() unless @defaults_request.is_a?(Hash)
 
     begin
       content_type_included = false
@@ -21,6 +24,8 @@ module NiceHttpManageRequest
 
       @response = Hash.new()
       headers_t = @headers.dup()
+      headers_t.merge!(@defaults_request[:headers]) if @defaults_request.key?(:headers)
+
       cookies_to_set_str = ""
       if arguments.size == 3
         path = arguments[0]
@@ -125,6 +130,13 @@ module NiceHttpManageRequest
               }
             end
           elsif data.kind_of?(Hash)
+            data.merge!(@defaults_request[:data]) if @defaults_request.key?(:data)
+            #lambdas on data only supports on root of the hash
+            data.each do |k, v|
+              if v.is_a?(Proc)
+                data[k] = v.call 
+              end
+            end
             if arguments[0].include?(:values_for)
               data = data.set_values(arguments[0][:values_for])
             end
@@ -192,6 +204,40 @@ module NiceHttpManageRequest
         headers_t["Accept-Encoding"].gsub!("gzip", "") #removed so the response is in plain text
       end
 
+      if data.to_s() != "" and encoding.to_s().upcase != "UTF-8" and encoding != ""
+        data = data.to_s().encode(encoding, "UTF-8")
+      end
+      @request[:path] = path
+      @request[:data] = data
+      @request[:headers] = headers_t
+      @request[:method] = method_s.upcase
+      if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
+        @request[:name] = arguments[0][:name]
+      end
+      self.class.request = @request
+      headers_t.each do |k, v|
+        # for lambdas
+        if v.is_a?(Proc)
+          headers_t[k] = v.call 
+        end
+      end
+      @request[:headers] = headers_t
+      self.class.request = @request
+
+      if @debug or @prev_request[:path] != path or @prev_request[:headers] != headers_t or @prev_request[:data] != data
+        show_headers_data = true
+      else
+        show_headers_data = false
+      end
+
+      @prev_request[:path] = path
+      @prev_request[:data] = data
+      @prev_request[:headers] = headers_t
+      @prev_request[:method] = method_s.upcase
+      if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
+        @prev_request[:name] = arguments[0][:name]
+      end
+
       headers_ts = ""
 
       if @log_headers == :none
@@ -217,7 +263,7 @@ module NiceHttpManageRequest
         message += "#{method_s.upcase} Request"
       end
       message += "\n path: " + path.to_s() + "\n"
-      if @debug or @prev_request[:path] != path or @prev_request[:headers] != headers_t or @prev_request[:data] != data
+      if show_headers_data
         message += " headers: {" + headers_ts.to_s() + "}\n"
         message += " data: " + data_s.to_s() + "\n"
         message = @message_server + "\n" + message
@@ -232,22 +278,6 @@ module NiceHttpManageRequest
         @logger.info(message)
       end
 
-      if data.to_s() != "" and encoding.to_s().upcase != "UTF-8" and encoding != ""
-        data = data.to_s().encode(encoding, "UTF-8")
-      end
-      headers_t.each do |k, v|
-        # for lambdas
-        if v.is_a?(Proc)
-          headers_t[k] = v.call 
-        end
-      end
-      @prev_request[:path] = path
-      @prev_request[:data] = data
-      @prev_request[:headers] = headers_t
-      @prev_request[:method] = method_s.upcase
-      if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
-        @prev_request[:name] = arguments[0][:name]
-      end
       return path, data, headers_t
     rescue Exception => stack
       @logger.fatal(stack)
