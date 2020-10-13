@@ -122,6 +122,7 @@ NiceHttp.defaults = {
     host: 'reqres.in',
     ssl: true,
     port: 443,
+    timeout: 15, #seconds
     debug: false,
     log: "./my_logs.log",
     headers: {"api-key": "the api key"}
@@ -288,6 +289,8 @@ Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many mo
 *use_mocks*: (true or false) in case of true if the request hash contains a mock_response key it will be returning that response instead of trying to send the request.
 
 *auto_redirect*: (true or false) in case of true it will take care of the auto redirections.
+
+*timeout*: Integer that will set a time out for the time waiting to connect to a host or waiting for a response.
 
 ## Authentication requests
 
@@ -584,7 +587,7 @@ threads = []
     end
 end
 
-t.each(&:join)
+threads.each(&:join)
 
 # log files: nice_http_0.log, nice_http_1.log... nice_http_39.log
 ```

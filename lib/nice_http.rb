@@ -7,13 +7,14 @@ require_relative "nice_http/http_methods"
 
 ######################################################
 # Attributes you can access using NiceHttp.the_attribute:  
-#   :host, :port, :ssl, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,  
+#   :host, :port, :ssl, :timeout, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,  
 #   :last_request, :last_response, :request_id, :use_mocks, :connections,  
 #   :active, :auto_redirect, :values_for, :create_stats, :stats, :capture, :captured, :request, :requests
 #
 # @attr [String] host The host to be accessed
 # @attr [Integer] port The port number
 # @attr [Boolean] ssl If you use ssl or not
+# @attr [Integer] timeout Max time to wait until connected to the host or getting a response.
 # @attr [Hash] headers Contains the headers you will be using on your connection
 # @attr [Boolean] debug In case true shows all the details of the communication with the host
 # @attr [String] log_path The path where the logs will be stored. By default empty string.
@@ -71,7 +72,7 @@ class NiceHttp
   end
 
   class << self
-    attr_accessor :host, :port, :ssl, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port, :log_headers,
+    attr_accessor :host, :port, :ssl, :timeout, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port, :log_headers,
                   :last_request, :last_response, :request, :request_id, :use_mocks, :connections,
                   :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats, :capture, :captured, :requests
   end
@@ -89,6 +90,7 @@ class NiceHttp
     @host = nil
     @port = 80
     @ssl = false
+    @timeout = nil
     @headers = {}
     @values_for = {}
     @debug = false
@@ -137,18 +139,19 @@ class NiceHttp
     subclass.reset!
   end
 
-  attr_reader :host, :port, :ssl, :debug, :log, :log_path, :proxy_host, :proxy_port, :response, :num_redirects
+  attr_reader :host, :port, :ssl, :timeout, :debug, :log, :log_path, :proxy_host, :proxy_port, :response, :num_redirects
   attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for, :log_headers
 
   ######################################################
   # Change the default values for NiceHttp supplying a Hash
   #
-  # @param par [Hash] keys: :host, :port, :ssl, :headers, :debug, :log, :log_path, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats, :log_headers, :capture
+  # @param par [Hash] keys: :host, :port, :ssl, :timeout, :headers, :debug, :log, :log_path, :proxy_host, :proxy_port, :use_mocks, :auto_redirect, :values_for, :create_stats, :log_headers, :capture
   ######################################################
   def self.defaults=(par = {})
     @host = par[:host] if par.key?(:host)
     @port = par[:port] if par.key?(:port)
     @ssl = par[:ssl] if par.key?(:ssl)
+    @timeout = par[:timeout] if par.key?(:timeout)
     @headers = par[:headers].dup if par.key?(:headers)
     @values_for = par[:values_for].dup if par.key?(:values_for)
     @debug = par[:debug] if par.key?(:debug)
@@ -300,6 +303,7 @@ class NiceHttp
   #             host -- example.com. (default blank screen)  
   #             port -- port for the connection. 80 (default)  
   #             ssl -- true, false (default)  
+  #             timeout -- integer or nil (default)
   #             headers -- hash with the headers  
   #             values_for -- hash with the values_for  
   #             debug -- true, false (default)  
@@ -327,6 +331,7 @@ class NiceHttp
     @port = self.class.port
     @prepath = ""
     @ssl = self.class.ssl
+    @timeout = self.class.timeout
     @headers = self.class.headers.dup
     @values_for = self.class.values_for.dup
     @debug = self.class.debug
@@ -357,6 +362,7 @@ class NiceHttp
       @host = args[:host] if args.keys.include?(:host)
       @port = args[:port] if args.keys.include?(:port)
       @ssl = args[:ssl] if args.keys.include?(:ssl)
+      @timeout = args[:timeout] if args.keys.include?(:timeout)
       @headers = args[:headers].dup if args.keys.include?(:headers)
       @values_for = args[:values_for].dup if args.keys.include?(:values_for)
       @debug = args[:debug] if args.keys.include?(:debug)
@@ -452,6 +458,7 @@ class NiceHttp
     raise InfoMissing, :port if @port.to_s == ""
     raise InfoMissing, :host if @host.to_s == ""
     raise InfoMissing, :ssl unless @ssl.is_a?(TrueClass) or @ssl.is_a?(FalseClass)
+    raise InfoMissing, :timeout unless @timeout.is_a?(Integer) or @timeout.nil?
     raise InfoMissing, :debug unless @debug.is_a?(TrueClass) or @debug.is_a?(FalseClass)
     raise InfoMissing, :auto_redirect unless auto_redirect.is_a?(TrueClass) or auto_redirect.is_a?(FalseClass)
     raise InfoMissing, :use_mocks unless @use_mocks.is_a?(TrueClass) or @use_mocks.is_a?(FalseClass)
@@ -465,18 +472,26 @@ class NiceHttp
         @http.use_ssl = @ssl
         @http.set_debug_output $stderr if @debug
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        unless @timeout.nil?
+          @http.open_timeout = @timeout
+          @http.read_timeout = @timeout
+        end
         @http.start
       else
         @http = Net::HTTP.new(@host, @port)
         @http.use_ssl = @ssl
         @http.set_debug_output $stderr if @debug
         @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        unless @timeout.nil?
+          @http.open_timeout = @timeout
+          @http.read_timeout = @timeout
+        end
         @http.start
       end
 
       @message_server = "(#{self.object_id}):"
 
-      log_message = "(#{self.object_id}): Http connection created. host:#{@host},  port:#{@port},  ssl:#{@ssl}, mode:#{@mode}, proxy_host: #{@proxy_host.to_s()}, proxy_port: #{@proxy_port.to_s()} "
+      log_message = "(#{self.object_id}): Http connection created. host:#{@host},  port:#{@port},  ssl:#{@ssl}, timeout:#{@timeout}, mode:#{@mode}, proxy_host: #{@proxy_host.to_s()}, proxy_port: #{@proxy_port.to_s()} "
 
       @logger.info(log_message)
       @message_server += " Http connection: "
@@ -499,6 +514,7 @@ class NiceHttp
     rescue Exception => stack
       puts stack
       @logger.fatal stack
+      raise stack
     end
   end
 

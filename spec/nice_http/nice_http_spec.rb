@@ -9,6 +9,7 @@ RSpec.describe NiceHttp do
       klass.host = "example.com"
       klass.port = 433
       klass.ssl = true
+      klass.timeout = 20
       klass.headers = {uno: "one"}
       klass.debug = true
       klass.log = :screen
@@ -34,6 +35,7 @@ RSpec.describe NiceHttp do
       expect(klass.host).to eq nil
       expect(klass.port).to eq 80
       expect(klass.ssl).to eq false
+      expect(klass.timeout).to eq nil
       expect(klass.headers).to eq ({})
       expect(klass.debug).to eq false
       expect(klass.log).to eq :fix_file
@@ -58,18 +60,18 @@ RSpec.describe NiceHttp do
 
   describe "port" do
     it "uses the class port by default" do
-      klass.host = "localhost"
-      klass.port = 8888
-      expect(klass.new.port).to eq 8888
+      klass.host = "example.com"
+      klass.port = 443
+      expect(klass.new.port).to eq 443
     end
     it "uses the URI default when provided a URI and the URI has one" do
-      klass.port = 8888
+      klass.port = 80
       expect(klass.new("https://example.com").port).to eq 443
-      expect(klass.new("lol://localhost").port).to eq 8888
+      expect(klass.new("lol://example.com").port).to eq 80
     end
     it "can be provided an explicit port" do
       klass.port = 8888
-      klass.host = "localhost"
+      klass.host = "example.com"
       expect(klass.new(port: 443).port).to eq 443
     end
     it 'raises an error when it can\'t figure out the port' do
@@ -82,9 +84,9 @@ RSpec.describe NiceHttp do
 
   describe "host" do
     it "uses the class host by default" do
-      klass.host = "localhost"
-      klass.port = 8888
-      expect(klass.new.host).to eq "localhost"
+      klass.host = "example.com"
+      klass.port = 80
+      expect(klass.new.host).to eq "example.com"
     end
     it "uses the URI default when provided a URI and the URI has one" do
       klass.port = 8888
@@ -133,6 +135,47 @@ RSpec.describe NiceHttp do
     end
   end
 
+  describe "timeout" do
+    it "uses the class timeout by default" do
+      klass.timeout = 15
+      klass.host = "example.com"
+      klass.port = 443
+      expect(klass.new.timeout).to eq 15
+    end
+    it "can be provided an explicit timeout" do
+      klass.port = 443
+      klass.host = "localhost"
+      klass.timeout = 30
+      expect(klass.new(host: "example.com", timeout: 10).timeout).to eq 10
+    end
+    it 'raises an error when it can\'t figure out the timeout' do
+      klass.timeout = "xxxxxxx"
+      klass.host = "localhost"
+      klass.port = 8888
+      klass.new rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :timeout
+      expect(err.message).to match /wrong timeout/i
+    end
+    it 'returns fatal error if timeout reached when reading' do
+      klass.timeout = 2
+      http = klass.new("https://reqres.in")
+      resp = http.get("/api/users?delay=3")
+      expect(resp.code).to be_nil
+      expect(resp.message).to be_nil
+      expect(resp.fatal_error).to eq 'Net::ReadTimeout'
+    end
+    it 'returns error if not possible to connect when connecting' do
+      klass.timeout = 2
+      http = klass.new("https://reqres4s55s.in") rescue err = $ERROR_INFO
+      expect(err.message).to match /Failed to open TCP/i
+    end
+    it 'returns error if timeout reached when connecting' do
+      klass.timeout = 2
+      http = klass.new("http://example.com:8888") rescue err = $ERROR_INFO
+      expect(err.message).to match /execution expired/i
+    end
+  end
+  
   describe "debug" do
     it "uses the class debug by default" do
       klass.debug = true
@@ -142,13 +185,13 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit debug" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.debug = false
       expect(klass.new(debug: true).debug).to eq true
     end
     it 'raises an error when it can\'t figure out the debug' do
       klass.debug = nil
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.port = 8888
       klass.new rescue err = $ERROR_INFO
       expect(err.attribute).to eq :debug
@@ -164,7 +207,7 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit auto_redirect" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.auto_redirect = true
       expect(klass.new(auto_redirect: false).auto_redirect).to eq false
     end
@@ -188,7 +231,7 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit log_headers" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.log_headers = :all
       expect(klass.new(log_headers: :partial).log_headers).to eq :partial
     end
@@ -212,7 +255,7 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit use_mocks" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.use_mocks = false
       expect(klass.new(use_mocks: true).use_mocks).to eq true
     end
@@ -236,7 +279,7 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit headers" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.headers = {}
       expect(klass.new(headers: {example: "test"}).headers).to eq ({example: "test"})
     end
@@ -260,7 +303,7 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit values_for" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.values_for = {}
       expect(klass.new(values_for: {example: "test"}).values_for).to eq ({example: "test"})
     end
@@ -325,7 +368,7 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit log" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.log = :screen
       expect(klass.new(log: :file).log).to eq (:file)
     end
@@ -349,7 +392,7 @@ RSpec.describe NiceHttp do
     end
     it "can be provided an explicit log_path" do
       klass.port = 443
-      klass.host = "localhost"
+      klass.host = "example.com"
       klass.log_path = './tmp/'
       expect(klass.new(log_path: './tmp/tmp/').log_path).to eq ('./tmp/tmp/')
     end
@@ -364,6 +407,9 @@ RSpec.describe NiceHttp do
     end
     specify "ssl is false" do
       expect(klass.ssl).to eq false
+    end
+    specify "timeout is nil" do
+      expect(klass.timeout).to eq nil
     end
     specify "debug is false" do
       expect(klass.debug).to eq false
@@ -399,6 +445,7 @@ RSpec.describe NiceHttp do
       expect { klass.port = 8888 }.to change { klass.port }.to(8888)
       expect { klass.host = "localhost" }.to change { klass.host }.to("localhost")
       expect { klass.ssl = true }.to change { klass.ssl }.to(true)
+      expect { klass.timeout = 10 }.to change { klass.timeout }.to(10)
       expect { klass.debug = true }.to change { klass.debug }.to(true)
       expect { klass.auto_redirect = false }.to change { klass.auto_redirect }.to(false)
       expect { klass.log_headers = :partial }.to change { klass.log_headers }.to(:partial)
@@ -414,6 +461,7 @@ RSpec.describe NiceHttp do
       expect { klass.defaults = {port: 8888} }.to change { klass.port }.to(8888)
       expect { klass.defaults = {host: "localhost"} }.to change { klass.host }.to("localhost")
       expect { klass.defaults = {ssl: true} }.to change { klass.ssl }.to(true)
+      expect { klass.defaults = {timeout: 15} }.to change { klass.timeout }.to(15)
       expect { klass.defaults = {debug: true} }.to change { klass.debug }.to(true)
       expect { klass.defaults = {auto_redirect: false} }.to change { klass.auto_redirect }.to(false)
       expect { klass.defaults = {log_headers: :none} }.to change { klass.log_headers }.to(:none)
