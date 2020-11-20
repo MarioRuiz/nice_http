@@ -103,14 +103,19 @@ module NiceHttpHttpMethods
         end
       rescue Exception => stack
         @logger.warn stack
-        @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
-        @http.finish()
-        @http.start()
-        @start_time_net = Time.now if @start_time_net.nil?
-        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
-        resp = @http.get(path, headers_t)
-        data = resp.body
-        manage_response(resp, data)
+        if !@timeout.nil? and (Time.now - @start_time_net) > @timeout
+          @logger.warn "The connection seems to be closed in the host machine. Timeout."
+          return { fatal_error: "Net::ReadTimeout", code: nil, message: nil, data: "" }
+        else
+          @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
+          @http.finish()
+          @http.start()
+          @start_time_net = Time.now if @start_time_net.nil?
+          @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
+          resp = @http.get(path, headers_t)
+          data = resp.body
+          manage_response(resp, data)
+        end
       end
       if @auto_redirect and @response[:code].to_i >= 300 and @response[:code].to_i < 400 and @response.include?(:location)
         if @num_redirects <= 30
@@ -236,12 +241,17 @@ module NiceHttpHttpMethods
         end
       rescue Exception => stack
         @logger.warn stack
-        @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
-        @http.finish()
-        @http.start()
-        @start_time_net = Time.now if @start_time_net.nil?
-        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
-        resp, data = @http.post(path, data, headers_t)
+        if !@timeout.nil? and (Time.now - @start_time_net) > @timeout
+          @logger.warn "The connection seems to be closed in the host machine. Timeout."
+          return { fatal_error: "Net::ReadTimeout", code: nil, message: nil, data: "" }
+        else
+          @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
+          @http.finish()
+          @http.start()
+          @start_time_net = Time.now if @start_time_net.nil?
+          @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
+          resp, data = @http.post(path, data, headers_t)
+        end
       end
       manage_response(resp, data)
       if @auto_redirect and @response[:code].to_i >= 300 and @response[:code].to_i < 400 and @response.include?(:location)
@@ -331,12 +341,17 @@ module NiceHttpHttpMethods
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
-        @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
-        @http.finish()
-        @http.start()
-        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
-        @start_time_net = Time.now if @start_time_net.nil?
-        resp, data = @http.send_request("PUT", path, data, headers_t)
+        if !@timeout.nil? and (Time.now - @start_time_net) > @timeout
+          @logger.warn "The connection seems to be closed in the host machine. Timeout."
+          return { fatal_error: "Net::ReadTimeout", code: nil, message: nil, data: "" }
+        else
+          @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
+          @http.finish()
+          @http.start()
+          @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}
+          @start_time_net = Time.now if @start_time_net.nil?
+          resp, data = @http.send_request("PUT", path, data, headers_t)
+        end
       end
       manage_response(resp, data)
 
@@ -412,12 +427,17 @@ module NiceHttpHttpMethods
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
-        @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
-        @http.finish()
-        @http.start()
-        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
-        @start_time_net = Time.now if @start_time_net.nil?
-        resp, data = @http.patch(path, data, headers_t)
+        if !@timeout.nil? and (Time.now - @start_time_net) > @timeout
+          @logger.warn "The connection seems to be closed in the host machine. Timeout."
+          return { fatal_error: "Net::ReadTimeout", code: nil, message: nil, data: "" }
+        else
+          @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
+          @http.finish()
+          @http.start()
+          @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
+          @start_time_net = Time.now if @start_time_net.nil?
+          resp, data = @http.patch(path, data, headers_t)
+        end
       end
       manage_response(resp, data)
       if @auto_redirect and @response[:code].to_i >= 300 and @response[:code].to_i < 400 and @response.include?(:location)
@@ -528,12 +548,17 @@ module NiceHttpHttpMethods
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
-        @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
-        @http.finish()
-        @http.start()
-        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
-        @start_time_net = Time.now if @start_time_net.nil?
-        resp, data = @http.delete(path, headers_t)
+        if !@timeout.nil? and (Time.now - @start_time_net) > @timeout
+          @logger.warn "The connection seems to be closed in the host machine. Timeout."
+          return { fatal_error: "Net::ReadTimeout", code: nil, message: nil, data: "" }
+        else
+          @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
+          @http.finish()
+          @http.start()
+          @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
+          @start_time_net = Time.now if @start_time_net.nil?
+          resp, data = @http.delete(path, headers_t)
+        end          
       end
       manage_response(resp, data)
 
@@ -594,12 +619,17 @@ module NiceHttpHttpMethods
         data = resp.body
       rescue Exception => stack
         @logger.warn stack
-        @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
-        @http.finish()
-        @http.start()
-        @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
-        @start_time_net = Time.now if @start_time_net.nil?
-        resp, data = @http.head(path, headers_t)
+        if !@timeout.nil? and (Time.now - @start_time_net) > @timeout
+          @logger.warn "The connection seems to be closed in the host machine. Timeout."
+          return { fatal_error: "Net::ReadTimeout", code: nil, message: nil, data: "" }
+        else
+          @logger.warn "The connection seems to be closed in the host machine. Trying to reconnect"
+          @http.finish()
+          @http.start()
+          @headers_orig.each {|k,v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k)}        
+          @start_time_net = Time.now if @start_time_net.nil?
+          resp, data = @http.head(path, headers_t)
+        end
       end
       manage_response(resp, data)
       return @response
