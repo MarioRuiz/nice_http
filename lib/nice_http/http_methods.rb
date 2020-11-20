@@ -85,7 +85,7 @@ module NiceHttpHttpMethods
         else
           @start_time_net = Time.now if @start_time_net.nil?
           resp = @http.get(path, headers_t)
-          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
+          if (resp.code == 401 or resp.code == 408) and @headers_orig.values.map(&:class).include?(Proc)
             try = false
             @headers_orig.each do |k,v| 
               if v.is_a?(Proc) and headers_t.key?(k)
@@ -224,7 +224,7 @@ module NiceHttpHttpMethods
         else
           resp = @http.post(path, data, headers_t)
           #todo: do it also for forms and multipart
-          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
+          if (resp.code == 401 or resp.code == 408) and @headers_orig.values.map(&:class).include?(Proc)
             try = false
             @headers_orig.each do |k,v| 
               if v.is_a?(Proc) and headers_t.key?(k)
@@ -325,7 +325,7 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.send_request("PUT", path, data, headers_t)
-        if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
+        if (resp.code == 401 or resp.code == 408) and @headers_orig.values.map(&:class).include?(Proc)
           try = false
           @headers_orig.each do |k,v| 
             if v.is_a?(Proc) and headers_t.key?(k)
@@ -411,7 +411,7 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.patch(path, data, headers_t)
-        if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
+        if (resp.code == 401 or resp.code == 408) and @headers_orig.values.map(&:class).include?(Proc)
           try = false
           @headers_orig.each do |k,v| 
             if v.is_a?(Proc) and headers_t.key?(k)
@@ -512,7 +512,7 @@ module NiceHttpHttpMethods
         @start_time_net = Time.now if @start_time_net.nil?
         if data.to_s == ""
           resp = @http.delete(path, headers_t)
-          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
+          if (resp.code == 401 or resp.code == 408) and @headers_orig.values.map(&:class).include?(Proc)
             try = false
             @headers_orig.each do |k,v| 
               if v.is_a?(Proc) and headers_t.key?(k)
@@ -529,7 +529,7 @@ module NiceHttpHttpMethods
           request = Net::HTTP::Delete.new(path, headers_t)
           request.body = data
           resp = @http.request(request)
-          if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
+          if (resp.code == 401 or resp.code == 408) and @headers_orig.values.map(&:class).include?(Proc)
             try = false
             @headers_orig.each do |k,v| 
               if v.is_a?(Proc) and headers_t.key?(k)
@@ -603,7 +603,7 @@ module NiceHttpHttpMethods
       begin
         @start_time_net = Time.now if @start_time_net.nil?
         resp = @http.head(path, headers_t)
-        if resp.code == 401 and @headers_orig.values.map(&:class).include?(Proc)
+        if (resp.code == 401 or resp.code == 408) and @headers_orig.values.map(&:class).include?(Proc)
           try = false
           @headers_orig.each do |k,v| 
             if v.is_a?(Proc) and headers_t.key?(k)
