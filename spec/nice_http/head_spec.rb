@@ -53,7 +53,7 @@ RSpec.describe NiceHttp, "#head" do
   end
 
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
-    server = "http://examplesinatra--tcblues.repl.co/"
+    server = "https://examplesinatra--tcblues.repl.co/"
     http = NiceHttp.new(server)
     http.auto_redirect = false
     req = {
@@ -61,6 +61,6 @@ RSpec.describe NiceHttp, "#head" do
       data: {example: "example"},
     }
     resp = http.head(req)
-    expect(resp.code).to eq 303
+    expect(resp.code.to_i).to be_in(300..399)
   end
 end

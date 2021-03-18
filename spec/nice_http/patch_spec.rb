@@ -69,7 +69,7 @@ RSpec.describe NiceHttp, "#patch" do
   end
 
   it "redirects when auto_redirect is true and http code is 30x" do
-    server = "http://examplesinatra--tcblues.repl.co/"
+    server = "https://examplesinatra--tcblues.repl.co/"
     http = NiceHttp.new(server)
     http.auto_redirect = true
     req = {
@@ -82,7 +82,7 @@ RSpec.describe NiceHttp, "#patch" do
   end
 
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
-    server = "http://examplesinatra--tcblues.repl.co/"
+    server = "https://examplesinatra--tcblues.repl.co/"
     http = NiceHttp.new(server)
     http.auto_redirect = false
     req = {
@@ -90,7 +90,7 @@ RSpec.describe NiceHttp, "#patch" do
       data: {example: "example"},
     }
     resp = http.patch(req)
-    expect(resp.code).to eq 303
+    expect(resp.code).to be_in('300'..'399')
   end
 
   it "detects wrong json when supplying wrong mock_response data" do

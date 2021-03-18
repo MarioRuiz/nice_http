@@ -43,7 +43,7 @@ RSpec.describe NiceHttp, "#delete" do
   end
 
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
-    server = "http://examplesinatra--tcblues.repl.co/"
+    server = "https://examplesinatra--tcblues.repl.co/"
     http = NiceHttp.new(server)
     http.auto_redirect = false
     req = {
@@ -51,7 +51,7 @@ RSpec.describe NiceHttp, "#delete" do
       data: {example: "example"},
     }
     resp = http.delete(req)
-    expect(resp.code).to eq 303
+    expect(resp.code).to be_in('300'..'399')
   end
 
   it "detects wrong json when supplying wrong mock_response data" do
