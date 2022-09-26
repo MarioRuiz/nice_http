@@ -58,7 +58,7 @@ RSpec.describe NiceHttp, "#put" do
 
   it "changes :data when supplied :values_for" do
     request = {
-      path: "/api/users",
+      path: "/api/users/2",
       data: {name: "morpheus", job: "leader"},
     }
 
@@ -70,7 +70,7 @@ RSpec.describe NiceHttp, "#put" do
 
   it "changes :data when supplied nested keys on :values_for" do
     request = {
-      path: "/api/users",
+      path: "/api/users/2",
       data: {name: "morpheus", job: {position:"leader"}},
     }
 

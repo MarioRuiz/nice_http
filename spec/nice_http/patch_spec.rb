@@ -58,7 +58,7 @@ RSpec.describe NiceHttp, "#patch" do
 
   it "changes :data when supplied :values_for" do
     request = {
-      path: "/api/users",
+      path: "/api/users/2",
       data: {name: "morpheus", job: "leader"},
     }
 

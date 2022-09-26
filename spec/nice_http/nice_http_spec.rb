@@ -545,9 +545,7 @@ RSpec.describe NiceHttp do
       expect(klass.last_request).to match /example:[\d\-\s:+]+,/
       sleep 1
       resp = http.get "/users?page=2"
-      second_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
-      expect(klass.last_request).to match /example:[\d\-\s:+]+,/
-      expect(second_request).to be == first_request
+      expect(klass.last_request).to match /Same headers as in the previous request/
     end
 
   end

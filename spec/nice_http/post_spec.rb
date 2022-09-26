@@ -101,24 +101,24 @@ RSpec.describe NiceHttp, "#post" do
       headers: {"Content-Type": "application/json"},
       data: '{"name": "morpheus","job": "leader"}',
     }
-
+    @http.headers = {example: lambda {Time.now.to_s}}
     # as symbol
     resp = @http.post req
     expect(NiceHttp.last_request).to match /Content-Type:application\/json/
 
     req.headers = {"content-type": "application/json"}
     resp = @http.post req
-    expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+    expect(resp.code).to eq '201'
 
     # as string
     req.headers = {"content-type" => "application/json"}
     resp = @http.post req
-    expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+    expect(resp.code).to eq '201'
 
     # as string
     req.headers = {"Content-Type" => "application/json"}
     resp = @http.post req
-    expect(NiceHttp.last_request).to match /Content-Type:application\/json/
+    expect(resp.code).to eq '201'
   end
 
   it "implements json data by default if no content type supplied and a hash for data" do
