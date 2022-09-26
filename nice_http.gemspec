@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec', '~> 3.8', '>= 3.8.0'
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
-  s.required_ruby_version = ['>= 2.4']
+  s.required_ruby_version = ['>= 2.7']
   s.post_install_message = "Thanks for installing! Visit us on https://github.com/MarioRuiz/nice_http"
 end
 

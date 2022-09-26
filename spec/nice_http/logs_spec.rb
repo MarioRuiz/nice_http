@@ -128,7 +128,7 @@ RSpec.describe NiceHttp, "#logs" do
 
     it 'logs data to relative path starting by name' do
       #Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
-      if File.exists?('./spec/nice_http/nice_http_example.log')
+      if File.exist?('./spec/nice_http/nice_http_example.log')
         File.delete('./spec/nice_http/nice_http_example.log')
       end
       klass.log = 'nice_http_example.log'
@@ -139,7 +139,7 @@ RSpec.describe NiceHttp, "#logs" do
     it 'logs data to relative path starting by slash' do
       #Dir.glob("./spec/nice_http/*.log").each { |file| File.delete(file) }
       klass.log = '/nice_http_example123.log'
-      File.delete(klass.log) if File.exists?(klass.log)
+      File.delete(klass.log) if File.exist?(klass.log)
       klass.new("https://example.com")
       expect(File.exist?('./spec/nice_http/nice_http_example123.log')).to eq true
     end
