@@ -172,7 +172,7 @@ RSpec.describe NiceHttp do
     it 'returns error if timeout reached when connecting' do
       klass.timeout = 2
       http = klass.new("http://example.com:8888") rescue err = $ERROR_INFO
-      expect(err.message).to match /execution expired/i
+      expect(err.message).to match /(execution expired|Failed to open TCP connection)/i
     end
   end
   
