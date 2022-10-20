@@ -73,16 +73,13 @@ RSpec.describe NiceHttp, "#get" do
     expect(resp.message).to eq "OK"
   end
 
-  # todo: I need to find another ws, this one is not including set-cookie anymore
-  xit "set the cookies when required" do
-    server = "https://samples.auth0.com/"
-    path = "/authorize?client_id=kbyuFDidLLm280LIwVFiazOqjO3ty8KH&response_type=code"
-
+  it "set the cookies when required" do
+    server = "https://examplesinatra--tcblues.repl.co/"
     http = NiceHttp.new(server)
     http.auto_redirect = true
-    resp = http.get(path)
+    resp = http.get('/setcookie')
     expect(resp.key?(:'set-cookie')).to eq true
-    expect(http.cookies["/"].key?("auth0")).to eq true
+    expect(http.cookies["/"].key?("something")).to eq true
   end
 
   it "detects wrong json when supplying wrong mock_response data" do
