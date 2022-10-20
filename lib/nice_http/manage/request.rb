@@ -112,7 +112,7 @@ module NiceHttpManageRequest
                                       !headers_t["Content-Type"][/application\/jxml/].nil?)
           if arguments[0].include?(:values_for)
             arguments[0][:values_for].each { |key, value|
-              #todo: implement set_nested 
+              #todo: implement set_nested
               data = NiceHttpUtils.set_value_xml_tag(key.to_s(), data, value.to_s(), true)
             }
           end
@@ -121,7 +121,7 @@ module NiceHttpManageRequest
           if data.kind_of?(String)
             if arguments[0].include?(:values_for)
               arguments[0][:values_for].each { |key, value|
-              #todo: implement set_nested
+                #todo: implement set_nested
                 data.gsub!(/"(#{key})":\s*"([^"]*)"/, '"\1": "' + value + '"')  # "key":"value"
                 data.gsub!(/(#{key}):\s*"([^"]*)"/, '\1: "' + value + '"')  # key:"value"
                 data.gsub!(/(#{key}):\s*'([^']*)'/, '\1: \'' + value + "'")  # key:'value'
@@ -134,7 +134,7 @@ module NiceHttpManageRequest
             #lambdas on data only supports on root of the hash
             data.each do |k, v|
               if v.is_a?(Proc)
-                data[k] = v.call 
+                data[k] = v.call
               end
             end
             if arguments[0].include?(:values_for)
@@ -142,7 +142,7 @@ module NiceHttpManageRequest
             end
             data = data.to_json()
           elsif data.kind_of?(Array)
-            #todo: implement set_nested 
+            #todo: implement set_nested
             data_arr = Array.new()
             data.each_with_index { |row, indx|
               if arguments[0].include?(:values_for) and (row.is_a?(Array) or row.is_a?(Hash))
@@ -218,7 +218,7 @@ module NiceHttpManageRequest
       headers_t.each do |k, v|
         # for lambdas
         if v.is_a?(Proc)
-          headers_t[k] = v.call 
+          headers_t[k] = v.call
         end
       end
       @request[:headers] = headers_t
@@ -245,11 +245,11 @@ module NiceHttpManageRequest
         headers_t.each { |key, val| headers_ts += key.to_s + ":" + "''" + ", " }
       elsif @log_headers == :partial
         @logger.info "Just the last 10 characters on header values since option log_headers is set to :partial"
-        headers_t.each { |key, val| 
-          if val.to_s.size>10
-            headers_ts += key.to_s + ": ..." + (val.to_s[-10..-1] || val.to_s) + ", " 
+        headers_t.each { |key, val|
+          if val.to_s.size > 10
+            headers_ts += key.to_s + ": ..." + (val.to_s[-10..-1] || val.to_s) + ", "
           else
-            headers_ts += key.to_s + ":" + (val.to_s[-10..-1] || val.to_s) + ", " 
+            headers_ts += key.to_s + ":" + (val.to_s[-10..-1] || val.to_s) + ", "
           end
         }
       else
