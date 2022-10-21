@@ -74,4 +74,13 @@ RSpec.describe NiceHttp, "#delete" do
     expect(resp.code).to eq 204
   end
 
+  it "set the cookies when required" do
+    server = "https://examplesinatra--tcblues.repl.co/"
+    http = NiceHttp.new(server)
+    resp = http.delete('/setcookie')
+    expect(resp.key?(:'set-cookie')).to eq true
+    expect(http.cookies["/"].key?("something")).to eq true
+  end
+
+
 end

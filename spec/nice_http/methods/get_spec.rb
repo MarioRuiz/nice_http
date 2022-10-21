@@ -76,7 +76,6 @@ RSpec.describe NiceHttp, "#get" do
   it "set the cookies when required" do
     server = "https://examplesinatra--tcblues.repl.co/"
     http = NiceHttp.new(server)
-    http.auto_redirect = true
     resp = http.get('/setcookie')
     expect(resp.key?(:'set-cookie')).to eq true
     expect(http.cookies["/"].key?("something")).to eq true

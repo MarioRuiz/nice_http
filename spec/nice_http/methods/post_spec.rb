@@ -341,6 +341,14 @@ RSpec.describe NiceHttp, "#post" do
     expect(resp.data).to include "my lastname"
   end
   
-  #todo: add tests encoding and cookies
+  it "set the cookies when required" do
+    server = "https://examplesinatra--tcblues.repl.co/"
+    http = NiceHttp.new(server)
+    resp = http.post('/setcookie')
+    expect(resp.key?(:'set-cookie')).to eq true
+    expect(http.cookies["/"].key?("something")).to eq true
+  end
+
+  #todo: add tests encoding
 
 end
