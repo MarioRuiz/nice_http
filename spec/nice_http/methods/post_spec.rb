@@ -323,8 +323,22 @@ RSpec.describe NiceHttp, "#post" do
     expect(content).not_to match /Same as the last request/
   end
 
-  # todo:
-  xit 'accepts application/x-www-form-urlencoded' do
+  it 'accepts application/x-www-form-urlencoded' do
+    request = {
+      headers: { 'Content-Type': "application/x-www-form-urlencoded"},
+      path: "/register",
+      data: {
+        "firstname": "my firstname",
+        "lastname": "my lastname"
+      }
+    }
+    server = "https://examplesinatra--tcblues.repl.co/"
+    http = NiceHttp.new(server)
+    resp = http.post request
+    expect(resp.code).to eq 201
+    expect(resp.data.is_a?(String)).to eq true
+    expect(resp.data).to include "my firstname"
+    expect(resp.data).to include "my lastname"
   end
   
   #todo: add tests encoding and cookies
