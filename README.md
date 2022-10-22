@@ -259,7 +259,18 @@ NiceHttp.requests = {
 }
 ```
 
-You can use `NiceHttp.requests` to specify certain `headers` or `data` that will apply on all requests sent.
+You can use `NiceHttp.requests` to specify certain `headers`, `path` parameters or `data` that will apply on all requests sent.
+```ruby
+NiceHttp.requests = {
+  path: 'api-version=2022-12-09&testing=true',
+  data: {
+    properties: {
+      language: 'eng-us'
+    }
+  }
+}
+```
+
 
 ## Responses
 
@@ -734,7 +745,7 @@ Example posting a csv file:
 
 Bug reports are very welcome on GitHub at https://github.com/marioruiz/nice_http.
 
-If you want to contribute please follow [GitHub Flow](https://guides.github.com/introduction/flow/index.html)
+If you want to contribute please follow [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow)
 
 ## License
 

@@ -35,6 +35,13 @@ module NiceHttpManageRequest
         path = arguments[0].to_s()
       end
       path = (@prepath + path).gsub("//", "/") unless path.nil? or path.start_with?("http:") or path.start_with?("https:")
+
+      if @defaults_request.key?(:path) and @defaults_request[:path].is_a?(String) and !@defaults_request[:path].empty?
+        path += "?" if !path.include?("?") and !@defaults_request[:path].include?("?")
+        path += '&' if path.match?(/\?.+$/) and @defaults_request[:path][0]!='&'
+        path += @defaults_request[:path]
+      end
+
       @cookies.each { |cookie_path, cookies_hash|
         cookie_path = "" if cookie_path == "/"
         path_to_check = path

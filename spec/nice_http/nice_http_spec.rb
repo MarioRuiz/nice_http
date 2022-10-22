@@ -612,6 +612,36 @@ RSpec.describe NiceHttp do
       expect(klass.request.headers[:Referer]).to eq (klass.host + request.path)
     end
 
+    it "supplies :path parameters specified to all requests" do
+      klass.host = "https://reqres.in"
+      
+      klass.requests = { path: 'page=2' }
+      http = klass.new
+      resp = http.get("/api/users")
+      expect(resp.data.json(:page)).to eq '2'
+
+      klass.requests = { path: '?page=2' }
+      http = klass.new
+      resp = http.get("/api/users")
+      expect(resp.data.json(:page)).to eq '2'      
+
+      klass.requests = { path: 'page=2' }
+      http = klass.new
+      resp = http.get("/api/users?")
+      expect(resp.data.json(:page)).to eq '2'
+
+      klass.requests = { path: 'page=2' }
+      http = klass.new
+      resp = http.get("/api/users?lolo=1")
+      expect(resp.data.json(:page)).to eq '2'
+
+      klass.requests = { path: '&page=2'}
+      http = klass.new
+      resp = http.get("/api/users?lolo=1")
+      expect(resp.data.json(:page)).to eq '2'
+
+    end
+
     it "supplies :data specified to all requests" do
       klass.host = "https://reqres.in"
       klass.requests = {
