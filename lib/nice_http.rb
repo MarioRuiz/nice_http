@@ -11,6 +11,7 @@ require_relative "nice_http/manage/create_stats"
 require_relative "nice_http/manage/request"
 require_relative "nice_http/manage/response"
 require_relative "nice_http/manage/set_stats"
+require_relative "nice_http/manage/wait_async_operation"
 require_relative "nice_http/utils/basic_authentication"
 require_relative "nice_http/utils/get_value_xml_tag"
 require_relative "nice_http/utils/set_value_xml_tag"
@@ -26,7 +27,8 @@ require_relative "nice_http/initialize"
 # Attributes you can access using NiceHttp.the_attribute:  
 #   :host, :port, :ssl, :timeout, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,  
 #   :last_request, :last_response, :request_id, :use_mocks, :connections,  
-#   :active, :auto_redirect, :values_for, :create_stats, :stats, :capture, :captured, :request, :requests
+#   :active, :auto_redirect, :values_for, :create_stats, :stats, :capture, :captured, :request, :requests,
+#   :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status
 #
 # @attr [String] host The host to be accessed
 # @attr [Integer] port The port number
@@ -67,6 +69,11 @@ require_relative "nice_http/initialize"
 # @attr [Hash] stats It contains detailed stats of the http communication
 # @attr [Boolean] capture If true, NiceHttp will store all requests and responses on NiceHttp.captured as strings
 # @attr [Array] captured It contains all the http requests and responses if NiceHttp.capture is set to true
+# @attr [Integer] async_wait_seconds Number of seconds to wait until the async request is completed
+# @attr [String] async_header The header to check if the async request is completed
+# @attr [String] async_completed The value of the async_header to check if the async request is completed
+# @attr [String] async_resource The resource to check if the async request is completed
+# @attr [String] async_status The status to check if the async request is completed
 ######################################################
 class NiceHttp
   include NiceHttpManageRequest
@@ -91,7 +98,8 @@ class NiceHttp
   class << self
     attr_accessor :host, :port, :ssl, :timeout, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port, :log_headers,
                   :last_request, :last_response, :request, :request_id, :use_mocks, :connections,
-                  :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats, :capture, :captured, :requests
+                  :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats, :capture, :captured, :requests,
+                  :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status
   end
 
   at_exit do
@@ -103,7 +111,8 @@ class NiceHttp
   reset!
 
   attr_reader :host, :port, :ssl, :timeout, :debug, :log, :log_path, :proxy_host, :proxy_port, :response, :num_redirects
-  attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for, :log_headers
+  attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for, :log_headers,
+                :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status
 
   private :manage_request, :manage_response
 end

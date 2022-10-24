@@ -45,5 +45,10 @@ class NiceHttp
     }
     @capture = false
     @captured = []
+    @async_wait_seconds = 0
+    @async_header = "location"
+    @async_completed = ""
+    @async_resource = ""
+    @async_status = ""
   end
 end

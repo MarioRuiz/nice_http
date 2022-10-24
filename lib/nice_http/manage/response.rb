@@ -185,6 +185,7 @@ module NiceHttpManageResponse
           end
         end
       end
+      @response = wait_async_operation() if @response[:code] == "202"
       @prev_response = @response
     rescue Exception => stack
       @logger.fatal stack

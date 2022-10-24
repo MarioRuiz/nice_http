@@ -28,6 +28,11 @@ class NiceHttp
   #                 In case :file it will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log
   #             proxy_host
   #             proxy_port
+  #             async_wait_seconds -- integer (default 0)
+  #             async_header -- string (default 'location')
+  #             async_completed -- string (default empty string)
+  #             async_resource -- string (default empty string)
+  #             async_status -- string (default empty string)
   # @example
   #   http2 = NiceHttp.new( host: "reqres.in", port: 443, ssl: true )
   # @example
@@ -59,13 +64,18 @@ class NiceHttp
     @num_redirects = 0
     @create_stats = self.class.create_stats
     @capture = self.class.capture
-
+    @async_wait_seconds = self.class.async_wait_seconds
+    @async_header = self.class.async_header
+    @async_completed = self.class.async_completed
+    @async_resource = self.class.async_resource
+    @async_status = self.class.async_status
+    
     #todo: set only the cookies for the current domain
     #key: path, value: hash with key is the name of the cookie and value the value
     # we set the default value for non existing keys to empty Hash {} so in case of merge there is no problem
     @cookies = Hash.new { |h, k| h[k] = {} }
 
-    if args.is_a?(String)
+    if args.is_a?(String) # 'http://www.example.com'
       uri = URI.parse(args)
       @host = uri.host unless uri.host.nil?
       @port = uri.port unless uri.port.nil?
@@ -86,6 +96,11 @@ class NiceHttp
       @proxy_port = args[:proxy_port] if args.keys.include?(:proxy_port)
       @use_mocks = args[:use_mocks] if args.keys.include?(:use_mocks)
       auto_redirect = args[:auto_redirect] if args.keys.include?(:auto_redirect)
+      @async_wait_seconds = args[:async_wait_seconds] if args.keys.include?(:async_wait_seconds)
+      @async_header = args[:async_header] if args.keys.include?(:async_header)
+      @async_completed = args[:async_completed] if args.keys.include?(:async_completed)
+      @async_resource = args[:async_resource] if args.keys.include?(:async_resource)
+      @async_status = args[:async_status] if args.keys.include?(:async_status)      
     end
 
     log_filename = ""
@@ -178,7 +193,12 @@ class NiceHttp
     raise InfoMissing, :headers unless @headers.is_a?(Hash)
     raise InfoMissing, :values_for unless @values_for.is_a?(Hash)
     raise InfoMissing, :log_headers unless [:all, :none, :partial].include?(@log_headers)
-
+    raise InfoMissing, :async_wait_seconds unless @async_wait_seconds.is_a?(Integer) or @async_wait_seconds.nil?
+    raise InfoMissing, :async_header unless @async_header.is_a?(String) or @async_header.nil?
+    raise InfoMissing, :async_completed unless @async_completed.is_a?(String) or @async_completed.nil?
+    raise InfoMissing, :async_resource unless @async_resource.is_a?(String) or @async_resource.nil?
+    raise InfoMissing, :async_status unless @async_status.is_a?(String) or @async_status.nil?
+    
     begin
       if !@proxy_host.nil? && !@proxy_port.nil?
         @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)
