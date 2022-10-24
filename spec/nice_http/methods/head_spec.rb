@@ -63,4 +63,13 @@ RSpec.describe NiceHttp, "#head" do
     resp = http.head(req)
     expect(resp.code.to_i).to be_in(300..399)
   end
+
+  it "set the cookies when required" do
+    server = "https://examplesinatra--tcblues.repl.co/"
+    http = NiceHttp.new(server)
+    resp = http.head('/setcookie')
+    expect(resp.key?(:'set-cookie')).to eq true
+    expect(http.cookies["/"].key?("something")).to eq true
+  end
+
 end

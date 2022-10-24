@@ -612,6 +612,36 @@ RSpec.describe NiceHttp do
       expect(klass.request.headers[:Referer]).to eq (klass.host + request.path)
     end
 
+    it "supplies :path parameters specified to all requests" do
+      klass.host = "https://reqres.in"
+      
+      klass.requests = { path: 'page=2' }
+      http = klass.new
+      resp = http.get("/api/users")
+      expect(resp.data.json(:page)).to eq '2'
+
+      klass.requests = { path: '?page=2' }
+      http = klass.new
+      resp = http.get("/api/users")
+      expect(resp.data.json(:page)).to eq '2'      
+
+      klass.requests = { path: 'page=2' }
+      http = klass.new
+      resp = http.get("/api/users?")
+      expect(resp.data.json(:page)).to eq '2'
+
+      klass.requests = { path: 'page=2' }
+      http = klass.new
+      resp = http.get("/api/users?lolo=1")
+      expect(resp.data.json(:page)).to eq '2'
+
+      klass.requests = { path: '&page=2'}
+      http = klass.new
+      resp = http.get("/api/users?lolo=1")
+      expect(resp.data.json(:page)).to eq '2'
+
+    end
+
     it "supplies :data specified to all requests" do
       klass.host = "https://reqres.in"
       klass.requests = {
@@ -633,5 +663,122 @@ RSpec.describe NiceHttp do
 
   end
 
+  describe "async" do
+    it "async_wait_seconds" do
+      klass.host = "https://reqres.in"
+
+      expect(klass.async_wait_seconds).to eq 0
+      http = klass.new
+      expect(http.async_wait_seconds).to eq 0
+      klass.async_wait_seconds = 10
+      expect(klass.async_wait_seconds).to eq 10
+      http = klass.new
+      expect(http.async_wait_seconds).to eq 10
+      http = klass.new(async_wait_seconds: 20)
+      expect(http.async_wait_seconds).to eq 20      
+
+      klass.async_wait_seconds = '10'
+      klass.new rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_wait_seconds
+      expect(err.message).to match /wrong async_wait_seconds/i
+
+      klass.new(async_wait_seconds: '20') rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_wait_seconds
+      expect(err.message).to match /wrong async_wait_seconds/i
+    end
+
+    it "async_header" do
+      klass.host = "https://reqres.in"
+
+      expect(klass.async_header).to eq 'location'
+      http = klass.new
+      expect(http.async_header).to eq 'location'
+      klass.async_header = 'location2'
+      expect(klass.async_header).to eq 'location2'
+      http = klass.new
+      expect(http.async_header).to eq 'location2'
+      http = klass.new(async_header: 'location3')
+      expect(http.async_header).to eq 'location3'
+
+      klass.async_header = 10
+      klass.new rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_header
+      expect(err.message).to match /wrong async_header/i
+
+      klass.new(async_header: 20) rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_header
+      expect(err.message).to match /wrong async_header/i
+    end
+
+    it "async_status" do
+      klass.host = "https://reqres.in"
+
+      expect(klass.async_status).to eq ''
+      http = klass.new
+      expect(http.async_status).to eq ''
+      klass.async_status = 'status'
+      expect(klass.async_status).to eq 'status'
+      http = klass.new
+      expect(http.async_status).to eq 'status'
+      http = klass.new(async_status: 'status2')
+      expect(http.async_status).to eq 'status2'
+
+      klass.async_status = 0
+      klass.new rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_status
+      expect(err.message).to match /wrong async_status/i
+
+      klass.new(async_status: 0) rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_status
+      expect(err.message).to match /wrong async_status/i
+    end
+
+    it 'async_completed' do
+      klass.host = "https://reqres.in"
+
+      expect(klass.async_completed).to eq ''
+      http = klass.new
+      expect(http.async_completed).to eq ''
+      klass.async_completed = 'completed'
+      expect(klass.async_completed).to eq 'completed'
+      http = klass.new
+      expect(http.async_completed).to eq 'completed'
+      http = klass.new(async_completed: 'completed2')
+      expect(http.async_completed).to eq 'completed2'
+
+      klass.async_completed = 0
+      klass.new rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_completed
+      expect(err.message).to match /wrong async_completed/i
+
+      klass.new(async_completed: 0) rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_completed
+      expect(err.message).to match /wrong async_completed/i
+    end
+
+    it 'async_resource' do
+      klass.host = "https://reqres.in"
+
+      expect(klass.async_resource).to eq ''
+      http = klass.new
+      expect(http.async_resource).to eq ''
+      klass.async_resource = 'resource'
+      expect(klass.async_resource).to eq 'resource'
+      http = klass.new
+      expect(http.async_resource).to eq 'resource'
+      http = klass.new(async_resource: 'resource2')
+      expect(http.async_resource).to eq 'resource2'
+
+      klass.async_resource = 0
+      klass.new rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_resource
+      expect(err.message).to match /wrong async_resource/i
+
+      klass.new(async_resource: 0) rescue err = $ERROR_INFO
+      expect(err.attribute).to eq :async_resource
+      expect(err.message).to match /wrong async_resource/i
+    end
+
+  end
 
 end

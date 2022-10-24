@@ -27,6 +27,7 @@ Example that creates 1000 good random and unique requests to register an user an
 - [Create a connection](#Create-a-connection)
 - [Creating requests](#Creating-requests)
 - [Responses](#Responses)
+    - [Async Responses](#Async-Responses)
 - [Special settings](#Special-settings)
 - [Authentication requests](#Authentication-requests)
     - [Basic Authentication](#Basic-Authentication)
@@ -259,7 +260,18 @@ NiceHttp.requests = {
 }
 ```
 
-You can use `NiceHttp.requests` to specify certain `headers` or `data` that will apply on all requests sent.
+You can use `NiceHttp.requests` to specify certain `headers`, `path` parameters or `data` that will apply on all requests sent.
+```ruby
+NiceHttp.requests = {
+  path: 'api-version=2022-12-09&testing=true',
+  data: {
+    properties: {
+      language: 'eng-us'
+    }
+  }
+}
+```
+
 
 ## Responses
 
@@ -271,7 +283,45 @@ The response will include at least the keys:
 
 *data*: the data response structure. In case of json we can get it as a hash by using: `resp.data.json`. Also you can filter the json structure and get what you want: `resp.data.json(:loginname, :address)`
 
-Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many more available
+Also interesting keys would be: *time_elapsed_total*, *time_elapsed* and many more available  
+
+### Async responses
+
+In case a 202 response and set the async settings, it will wait until the operation finishes and will return the result:
+
+```ruby
+NiceHttp.async_wait_seconds = 10
+NiceHttp.async_header = 'location'
+NiceHttp.async_completed = 'percComplete'
+NiceHttp.async_resource = 'resourceName'
+NiceHttp.async_status = 'status'
+
+http = NiceHttp.new('https://exampleSinatra.tcblues.repl.co')
+
+response = http.get '/async'
+pp response # =>
+{ :code=>"202",
+  :message=>"Accepted",
+  :location=>"https://exampleSinatra.tcblues.repl.co/operation/667",
+  :data=>"{\"result\":\"this is an async operation id: 667\"}",
+  :async=>
+    { :seconds=>4,
+      :data=>
+        "{'percComplete':100,'resourceName':'/resource/766','status':'Done','operationId':'667'}",
+      :status=>"Done",
+      :resource=>{:data=>"{'resourceId':'766','lolo':'lala'}"}
+    }
+  # plus other keys
+}
+
+p response.code # 202
+p response.location # "https://exampleSinatra.tcblues.repl.co/operation/667"
+p response.data.json # {:result=>"this is an async operation id: 667"} 
+p response.async.data.json # {:percComplete=>100, :resourceName=>"/resource/766", :status=>"Done",:operationId=>667}
+p response.async.status # Done
+p response.async.seconds # 4
+p response.async.resource.data.json # {:resourceId=>"766", :lolo=>"lala"}
+```
 
 
 ## Special settings
@@ -734,7 +784,7 @@ Example posting a csv file:
 
 Bug reports are very welcome on GitHub at https://github.com/marioruiz/nice_http.
 
-If you want to contribute please follow [GitHub Flow](https://guides.github.com/introduction/flow/index.html)
+If you want to contribute please follow [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow)
 
 ## License
 

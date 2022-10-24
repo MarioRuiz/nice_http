@@ -118,6 +118,15 @@ RSpec.describe NiceHttp, "#put" do
     expect(resp.data.json).to eq [20, 30, 40]
   end
 
-  #todo: add tests for headers, encoding and cookies
+  it "set the cookies when required" do
+    server = "https://examplesinatra--tcblues.repl.co/"
+    http = NiceHttp.new(server)
+    resp = http.put('/setcookie')
+    expect(resp.key?(:'set-cookie')).to eq true
+    expect(http.cookies["/"].key?("something")).to eq true
+  end
+
+
+  #todo: add tests for headers, encoding
 
 end
