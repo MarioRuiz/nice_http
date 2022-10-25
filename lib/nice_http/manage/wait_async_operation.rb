@@ -9,7 +9,8 @@ module NiceHttpManageResponse
           resp_async = {body: ''}
           while time_elapsed <= async_wait_seconds
             path, data, headers_t = manage_request({ path: location })
-            resp_async = @http.get path
+            resp_async = @http.get path, headers_t
+            @logger.info "\nRESPONSE:\n#{resp_async.code}:#{resp_async.message}\ndata: #{resp_async.body}"
             completed = resp_async.body.json(async_completed.to_sym)
             break if completed.to_i == 100 or time_elapsed >= async_wait_seconds
             time_elapsed += 1
@@ -29,7 +30,8 @@ module NiceHttpManageResponse
                 resp_orig.async.resource = {}
             else
               path, data, headers_t = manage_request({ path: location })
-              resp_async = @http.get path
+              resp_async = @http.get path, headers_t
+              @logger.info "\nRESPONSE:\n#{resp_async.code}:#{resp_async.message}\ndata: #{resp_async.body}"
               resp_orig.async.resource = {data: resp_async.body}
             end
           end
