@@ -11,7 +11,9 @@ module NiceHttpManageRequest
   ######################################################
   def manage_request(*arguments)
     require "json"
-
+    require 'cgi'
+    require 'uri'
+    
     @prev_request = Hash.new() if @prev_request.nil?
     @defaults_request = self.class.requests if @defaults_request.nil? and self.class.requests.is_a?(Hash)
     @request = Hash.new() if @request.nil?
@@ -38,8 +40,14 @@ module NiceHttpManageRequest
 
       if @defaults_request.key?(:path) and @defaults_request[:path].is_a?(String) and !@defaults_request[:path].empty?
         path += "?" if !path.include?("?") and !@defaults_request[:path].include?("?")
-        path += '&' if path.match?(/\?.+$/) and @defaults_request[:path][0]!='&'
-        path += @defaults_request[:path]
+        path += '&' if path.match?(/\?.+$/) and @defaults_request[:path][0]!='&' and path[-1]!="&"
+        uri = URI.parse(path)
+        params = CGI.parse(uri.query)
+        urid = URI.parse("/path?#{@defaults_request[:path].gsub(/\?/,'')}")
+        paramsd = CGI.parse(urid.query)
+        paramsd.each do |k,v|
+          path += "&#{k}=#{v[0]}" if !params.key?(k)
+        end
       end
 
       @cookies.each { |cookie_path, cookies_hash|
