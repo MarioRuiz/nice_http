@@ -39,10 +39,14 @@ module NiceHttpManageRequest
       path = (@prepath + path).gsub("//", "/") unless path.nil? or path.start_with?("http:") or path.start_with?("https:")
 
       if @defaults_request.key?(:path) and @defaults_request[:path].is_a?(String) and !@defaults_request[:path].empty?
-        path += "?" if !path.include?("?") and !@defaults_request[:path].include?("?")
+        path += "?" if !path.include?("?")
         path += '&' if path.match?(/\?.+$/) and @defaults_request[:path][0]!='&' and path[-1]!="&"
         uri = URI.parse(path)
-        params = CGI.parse(uri.query)
+        if uri.query.nil?
+          params = {}
+        else
+          params = CGI.parse(uri.query)
+        end        
         urid = URI.parse("/path?#{@defaults_request[:path].gsub(/\?/,'')}")
         paramsd = CGI.parse(urid.query)
         paramsd.each do |k,v|
