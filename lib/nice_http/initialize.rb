@@ -174,7 +174,8 @@ class NiceHttp
     else
       raise InfoMissing, :log
     end
-    @logger.level = Logger::INFO
+    @log_file = log_filename
+    @logger.level = Logger::INFO    
 
     if @host.to_s != "" and (@host.start_with?("http:") or @host.start_with?("https:"))
       uri = URI.parse(@host)

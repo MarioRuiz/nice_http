@@ -44,6 +44,7 @@ require_relative "nice_http/initialize"
 #   :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.  
 #   :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log  
 #   String the path and file name where the logs will be stored.
+# @attr [String] log_file path and file name where the logs will be stored. (only reader)
 # @attr [Symbol] log_headers. :all, :partial, :none (default :all) If :all will log all the headers. If :partial will log the last 10 characters. If :none no headers.
 # @attr [String] proxy_host the proxy host to be used
 # @attr [Integer] proxy_port the proxy port to be used
@@ -110,7 +111,7 @@ class NiceHttp
 
   reset!
 
-  attr_reader :host, :port, :ssl, :timeout, :debug, :log, :log_path, :proxy_host, :proxy_port, :response, :num_redirects
+  attr_reader :host, :port, :ssl, :timeout, :debug, :log, :log_path, :proxy_host, :proxy_port, :response, :num_redirects, :log_file
   attr_accessor :headers, :cookies, :use_mocks, :auto_redirect, :logger, :values_for, :log_headers,
                 :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status
 

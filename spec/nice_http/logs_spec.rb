@@ -13,6 +13,7 @@ RSpec.describe NiceHttp, "#logs" do
       http.logger.info "testing"
       content = File.read("./example.log")
       expect(content).to match /testing/
+      expect(http.log_file).to eq "./example.log"
     end
 
     it "logs to file and log_path specified" do
@@ -24,6 +25,7 @@ RSpec.describe NiceHttp, "#logs" do
       http.logger.info "testingxl"
       content = File.read(file)
       expect(content).to match /testingxl/
+      expect(http.log_file).to eq file
     end
 
     it "logs to file specified even when two connections pointing to same file" do
@@ -55,6 +57,7 @@ RSpec.describe NiceHttp, "#logs" do
       http.logger.info "testing"
       content = File.read("./nice_http.log")
       expect(content).to match /testing/
+      expect(http.log_file).to eq "nice_http.log"
     end
 
     it "logs to nice_http.log when :fix_file and file_path specified" do
@@ -65,6 +68,7 @@ RSpec.describe NiceHttp, "#logs" do
       http.logger.info "testingxd"
       content = File.read(file)
       expect(content).to match /testingxd/
+      expect(http.log_file).to eq file
     end
 
     it "logs to file running.log when :file_run specified" do
@@ -73,6 +77,7 @@ RSpec.describe NiceHttp, "#logs" do
       http.logger.info "testing XaXDo"
       content = File.read("./spec/nice_http/logs_spec.rb.log")
       expect(content).to match /testing XaXDo/
+      expect(http.log_file).to include "/spec/nice_http/logs_spec.rb.log"
     end
 
     it "logs to file running.log when :file_run specified and file_path specified" do
@@ -84,6 +89,7 @@ RSpec.describe NiceHttp, "#logs" do
       http.logger.info "testing XaXDop"
       content = File.read(file)
       expect(content).to match /testing XaXDop/
+      expect(http.log_file).to eq file
     end
 
     it "logs to nice_http_YY-mm-dd-HHMMSS.log when :file specified" do
@@ -98,6 +104,7 @@ RSpec.describe NiceHttp, "#logs" do
       expect(files_final.size-files_orig.size).to eq 1
       content = File.read(files_final[-1])
       expect(content).to match /testing/
+      expect(http.log_file).to eq files_final[-1].gsub('./', "")
     end
 
     it "doesn't create any log file when :no specified" do
@@ -108,6 +115,7 @@ RSpec.describe NiceHttp, "#logs" do
       http.logger.info "TESTING NO LOGS"
       files = Dir["./tmp/example11/*.log"]
       expect(files.size).to eq 0
+      expect(http.log_file).to eq nil
     end
 
     it "raises error if log file not possible to be created" do
