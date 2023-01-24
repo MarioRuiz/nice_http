@@ -272,6 +272,14 @@ NiceHttp.requests = {
 }
 ```
 
+Lambdas can be used also on data to change the payloads in real-time. It is only available on root of the data hash. In case the lambda returns 'nil' the key won't be added to the request.  
+```ruby
+NiceHttp.requests = {
+    data: {
+      zones: lambda { ENV['ZONES'] if NiceHttp.request[:method] == 'PUT' and NiceHttp.request[:path].match?(/^\/api\/users\/\d+/)}
+    }
+  }
+```
 
 ## Responses
 

@@ -18,11 +18,17 @@ module NiceHttpManageRequest
     @defaults_request = self.class.requests if @defaults_request.nil? and self.class.requests.is_a?(Hash)
     @request = Hash.new() if @request.nil?
     @defaults_request = Hash.new() unless @defaults_request.is_a?(Hash)
+    self.class.request = @request
 
     begin
       content_type_included = false
       path = ""
       data = ""
+
+      if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
+        @request[:name] = arguments[0][:name]
+        self.class.request[:name] = @request[:name]
+      end
 
       @response = Hash.new()
       headers_t = @headers.dup()
@@ -53,6 +59,9 @@ module NiceHttpManageRequest
           path += "&#{k}=#{v[0]}" if !params.key?(k)
         end
       end
+      
+      @request[:path] = path
+      self.class.request[:path] = @request[:path]
 
       @cookies.each { |cookie_path, cookies_hash|
         cookie_path = "" if cookie_path == "/"
@@ -69,6 +78,8 @@ module NiceHttpManageRequest
       headers_t["Cookie"] = cookies_to_set_str
 
       method_s = caller[0].to_s().scan(/:in `(.*)'/).join
+      @request[:method] = method_s.upcase
+      self.class.request[:method] = @request[:method]
 
       if arguments.size == 3
         data = arguments[1]
@@ -153,7 +164,12 @@ module NiceHttpManageRequest
             #lambdas on data only supports on root of the hash
             data.each do |k, v|
               if v.is_a?(Proc)
-                data[k] = v.call
+                data_kv = v.call
+                if data_kv.nil?
+                  data.delete(k)
+                else
+                  data[k] = data_kv
+                end
               end
             end
             if arguments[0].include?(:values_for)
@@ -230,9 +246,6 @@ module NiceHttpManageRequest
       @request[:data] = data
       @request[:headers] = headers_t
       @request[:method] = method_s.upcase
-      if arguments.size == 1 and arguments[0].kind_of?(Hash) and arguments[0].key?(:name)
-        @request[:name] = arguments[0][:name]
-      end
       self.class.request = @request
       headers_t.each do |k, v|
         # for lambdas
