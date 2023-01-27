@@ -658,7 +658,25 @@ RSpec.describe NiceHttp do
       resp = http.post(request)
       expect(klass.request.data.json.name).to eq 'peter'
       expect(klass.request.data.json.namelambda).to eq 'petera'
+    end
 
+    it "supplies :values_for specified to all requests" do
+      klass.host = "https://reqres.in"
+      klass.requests = {
+        values_for: {
+          job: lambda { 'teacher' },
+          city: 'madrid'
+        }    
+      }
+      http = klass.new
+      request = {
+        path: "/api/users",
+        data: {job: "leader", city: "london", name: 'mario'},
+      }
+      resp = http.post(request)
+      expect(klass.request.data.json.job).to eq 'teacher'
+      expect(klass.request.data.json.city).to eq 'madrid'
+      expect(klass.request.data.json.name).to eq 'mario'
     end
 
   end

@@ -16,7 +16,7 @@ module NiceHttpManageRequest
     
     @prev_request = Hash.new() if @prev_request.nil?
     @defaults_request = self.class.requests if @defaults_request.nil? and self.class.requests.is_a?(Hash)
-    @request = Hash.new() if @request.nil?
+    @request = Hash.new()
     @defaults_request = Hash.new() unless @defaults_request.is_a?(Hash)
     self.class.request = @request
 
@@ -128,15 +128,27 @@ module NiceHttpManageRequest
         if arguments[0].include?(:values) and !arguments[0].include?(:values_for)
           arguments[0][:values_for] = arguments[0][:values]
         end
-
-        if @values_for.size > 0
-          if arguments[0][:values_for].nil?
-            arguments[0][:values_for] = @values_for.dup
+        values_for_orig = {}
+        if @defaults_request.key?(:values_for) and @defaults_request.is_a?(Hash) and @defaults_request[:values_for].size > 0
+          if arguments[0].include?(:values_for)
+            values_for_orig = arguments[0][:values_for].deep_copy
+            arguments[0][:values_for] = @defaults_request[:values_for].merge(arguments[0][:values_for])
           else
-            arguments[0][:values_for] = @values_for.merge(arguments[0][:values_for])
+            arguments[0][:values_for] = @defaults_request[:values_for].dup
           end
         end
-
+        
+        if @values_for.size > 0
+          if arguments[0][:values_for].nil?
+            arguments[0][:values_for] = @values_for.deep_copy
+          else
+            values_for_copy = @values_for.deep_copy
+            arguments[0][:values_for] = values_for_copy.nice_merge(arguments[0][:values_for])
+          end
+        end
+        if arguments[0].include?(:values_for) and arguments[0][:values_for].size > 0 and arguments[0][:values_for].is_a?(Hash)
+          arguments[0][:values_for] = NiceHttpUtils.set_lambdas(arguments[0][:values_for], values_for_orig)
+        end
         if content_type_included and (!headers_t["Content-Type"][/text\/xml/].nil? or
                                       !headers_t["Content-Type"]["application/soap+xml"].nil? or
                                       !headers_t["Content-Type"][/application\/jxml/].nil?)
@@ -160,18 +172,10 @@ module NiceHttpManageRequest
               }
             end
           elsif data.kind_of?(Hash)
-            data.merge!(@defaults_request[:data]) if @defaults_request.key?(:data)
-            #lambdas on data only supports on root of the hash
-            data.each do |k, v|
-              if v.is_a?(Proc)
-                data_kv = v.call
-                if data_kv.nil?
-                  data.delete(k)
-                else
-                  data[k] = data_kv
-                end
-              end
-            end
+            data_orig = data.deep_copy
+            data = data.nice_merge(@defaults_request[:data]) if @defaults_request.key?(:data)
+            data = NiceHttpUtils.set_lambdas(data, data_orig)
+            
             if arguments[0].include?(:values_for)
               data = data.set_values(arguments[0][:values_for])
             end

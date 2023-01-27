@@ -260,7 +260,7 @@ NiceHttp.requests = {
 }
 ```
 
-You can use `NiceHttp.requests` to specify certain `headers`, `path` parameters or `data` that will apply on all requests sent.
+You can use `NiceHttp.requests` to specify certain `headers`, `path` parameters or `data` or `values_for` that will apply on all requests sent.
 ```ruby
 NiceHttp.requests = {
   path: 'api-version=2022-12-09&testing=true',
@@ -272,11 +272,14 @@ NiceHttp.requests = {
 }
 ```
 
-Lambdas can be used also on data to change the payloads in real-time. It is only available on root of the data hash. In case the lambda returns 'nil' the key won't be added to the request.  
+Lambdas can be used also on data and values_for to change the payloads in real-time. In case the lambda returns 'nil' the key won't be added to the request.  
 ```ruby
 NiceHttp.requests = {
     data: {
       zones: lambda { ENV['ZONES'] if NiceHttp.request[:method] == 'PUT' and NiceHttp.request[:path].match?(/^\/api\/users\/\d+/)}
+    },
+    values_for: {
+      region: lambda { 'Europe' if NiceHttp.request[:name] == 'Users.add' }
     }
   }
 ```
