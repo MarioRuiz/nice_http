@@ -9,7 +9,13 @@ module NiceHttpManageRequest
   #   output:
   #     path, data, headers
   ######################################################
-  def manage_request(*arguments)
+  def manage_request(*arguments_param)    
+    if arguments_param.size == 1 and arguments_param[0].kind_of?(Hash)
+      arguments = [arguments_param[0].deep_copy()]
+    else
+      arguments = arguments_param
+    end    
+      
     require "json"
     require 'cgi'
     require 'uri'
@@ -132,9 +138,9 @@ module NiceHttpManageRequest
         if @defaults_request.key?(:values_for) and @defaults_request.is_a?(Hash) and @defaults_request[:values_for].size > 0
           if arguments[0].include?(:values_for)
             values_for_orig = arguments[0][:values_for].deep_copy
-            arguments[0][:values_for] = @defaults_request[:values_for].merge(arguments[0][:values_for])
+            arguments[0][:values_for] = @defaults_request[:values_for].nice_merge(arguments[0][:values_for])
           else
-            arguments[0][:values_for] = @defaults_request[:values_for].dup
+            arguments[0][:values_for] = @defaults_request[:values_for].deep_copy
           end
         end
         
@@ -142,8 +148,7 @@ module NiceHttpManageRequest
           if arguments[0][:values_for].nil?
             arguments[0][:values_for] = @values_for.deep_copy
           else
-            values_for_copy = @values_for.deep_copy
-            arguments[0][:values_for] = values_for_copy.nice_merge(arguments[0][:values_for])
+            arguments[0][:values_for] = @values_for.nice_merge(arguments[0][:values_for])
           end
         end
         if arguments[0].include?(:values_for) and arguments[0][:values_for].size > 0 and arguments[0][:values_for].is_a?(Hash)
@@ -173,13 +178,14 @@ module NiceHttpManageRequest
             end
           elsif data.kind_of?(Hash)
             data_orig = data.deep_copy
-            data = data.nice_merge(@defaults_request[:data]) if @defaults_request.key?(:data)
+            data.nice_merge!(@defaults_request[:data]) if @defaults_request.key?(:data)
             data = NiceHttpUtils.set_lambdas(data, data_orig)
-            
+
             if arguments[0].include?(:values_for)
               data = data.set_values(arguments[0][:values_for])
             end
             data = data.to_json()
+
           elsif data.kind_of?(Array)
             #todo: implement set_nested
             data_arr = Array.new()
@@ -313,7 +319,6 @@ module NiceHttpManageRequest
         self.class.last_request = message
         @logger.info(message)
       end
-
       return path, data, headers_t
     rescue Exception => stack
       @logger.fatal(stack)

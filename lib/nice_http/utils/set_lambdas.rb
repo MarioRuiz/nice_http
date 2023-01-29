@@ -6,8 +6,6 @@ module NiceHttpUtils
   # @return [Hash] the data hash with all lambdas set
   ####################################################
   def self.set_lambdas(data, data_orig)
-    #puts "set_lambdas data: #{data.inspect}" #jal
-    #puts "set lambdas data_orig: #{data_orig.inspect}"
     data = data.dup
     data_orig = data_orig.dup unless data_orig.nil?
     
@@ -34,7 +32,6 @@ module NiceHttpUtils
       end
     end
     data = data_orig.nice_merge(data) unless data_orig.nil?
-    #puts "set_lambas: #{data.inspect}"
     return data
   end
 end
