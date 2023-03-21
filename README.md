@@ -751,14 +751,14 @@ This will generate an items key that will contain an array of the values you add
 * Direct download:
 
 ```ruby
-resp = NiceHttp.new("https://euruko2019.org").get("/assets/images/logo.png", save_data: './tmp/')
+resp = NiceHttp.new("https://github.com").get("/MarioRuiz/slack-smart-bot/blob/master/slack-smart-bot.png", save_data: './tmp/')
 ```
 
 * Get the data and store it like you want:
 
 ```ruby
-resp = NiceHttp.new("https://euruko2019.org").get("/assets/images/logo.png")
-File.open('./logo.png', 'wb') { |fp| fp.write(resp.data) }
+resp = NiceHttp.new("https://github.com").get("/MarioRuiz/slack-smart-bot/blob/master/slack-smart-bot.png")
+File.open('./slack-smart-bot.png', 'wb') { |fp| fp.write(resp.data) }
 ```
 
 ### Send multipart content

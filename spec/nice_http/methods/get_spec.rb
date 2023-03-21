@@ -108,27 +108,27 @@ RSpec.describe NiceHttp, "#get" do
 
     it "downloads into the specified folder" do
       Dir.mkdir("./tmp/") unless Dir.exist?("./tmp")
-      File.delete("./tmp/logo.png") if File.exist?("./tmp/logo.png")
+      File.delete("./tmp/slack-smart-bot.png") if File.exist?("./tmp/slack-smart-bot.png")
 
-      http = NiceHttp.new("https://euruko2019.org")
-      http.get("/assets/images/logo.png", save_data: "./tmp/")
-      expect(File.exist?("./tmp/logo.png")).to eq true
+      http = NiceHttp.new("https://github.com")
+      http.get("/MarioRuiz/slack-smart-bot/blob/master/slack-smart-bot.png", save_data: "./tmp/")
+      expect(File.exist?("./tmp/slack-smart-bot.png")).to eq true
     end
 
     it "downloads into the specified folder finished not on slash" do
       Dir.mkdir("./tmp/") unless Dir.exist?("./tmp")
-      File.delete("./tmp/logo.png") if File.exist?("./tmp/logo.png")
+      File.delete("./tmp/slack-smart-bot.png") if File.exist?("./tmp/slack-smart-bot.png")
 
-      http = NiceHttp.new("https://euruko2019.org")
-      http.get("/assets/images/logo.png", save_data: "./tmp")
-      expect(File.exist?("./tmp/logo.png")).to eq true
+      http = NiceHttp.new("https://github.com")
+      http.get("/MarioRuiz/slack-smart-bot/blob/master/slack-smart-bot.png", save_data: "./tmp")
+      expect(File.exist?("./tmp/slack-smart-bot.png")).to eq true
     end
 
     it "downloads into the specified path" do
       Dir.mkdir("./tmp/") unless Dir.exist?("./tmp")
       File.delete("./tmp/logo2.png") if File.exist?("./tmp/logo2.png")
-      http = NiceHttp.new("https://euruko2019.org")
-      http.get("/assets/images/logo.png", save_data: "./tmp/logo2.png")
+      http = NiceHttp.new("https://github.com")
+      http.get("/MarioRuiz/slack-smart-bot/blob/master/slack-smart-bot.png", save_data: "./tmp/logo2.png")
       expect(File.exist?("./tmp/logo2.png")).to eq true
     end
 
@@ -143,10 +143,10 @@ RSpec.describe NiceHttp, "#get" do
 
     it 'doens\'t save if path not reachable' do
       Dir.mkdir("./tmpx/") if Dir.exist?("./tmpx")
-      File.delete("./tmp/logo.png") if File.exist?("./tmp/logo.png")
-      http = NiceHttp.new("https://euruko2019.org")
-      http.get("/assets/images/logo.png", save_data: "./tmpx/")
-      expect(File.exist?("./tmp/logo.png")).to eq false
+      File.delete("./tmp/slack-smart-bot.png") if File.exist?("./tmp/slack-smart-bot.png")
+      http = NiceHttp.new("https://github.com")
+      http.get("/MarioRuiz/slack-smart-bot/blob/master/slack-smart-bot.png", save_data: "./tmpx/")
+      expect(File.exist?("./tmp/slack-smart-bot.png")).to eq false
     end
   end
   describe 'async' do
