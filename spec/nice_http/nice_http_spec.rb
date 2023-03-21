@@ -799,4 +799,11 @@ RSpec.describe NiceHttp do
 
   end
 
+  it 'returns also body as a copy of data for response' do
+    http = klass.new("https://reqres.in")
+    resp = http.get "/api/users?page=2"
+    expect(resp.key?(:body)).to eq true
+    expect(resp.body).to eq resp.data
+  end
+
 end

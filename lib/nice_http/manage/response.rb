@@ -192,5 +192,6 @@ module NiceHttpManageResponse
       @logger.fatal "manage_response Error on method #{method_s} "
     end
     @start_time = nil
+    @response.body = @response.data
   end
 end
