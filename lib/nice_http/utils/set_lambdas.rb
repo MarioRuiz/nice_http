@@ -19,6 +19,9 @@ module NiceHttpUtils
           end
         elsif v.is_a?(Hash)
           data[k] = set_lambdas(v, data_orig[k])
+          unless data_orig.is_a?(Hash) and data_orig.key?(k)
+            data.delete(k) if data[k].empty?
+          end
         elsif v.is_a?(Array)
           v.each.with_index do |v2, i|
               if data_orig.key?(k) and data_orig[k].is_a?(Array) and data_orig[k].size > i
