@@ -660,6 +660,93 @@ RSpec.describe NiceHttp do
       expect(klass.request.data.json.namelambda).to eq 'petera'
     end
 
+    it 'supplies :data specified to all requests with lambda if not on data' do
+      klass.host = "https://reqres.in"
+      klass.requests = {
+        data: {
+          namelambda: lambda { 'petera' },
+          namelambdafalse: lambda { 'petera' if false },
+          namelambdatrue: lambda { 'petera' if true },
+          love: {
+            namelambda: lambda { 'petera' },
+            namelambdafalse: lambda { 'petera' if false },
+            namelambdatrue: lambda { 'petera' if true },
+          },
+          mars: {
+            namelambdafalse: lambda { 'petera' if false },
+          },
+          name: 'peter'
+        }
+      }
+      http = klass.new
+      request = {
+        path: "/api/users",
+        data: {job: "leader", city: "london"},
+      }
+      resp = http.post(request)
+      expect(klass.request.data.json.job).to eq 'leader'
+      expect(klass.request.data.json.city).to eq 'london'
+      expect(klass.request.data.json.name).to eq 'peter'
+      expect(klass.request.data.json.namelambda).to eq 'petera'
+      expect(klass.request.data.json.key?(:namelambdafalse)).to eq false
+      expect(klass.request.data.json.key?(:namelambdatrue)).to eq true
+      expect(klass.request.data.json.love.namelambda).to eq 'petera'
+      expect(klass.request.data.json.love.key?(:namelambdafalse)).to eq false
+      expect(klass.request.data.json.love.key?(:namelambdatrue)).to eq true
+      expect(klass.request.data.json.key?(:mars)).to eq false
+    end
+
+    it 'supplies :data specified to all requests with lambda if on data' do
+      klass.host = "https://reqres.in"
+      klass.requests = {
+        data: {
+          namelambda: lambda { 'petera' },
+          namelambdafalse: lambda { 'petera' if false },
+          namelambdatrue: lambda { 'petera' if true },
+          love: {
+            namelambda: lambda { 'petera' },
+            namelambdafalse: lambda { 'petera' if false },
+            namelambdatrue: lambda { 'petera' if true },
+          },
+          mars: {
+            namelambdafalse: lambda { 'petera' if false },
+          },
+          name: 'peter'
+        }
+      }
+      http = klass.new
+      request = {
+        path: "/api/users",
+        data: {
+          job: "leader", 
+          city: "london",
+          namelambda: 'uno',
+          namelambdafalse: 'dos',
+          namelambdatrue: 'tres',
+          love: {
+            namelambda: 'cuatro',
+            namelambdafalse: 'cinco',
+            namelambdatrue: 'seis',
+          },
+          mars: {
+            namelambdafalse: 'siete',
+          },
+          name: 'peter'
+        },
+      }
+      resp = http.post(request)
+      expect(klass.request.data.json.job).to eq 'leader'
+      expect(klass.request.data.json.city).to eq 'london'
+      expect(klass.request.data.json.name).to eq 'peter'
+      expect(klass.request.data.json.namelambda).to eq 'petera'
+      expect(klass.request.data.json.namelambdafalse).to eq 'dos'
+      expect(klass.request.data.json.namelambdatrue).to eq 'petera'
+      expect(klass.request.data.json.love.namelambda).to eq 'petera'
+      expect(klass.request.data.json.love.namelambdafalse).to eq 'cinco'
+      expect(klass.request.data.json.love.namelambdatrue).to eq 'petera'
+      expect(klass.request.data.json.mars.namelambdafalse).to eq 'siete'      
+    end
+
     it "supplies :values_for specified to all requests" do
       klass.host = "https://reqres.in"
       klass.requests = {

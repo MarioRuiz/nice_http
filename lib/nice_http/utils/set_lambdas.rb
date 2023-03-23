@@ -13,7 +13,11 @@ module NiceHttpUtils
         if v.is_a?(Proc)
           data_kv = v.call
           if data_kv.nil?
-            data.delete(k) unless data_orig.is_a?(Hash) and data_orig.key?(k)
+            if data_orig.is_a?(Hash) and data_orig.key?(k)
+              data[k] = data_orig[k]
+            else
+              data.delete(k)
+            end
           else
             data[k] = data_kv
           end
