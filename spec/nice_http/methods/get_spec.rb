@@ -75,7 +75,7 @@ RSpec.describe NiceHttp, "#get" do
     end
 
     it "set the cookies when required" do
-      server = "https://examplesinatra--tcblues.repl.co/"
+      server = ENV['HOST_EXAMPLE_SINATRA']
       http = NiceHttp.new(server)
       resp = http.get("/setcookie")
       expect(resp.key?(:'set-cookie')).to eq true
@@ -152,10 +152,10 @@ RSpec.describe NiceHttp, "#get" do
   describe 'async' do
     before :each do
       NiceHttp.log_files = Hash.new()
-      @http = NiceHttp.new(host: 'https://exampleSinatra.tcblues.repl.co', async_wait_seconds: 10, async_header: 'location', 
+      @http = NiceHttp.new(host: ENV['HOST_EXAMPLE_SINATRA'], async_wait_seconds: 10, async_header: 'location',
                            async_completed: 'percComplete', async_resource: 'resourceName', async_status: 'status')
     end
-  
+
     it 'waits until async operation completed when time < than wait time' do
       started = Time.now
       resp = @http.get '/async'
@@ -169,7 +169,7 @@ RSpec.describe NiceHttp, "#get" do
       expect(resp.async.data.json.status).to eq 'Done'
       expect(resp.async.data.json.resourceName).to eq "/resource/#{resource_id}"
       expect(resp.async.status).to eq 'Done'
-      expect(resp.async.resource.data.json.resourceId).to eq resource_id        
+      expect(resp.async.resource.data.json.resourceId).to eq resource_id
       expect(elapsed).to be < 10
       expect(resp.async.seconds).to eq 4
     end
@@ -186,7 +186,7 @@ RSpec.describe NiceHttp, "#get" do
       expect(resp.async.data.json.status).to eq 'Ongoing'
       expect(resp.async.data.json.resourceName).to eq "/resource/#{resource_id}"
       expect(resp.async.status).to eq 'Ongoing'
-      expect(resp.async.resource.data.json.resourceId).to eq resource_id        
+      expect(resp.async.resource.data.json.resourceId).to eq resource_id
       expect(resp.async.seconds).to eq 1
     end
 
@@ -255,6 +255,6 @@ RSpec.describe NiceHttp, "#get" do
       expect(resp.async.seconds).to eq 4
     end
 
-    
+
   end
 end

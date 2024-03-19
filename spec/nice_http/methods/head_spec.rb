@@ -53,7 +53,7 @@ RSpec.describe NiceHttp, "#head" do
   end
 
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
-    server = "https://examplesinatra--tcblues.repl.co/"
+    server = ENV['HOST_EXAMPLE_SINATRA']
     http = NiceHttp.new(server)
     http.auto_redirect = false
     req = {
@@ -65,7 +65,7 @@ RSpec.describe NiceHttp, "#head" do
   end
 
   it "set the cookies when required" do
-    server = "https://examplesinatra--tcblues.repl.co/"
+    server = ENV['HOST_EXAMPLE_SINATRA']
     http = NiceHttp.new(server)
     resp = http.head('/setcookie')
     expect(resp.key?(:'set-cookie')).to eq true

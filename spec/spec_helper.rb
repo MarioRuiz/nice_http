@@ -1,3 +1,8 @@
+#https://examplesinatra--tcblues.repl.co/
+#https://exampleSinatra.tcblues.repl.co
+#Go to replit, start the project, and click on DEV at the url bar to get the temporary url
+ENV['HOST_EXAMPLE_SINATRA'] ||= "https://d742ccba-72a2-4d5c-99d8-767f27020871-00-11gu5zl32n4e9.kirk.replit.dev/"
+
 require "coveralls"
 Coveralls.wear!
 
