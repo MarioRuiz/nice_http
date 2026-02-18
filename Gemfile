@@ -5,7 +5,7 @@ group :test do
   gem "rspec"
   gem "sinatra", "~> 3.0"
   gem "webrick"
-  gem "coveralls_reborn", "~> 0.27.0", require: false
+  gem "coveralls_reborn", "~> 0.28.0", require: false
 end
 
 # Specify your gem's dependencies in mygem.gemspec
