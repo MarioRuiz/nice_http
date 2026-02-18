@@ -10,14 +10,14 @@ RSpec.describe NiceHttp do
       klass.port = 433
       klass.ssl = true
       klass.timeout = 20
-      klass.headers = {uno: "one"}
+      klass.headers = { uno: "one" }
       klass.debug = true
       klass.log = :screen
-      klass.log_path = './tmp/'
+      klass.log_path = "./tmp/"
       klass.proxy_host = "example.com"
       klass.proxy_port = 8080
       klass.last_request = {}
-      klass.request = ''
+      klass.request = ""
       klass.last_response = {}
       klass.request_id = "3344"
       klass.use_mocks = true
@@ -25,10 +25,12 @@ RSpec.describe NiceHttp do
       klass.active = 1
       klass.auto_redirect = false
       klass.log_headers = :none
-      klass.values_for = {one: 1}
+      klass.values_for = { one: 1 }
       klass.create_stats = true
-      klass.stats = {one: 1}
+      klass.stats = { one: 1 }
       klass.capture = true
+      klass.connection_retry_attempts = 10
+      klass.connection_retry_base_delay = 5.0
 
       klass.reset!
 
@@ -39,7 +41,7 @@ RSpec.describe NiceHttp do
       expect(klass.headers).to eq ({})
       expect(klass.debug).to eq false
       expect(klass.log).to eq :fix_file
-      expect(klass.log_path).to eq ''
+      expect(klass.log_path).to eq ""
       expect(klass.proxy_host).to eq nil
       expect(klass.proxy_port).to eq nil
       expect(klass.last_request).to eq nil
@@ -55,6 +57,82 @@ RSpec.describe NiceHttp do
       expect(klass.create_stats).to eq false
       expect(klass.stats[:all][:num_requests]).to eq 0
       expect(klass.capture).to eq false
+      expect(klass.connection_retry_attempts).to eq 3
+      expect(klass.connection_retry_base_delay).to eq 1.0
+    end
+  end
+
+  describe "connection retry on too many open files" do
+    before do
+      klass.host = "example.com"
+      klass.port = 443
+      klass.ssl = true
+      klass.log = :no
+    end
+
+    it "retries and succeeds when start raises EMFILE then succeeds" do
+      start_calls = 0
+      allow(Net::HTTP).to receive(:new).and_wrap_original do |orig, *args, &block|
+        http = orig.call(*args, &block)
+        allow(http).to receive(:start) do
+          start_calls += 1
+          raise Errno::EMFILE if start_calls <= 1
+          nil
+        end
+        http
+      end
+      http = klass.new
+      expect(klass.connections).to include(http)
+      expect(start_calls).to eq 2
+    end
+
+    it "raises after exhausting retries when start always raises EMFILE" do
+      allow(Net::HTTP).to receive(:new).and_wrap_original do |orig, *args, &block|
+        http = orig.call(*args, &block)
+        allow(http).to receive(:start).and_raise(Errno::EMFILE)
+        http
+      end
+      expect { klass.new }.to raise_error(Errno::EMFILE)
+    end
+
+    it "does not retry on non-retryable errors" do
+      allow(Net::HTTP).to receive(:new).and_wrap_original do |orig, *args, &block|
+        http = orig.call(*args, &block)
+        allow(http).to receive(:start).and_raise(Errno::ECONNREFUSED)
+        http
+      end
+      expect { klass.new }.to raise_error(Errno::ECONNREFUSED)
+    end
+
+    it "uses connection_retry_attempts: 1 for no retries" do
+      start_calls = 0
+      allow(Net::HTTP).to receive(:new).and_wrap_original do |orig, *args, &block|
+        http = orig.call(*args, &block)
+        allow(http).to receive(:start).and_wrap_original do |orig_start, *a, &b|
+          start_calls += 1
+          raise Errno::EMFILE
+        end
+        http
+      end
+      expect { klass.new(connection_retry_attempts: 1) }.to raise_error(Errno::EMFILE)
+      expect(start_calls).to eq 1
+    end
+
+    it "uses class-level connection_retry_attempts when set" do
+      klass.connection_retry_attempts = 3
+      start_calls = 0
+      allow(Net::HTTP).to receive(:new).and_wrap_original do |orig, *args, &block|
+        http = orig.call(*args, &block)
+        allow(http).to receive(:start) do
+          start_calls += 1
+          raise Errno::EMFILE if start_calls <= 2
+          nil
+        end
+        http
+      end
+      http = klass.new
+      expect(klass.connections).to include(http)
+      expect(start_calls).to eq 3
     end
   end
 
@@ -103,6 +181,12 @@ RSpec.describe NiceHttp do
       klass.new rescue err = $ERROR_INFO
       expect(err.attribute).to eq :host
       expect(err.message).to match /wrong host/i
+    end
+    it "error message suggests supplying http:// or https:// when host is URL" do
+      klass.host = nil
+      klass.port = 443
+      klass.new rescue err = $ERROR_INFO
+      expect(err.message).to match(/http:\/\//)
     end
   end
 
@@ -156,26 +240,26 @@ RSpec.describe NiceHttp do
       expect(err.attribute).to eq :timeout
       expect(err.message).to match /wrong timeout/i
     end
-    it 'returns fatal error if timeout reached when reading' do
+    it "returns fatal error if timeout reached when reading" do
       klass.timeout = 2
-      http = klass.new("https://reqres.in")
+      http = klass.new(TEST_SERVER_URL)
       resp = http.get("/api/users?delay=3")
       expect(resp.code).to be_nil
       expect(resp.message).to be_nil
-      expect(resp.fatal_error).to eq 'Net::ReadTimeout'
+      expect(resp.fatal_error).to eq "Net::ReadTimeout"
     end
-    it 'returns error if not possible to connect when connecting' do
+    it "returns error if not possible to connect when connecting" do
       klass.timeout = 2
       http = klass.new("https://reqres4s55s.in") rescue err = $ERROR_INFO
       expect(err.message).to match /Failed to open TCP/i
     end
-    it 'returns error if timeout reached when connecting' do
+    it "returns error if timeout reached when connecting" do
       klass.timeout = 2
       http = klass.new("http://example.com:8888") rescue err = $ERROR_INFO
       expect(err.message).to match /(execution expired|Failed to open TCP connection)/i
     end
   end
-  
+
   describe "debug" do
     it "uses the class debug by default" do
       klass.debug = true
@@ -272,7 +356,7 @@ RSpec.describe NiceHttp do
 
   describe "headers" do
     it "uses the class headers by default" do
-      klass.headers = {example: "test"}
+      klass.headers = { example: "test" }
       klass.host = "example.com"
       klass.port = 443
       expect(klass.new.headers).to eq klass.headers
@@ -281,7 +365,16 @@ RSpec.describe NiceHttp do
       klass.port = 443
       klass.host = "example.com"
       klass.headers = {}
-      expect(klass.new(headers: {example: "test"}).headers).to eq ({example: "test"})
+      expect(klass.new(headers: { example: "test" }).headers).to eq ({ example: "test" })
+    end
+    it "uses headers from .generate when hash responds to generate (nice_hash style)" do
+      headers_with_generate = {}
+      headers_with_generate.define_singleton_method(:generate) { { "X-Custom-Header" => "from_generate" } }
+      uri = URI.parse(TEST_SERVER_URL)
+      http = klass.new(host: uri.host, port: uri.port, headers: headers_with_generate)
+      resp = http.get "/echo_headers"
+      expect(resp.code).to eq "200"
+      expect(resp.data).to include("from_generate")
     end
     it 'raises an error when it can\'t figure out the headers' do
       klass.headers = nil
@@ -296,7 +389,7 @@ RSpec.describe NiceHttp do
 
   describe "values_for" do
     it "uses the class values_for by default" do
-      klass.values_for = {example: "test"}
+      klass.values_for = { example: "test" }
       klass.host = "example.com"
       klass.port = 443
       expect(klass.new.values_for).to eq klass.values_for
@@ -305,7 +398,7 @@ RSpec.describe NiceHttp do
       klass.port = 443
       klass.host = "example.com"
       klass.values_for = {}
-      expect(klass.new(values_for: {example: "test"}).values_for).to eq ({example: "test"})
+      expect(klass.new(values_for: { example: "test" }).values_for).to eq ({ example: "test" })
     end
     it 'raises an error when it can\'t figure out the values_for' do
       klass.values_for = nil
@@ -318,12 +411,12 @@ RSpec.describe NiceHttp do
     end
 
     it "changes :data when supplied :values_for on class defaults" do
-      klass.values_for = {name: "peter"}
-      klass.host = "https://reqres.in"
+      klass.values_for = { name: "peter" }
+      klass.host = TEST_SERVER_URL
       http = klass.new
       request = {
         path: "/api/users",
-        data: {name: "morpheus", job: "leader"},
+        data: { name: "morpheus", job: "leader" },
       }
       resp = http.post(request)
       expect(resp.code).to eq 201
@@ -332,11 +425,11 @@ RSpec.describe NiceHttp do
 
     it "changes :data when supplied :values_for on new class instance" do
       klass.values_for = {}
-      klass.host = "https://reqres.in"
-      http = klass.new(values_for: {name: "juan"})
+      klass.host = TEST_SERVER_URL
+      http = klass.new(values_for: { name: "juan" })
       request = {
         path: "/api/users",
-        data: {name: "morpheus", job: "leader"},
+        data: { name: "morpheus", job: "leader" },
       }
       resp = http.post(request)
       expect(resp.code).to eq 201
@@ -345,13 +438,13 @@ RSpec.describe NiceHttp do
 
     it "changes :data when supplied :values_for on request instead of value on class" do
       klass.values_for = {}
-      klass.host = "https://reqres.in"
-      http = klass.new(values_for: {name: "juan"})
+      klass.host = TEST_SERVER_URL
+      http = klass.new(values_for: { name: "juan" })
       request = {
         path: "/api/users",
-        data: {name: "morpheus", job: "leader"},
+        data: { name: "morpheus", job: "leader" },
       }
-      request.values_for = {name: "John"}
+      request.values_for = { name: "John" }
       resp = http.post(request)
       expect(resp.code).to eq 201
       expect(resp.data.json(:name)).to eq "John"
@@ -385,16 +478,16 @@ RSpec.describe NiceHttp do
 
   describe "log_path" do
     it "uses the class log_path by default" do
-      klass.log_path = './tmp/'
+      klass.log_path = "./tmp/"
       klass.host = "example.com"
       klass.port = 443
-      expect(klass.new.log_path).to eq './tmp/'
+      expect(klass.new.log_path).to eq "./tmp/"
     end
     it "can be provided an explicit log_path" do
       klass.port = 443
       klass.host = "example.com"
-      klass.log_path = './tmp/'
-      expect(klass.new(log_path: './tmp/tmp/').log_path).to eq ('./tmp/tmp/')
+      klass.log_path = "./tmp/"
+      expect(klass.new(log_path: "./tmp/tmp/").log_path).to eq ("./tmp/tmp/")
     end
   end
 
@@ -433,7 +526,7 @@ RSpec.describe NiceHttp do
       expect(klass.log).to eq (:fix_file)
     end
     specify "log_path is ''" do
-      expect(klass.log_path).to eq ('')
+      expect(klass.log_path).to eq ("")
     end
     specify "create_stats is false" do
       expect(klass.create_stats).to eq false
@@ -450,31 +543,31 @@ RSpec.describe NiceHttp do
       expect { klass.auto_redirect = false }.to change { klass.auto_redirect }.to(false)
       expect { klass.log_headers = :partial }.to change { klass.log_headers }.to(:partial)
       expect { klass.use_mocks = true }.to change { klass.use_mocks }.to(true)
-      expect { klass.headers = {example: "test"} }.to change { klass.headers }.to({example: "test"})
-      expect { klass.values_for = {example: "test"} }.to change { klass.values_for }.to({example: "test"})
+      expect { klass.headers = { example: "test" } }.to change { klass.headers }.to({ example: "test" })
+      expect { klass.values_for = { example: "test" } }.to change { klass.values_for }.to({ example: "test" })
       expect { klass.log = :screen }.to change { klass.log }.to(:screen)
-      expect { klass.log_path = './tmp/' }.to change { klass.log_path }.to('./tmp/')
+      expect { klass.log_path = "./tmp/" }.to change { klass.log_path }.to("./tmp/")
       expect { klass.create_stats = true }.to change { klass.create_stats }.to(true)
       expect { klass.capture = true }.to change { klass.capture }.to(true)
     end
     specify "I can set many at once with a hash" do
-      expect { klass.defaults = {port: 8888} }.to change { klass.port }.to(8888)
-      expect { klass.defaults = {host: "localhost"} }.to change { klass.host }.to("localhost")
-      expect { klass.defaults = {ssl: true} }.to change { klass.ssl }.to(true)
-      expect { klass.defaults = {timeout: 15} }.to change { klass.timeout }.to(15)
-      expect { klass.defaults = {debug: true} }.to change { klass.debug }.to(true)
-      expect { klass.defaults = {auto_redirect: false} }.to change { klass.auto_redirect }.to(false)
-      expect { klass.defaults = {log_headers: :none} }.to change { klass.log_headers }.to(:none)
-      expect { klass.defaults = {use_mocks: true} }.to change { klass.use_mocks }.to(true)
-      expect { klass.defaults = {headers: {example: "test"}} }.to change { klass.headers }.to({example: "test"})
-      expect { klass.defaults = {values_for: {example: "test"}} }.to change { klass.values_for }.to({example: "test"})
-      expect { klass.defaults = {log: :screen} }.to change { klass.log }.to(:screen)
-      expect { klass.defaults = {log_path: './tmp/'} }.to change { klass.log_path }.to('./tmp/')
-      expect { klass.defaults = {create_stats: true} }.to change { klass.create_stats }.to(true)
-      expect { klass.defaults = {capture: true} }.to change { klass.capture }.to(true)
+      expect { klass.defaults = { port: 8888 } }.to change { klass.port }.to(8888)
+      expect { klass.defaults = { host: "localhost" } }.to change { klass.host }.to("localhost")
+      expect { klass.defaults = { ssl: true } }.to change { klass.ssl }.to(true)
+      expect { klass.defaults = { timeout: 15 } }.to change { klass.timeout }.to(15)
+      expect { klass.defaults = { debug: true } }.to change { klass.debug }.to(true)
+      expect { klass.defaults = { auto_redirect: false } }.to change { klass.auto_redirect }.to(false)
+      expect { klass.defaults = { log_headers: :none } }.to change { klass.log_headers }.to(:none)
+      expect { klass.defaults = { use_mocks: true } }.to change { klass.use_mocks }.to(true)
+      expect { klass.defaults = { headers: { example: "test" } } }.to change { klass.headers }.to({ example: "test" })
+      expect { klass.defaults = { values_for: { example: "test" } } }.to change { klass.values_for }.to({ example: "test" })
+      expect { klass.defaults = { log: :screen } }.to change { klass.log }.to(:screen)
+      expect { klass.defaults = { log_path: "./tmp/" } }.to change { klass.log_path }.to("./tmp/")
+      expect { klass.defaults = { create_stats: true } }.to change { klass.create_stats }.to(true)
+      expect { klass.defaults = { capture: true } }.to change { klass.capture }.to(true)
     end
     specify 'setting many at once doesn\'t override unprovided values' do
-      expect { klass.defaults = {host: "http://whatevz.com"} }.to_not change { klass.port }
+      expect { klass.defaults = { host: "http://whatevz.com" } }.to_not change { klass.port }
     end
   end
 
@@ -499,17 +592,34 @@ RSpec.describe NiceHttp do
       expect(klass.connections.size).to eq 1
       expect(klass.connections[0]).to eq http2
     end
+
+    it "double close does not raise" do
+      klass.host = "https://www.example.com"
+      http = klass.new
+      expect { http.close; http.close }.not_to raise_error
+    end
+  end
+
+  describe "inherited" do
+    it "subclass gets default values from reset!" do
+      subclass = Class.new(NiceHttp)
+      expect(subclass.port).to eq 80
+      expect(subclass.ssl).to eq false
+      expect(subclass.connections).to eq []
+      expect(subclass.async_header).to eq "location"
+    end
   end
 
   describe "proxys" do
     it "starts proxy supplied host and port" do
+      skip "proxy test hits real example.com; use USE_FAKE_API=false to run" if ENV["USE_FAKE_API"] != "false"
       klass.proxy_host = "example.com"
       klass.proxy_port = 80
-      http = klass.new("http://example.com")
+      http = klass.new(TEST_SERVER_URL)
       resp = http.get "/"
       expect(resp.code).to eq 200
 
-      http2 = klass.new("http://www.google.com")
+      http2 = klass.new(TEST_SERVER_URL_2)
       resp = http2.get "/"
       expect(resp.code).to eq 404
     end
@@ -517,16 +627,27 @@ RSpec.describe NiceHttp do
 
   describe "prepaths" do
     it "adds the prepath if supplied" do
-      http = klass.new("https://reqres.in/api")
+      http = klass.new("#{TEST_SERVER_URL}/api")
       resp = http.get "/users?page=2"
       expect(resp.code).to eq 200
     end
   end
 
+  describe "response encoding" do
+    it "receives body from endpoint with non-UTF-8 charset (é in ISO-8859-1)" do
+      http = klass.new(TEST_SERVER_URL)
+      resp = http.get "/encoding_iso8859"
+      expect(resp.code).to eq "200"
+      # Server sends "café": 4 bytes in ISO-8859-1 or 5 in UTF-8 if library converts
+      expect(resp.data.bytes[0, 3]).to eq [99, 97, 102]
+      expect(resp.data.bytes.length).to be_between(4, 5)
+    end
+  end
+
   describe "lambda on headers" do
     it "execute lambdas on headers for every request" do
-      http = klass.new("https://reqres.in/api")
-      req = {path: "/users?page=2", headers: {example: lambda {Time.now.to_s}}}
+      http = klass.new("#{TEST_SERVER_URL}/api")
+      req = { path: "/users?page=2", headers: { example: lambda { Time.now.to_s } } }
       resp = http.get req.generate
       first_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
       expect(klass.last_request).to match /example:[\d\-\s:+]+,/
@@ -538,8 +659,8 @@ RSpec.describe NiceHttp do
     end
 
     it "execute lambdas on headers when initializing" do
-      klass.headers = {example: lambda {Time.now.to_s}}
-      http = klass.new("https://reqres.in/api")
+      klass.headers = { example: lambda { Time.now.to_s } }
+      http = klass.new("#{TEST_SERVER_URL}/api")
       resp = http.get "/users?page=2"
       first_request = klass.last_request.scan(/example:([\d\-\s:+]+),/).join
       expect(klass.last_request).to match /example:[\d\-\s:+]+,/
@@ -547,16 +668,15 @@ RSpec.describe NiceHttp do
       resp = http.get "/users?page=2"
       expect(klass.last_request).to match /Same headers as in the previous request/
     end
-
   end
 
   describe "request object" do
     it "accesses request object after sent" do
-      klass.host = "https://reqres.in"
+      klass.host = TEST_SERVER_URL
       http = klass.new
       request = {
         path: "/api/users",
-        data: {name: "peter", job: "leader", city: "london"},
+        data: { name: "peter", job: "leader", city: "london" },
       }
       resp = http.post(request)
       expect(klass.request.path).to eq request.path
@@ -564,44 +684,42 @@ RSpec.describe NiceHttp do
 
       request = {
         path: "/api/users/",
-        data: {name: "petera", job: "slave"},
+        data: { name: "petera", job: "slave" },
       }
       resp = http.post(request)
       expect(klass.request.path).to eq request.path
       expect(klass.request.data.json).to eq request.data
-
     end
 
-    it 'can access the object with lambda' do
-      klass.host = "https://reqres.in"
+    it "can access the object with lambda" do
+      klass.host = TEST_SERVER_URL
       klass.requests = {
         headers: {
-          Referer: lambda { klass.host + klass.request.path }
-        }
+          Referer: lambda { klass.host + klass.request.path },
+        },
       }
       http = klass.new
       request = {
         path: "/api/users",
-        data: {name: "peter", job: "leader", city: "london"},
+        data: { name: "peter", job: "leader", city: "london" },
       }
       resp = http.post(request)
       expect(klass.request.headers[:Referer]).to eq (klass.host + request.path)
     end
-
   end
 
   describe "requests object" do
     it "supplies :headers specified to all requests" do
-      klass.host = "https://reqres.in"
+      klass.host = TEST_SERVER_URL
       klass.requests = {
         headers: {
-          Referer: lambda { klass.host + klass.request.path }
-        }
+          Referer: lambda { klass.host + klass.request.path },
+        },
       }
       http = klass.new
       request = {
         path: "/api/users",
-        data: {name: "peter", job: "leader", city: "london"},
+        data: { name: "peter", job: "leader", city: "london" },
       }
       resp = http.post(request)
       expect(klass.request.headers[:Referer]).to eq (klass.host + request.path)
@@ -613,164 +731,162 @@ RSpec.describe NiceHttp do
     end
 
     it "supplies :path parameters specified to all requests" do
-      klass.host = "https://reqres.in"
-      
-      klass.requests = { path: 'page=2' }
+      klass.host = TEST_SERVER_URL
+
+      klass.requests = { path: "page=2" }
       http = klass.new
       resp = http.get("/api/users")
-      expect(resp.data.json(:page)).to eq '2'
+      expect(resp.data.json(:page)).to eq "2"
 
-      klass.requests = { path: '?page=2' }
+      klass.requests = { path: "?page=2" }
       http = klass.new
       resp = http.get("/api/users")
-      expect(resp.data.json(:page)).to eq '2'      
+      expect(resp.data.json(:page)).to eq "2"
 
-      klass.requests = { path: 'page=2' }
+      klass.requests = { path: "page=2" }
       http = klass.new
       resp = http.get("/api/users?")
-      expect(resp.data.json(:page)).to eq '2'
+      expect(resp.data.json(:page)).to eq "2"
 
-      klass.requests = { path: 'page=2' }
+      klass.requests = { path: "page=2" }
       http = klass.new
       resp = http.get("/api/users?lolo=1")
-      expect(resp.data.json(:page)).to eq '2'
+      expect(resp.data.json(:page)).to eq "2"
 
-      klass.requests = { path: '&page=2'}
+      klass.requests = { path: "&page=2" }
       http = klass.new
       resp = http.get("/api/users?lolo=1")
-      expect(resp.data.json(:page)).to eq '2'
-
+      expect(resp.data.json(:page)).to eq "2"
     end
 
     it "supplies :data specified to all requests" do
-      klass.host = "https://reqres.in"
+      klass.host = TEST_SERVER_URL
       klass.requests = {
         data: {
-          namelambda: lambda { 'petera' },
-          name: 'peter'
-        }
+          namelambda: lambda { "petera" },
+          name: "peter",
+        },
       }
       http = klass.new
       request = {
         path: "/api/users",
-        data: {job: "leader", city: "london"},
+        data: { job: "leader", city: "london" },
       }
       resp = http.post(request)
-      expect(klass.request.data.json.name).to eq 'peter'
-      expect(klass.request.data.json.namelambda).to eq 'petera'
+      expect(klass.request.data.json.name).to eq "peter"
+      expect(klass.request.data.json.namelambda).to eq "petera"
     end
 
-    it 'supplies :data specified to all requests with lambda if not on data' do
-      klass.host = "https://reqres.in"
+    it "supplies :data specified to all requests with lambda if not on data" do
+      klass.host = TEST_SERVER_URL
       klass.requests = {
         data: {
-          namelambda: lambda { 'petera' },
-          namelambdafalse: lambda { 'petera' if false },
-          namelambdatrue: lambda { 'petera' if true },
+          namelambda: lambda { "petera" },
+          namelambdafalse: lambda { "petera" if false },
+          namelambdatrue: lambda { "petera" if true },
           love: {
-            namelambda: lambda { 'petera' },
-            namelambdafalse: lambda { 'petera' if false },
-            namelambdatrue: lambda { 'petera' if true },
+            namelambda: lambda { "petera" },
+            namelambdafalse: lambda { "petera" if false },
+            namelambdatrue: lambda { "petera" if true },
           },
           mars: {
-            namelambdafalse: lambda { 'petera' if false },
+            namelambdafalse: lambda { "petera" if false },
           },
-          name: 'peter'
-        }
+          name: "peter",
+        },
       }
       http = klass.new
       request = {
         path: "/api/users",
-        data: {job: "leader", city: "london"},
+        data: { job: "leader", city: "london" },
       }
       resp = http.post(request)
-      expect(klass.request.data.json.job).to eq 'leader'
-      expect(klass.request.data.json.city).to eq 'london'
-      expect(klass.request.data.json.name).to eq 'peter'
-      expect(klass.request.data.json.namelambda).to eq 'petera'
+      expect(klass.request.data.json.job).to eq "leader"
+      expect(klass.request.data.json.city).to eq "london"
+      expect(klass.request.data.json.name).to eq "peter"
+      expect(klass.request.data.json.namelambda).to eq "petera"
       expect(klass.request.data.json.key?(:namelambdafalse)).to eq false
       expect(klass.request.data.json.key?(:namelambdatrue)).to eq true
-      expect(klass.request.data.json.love.namelambda).to eq 'petera'
+      expect(klass.request.data.json.love.namelambda).to eq "petera"
       expect(klass.request.data.json.love.key?(:namelambdafalse)).to eq false
       expect(klass.request.data.json.love.key?(:namelambdatrue)).to eq true
       expect(klass.request.data.json.key?(:mars)).to eq false
     end
 
-    it 'supplies :data specified to all requests with lambda if on data' do
-      klass.host = "https://reqres.in"
+    it "supplies :data specified to all requests with lambda if on data" do
+      klass.host = TEST_SERVER_URL
       klass.requests = {
         data: {
-          namelambda: lambda { 'petera' },
-          namelambdafalse: lambda { 'petera' if false },
-          namelambdatrue: lambda { 'petera' if true },
+          namelambda: lambda { "petera" },
+          namelambdafalse: lambda { "petera" if false },
+          namelambdatrue: lambda { "petera" if true },
           love: {
-            namelambda: lambda { 'petera' },
-            namelambdafalse: lambda { 'petera' if false },
-            namelambdatrue: lambda { 'petera' if true },
+            namelambda: lambda { "petera" },
+            namelambdafalse: lambda { "petera" if false },
+            namelambdatrue: lambda { "petera" if true },
           },
           mars: {
-            namelambdafalse: lambda { 'petera' if false },
+            namelambdafalse: lambda { "petera" if false },
           },
-          name: 'peter'
-        }
+          name: "peter",
+        },
       }
       http = klass.new
       request = {
         path: "/api/users",
         data: {
-          job: "leader", 
+          job: "leader",
           city: "london",
-          namelambda: 'uno',
-          namelambdafalse: 'dos',
-          namelambdatrue: 'tres',
+          namelambda: "uno",
+          namelambdafalse: "dos",
+          namelambdatrue: "tres",
           love: {
-            namelambda: 'cuatro',
-            namelambdafalse: 'cinco',
-            namelambdatrue: 'seis',
+            namelambda: "cuatro",
+            namelambdafalse: "cinco",
+            namelambdatrue: "seis",
           },
           mars: {
-            namelambdafalse: 'siete',
+            namelambdafalse: "siete",
           },
-          name: 'peter'
+          name: "peter",
         },
       }
       resp = http.post(request)
-      expect(klass.request.data.json.job).to eq 'leader'
-      expect(klass.request.data.json.city).to eq 'london'
-      expect(klass.request.data.json.name).to eq 'peter'
-      expect(klass.request.data.json.namelambda).to eq 'petera'
-      expect(klass.request.data.json.namelambdafalse).to eq 'dos'
-      expect(klass.request.data.json.namelambdatrue).to eq 'petera'
-      expect(klass.request.data.json.love.namelambda).to eq 'petera'
-      expect(klass.request.data.json.love.namelambdafalse).to eq 'cinco'
-      expect(klass.request.data.json.love.namelambdatrue).to eq 'petera'
-      expect(klass.request.data.json.mars.namelambdafalse).to eq 'siete'      
+      expect(klass.request.data.json.job).to eq "leader"
+      expect(klass.request.data.json.city).to eq "london"
+      expect(klass.request.data.json.name).to eq "peter"
+      expect(klass.request.data.json.namelambda).to eq "petera"
+      expect(klass.request.data.json.namelambdafalse).to eq "dos"
+      expect(klass.request.data.json.namelambdatrue).to eq "petera"
+      expect(klass.request.data.json.love.namelambda).to eq "petera"
+      expect(klass.request.data.json.love.namelambdafalse).to eq "cinco"
+      expect(klass.request.data.json.love.namelambdatrue).to eq "petera"
+      expect(klass.request.data.json.mars.namelambdafalse).to eq "siete"
     end
 
     it "supplies :values_for specified to all requests" do
-      klass.host = "https://reqres.in"
+      klass.host = TEST_SERVER_URL
       klass.requests = {
         values_for: {
-          job: lambda { 'teacher' },
-          city: 'madrid'
-        }    
+          job: lambda { "teacher" },
+          city: "madrid",
+        },
       }
       http = klass.new
       request = {
         path: "/api/users",
-        data: {job: "leader", city: "london", name: 'mario'},
+        data: { job: "leader", city: "london", name: "mario" },
       }
       resp = http.post(request)
-      expect(klass.request.data.json.job).to eq 'teacher'
-      expect(klass.request.data.json.city).to eq 'madrid'
-      expect(klass.request.data.json.name).to eq 'mario'
+      expect(klass.request.data.json.job).to eq "teacher"
+      expect(klass.request.data.json.city).to eq "madrid"
+      expect(klass.request.data.json.name).to eq "mario"
     end
-
   end
 
   describe "async" do
     it "async_wait_seconds" do
-      klass.host = "https://reqres.in"
+      klass.host = TEST_SERVER_URL
 
       expect(klass.async_wait_seconds).to eq 0
       http = klass.new
@@ -780,30 +896,30 @@ RSpec.describe NiceHttp do
       http = klass.new
       expect(http.async_wait_seconds).to eq 10
       http = klass.new(async_wait_seconds: 20)
-      expect(http.async_wait_seconds).to eq 20      
+      expect(http.async_wait_seconds).to eq 20
 
-      klass.async_wait_seconds = '10'
+      klass.async_wait_seconds = "10"
       klass.new rescue err = $ERROR_INFO
       expect(err.attribute).to eq :async_wait_seconds
       expect(err.message).to match /wrong async_wait_seconds/i
 
-      klass.new(async_wait_seconds: '20') rescue err = $ERROR_INFO
+      klass.new(async_wait_seconds: "20") rescue err = $ERROR_INFO
       expect(err.attribute).to eq :async_wait_seconds
       expect(err.message).to match /wrong async_wait_seconds/i
     end
 
     it "async_header" do
-      klass.host = "https://reqres.in"
+      klass.host = TEST_SERVER_URL
 
-      expect(klass.async_header).to eq 'location'
+      expect(klass.async_header).to eq "location"
       http = klass.new
-      expect(http.async_header).to eq 'location'
-      klass.async_header = 'location2'
-      expect(klass.async_header).to eq 'location2'
+      expect(http.async_header).to eq "location"
+      klass.async_header = "location2"
+      expect(klass.async_header).to eq "location2"
       http = klass.new
-      expect(http.async_header).to eq 'location2'
-      http = klass.new(async_header: 'location3')
-      expect(http.async_header).to eq 'location3'
+      expect(http.async_header).to eq "location2"
+      http = klass.new(async_header: "location3")
+      expect(http.async_header).to eq "location3"
 
       klass.async_header = 10
       klass.new rescue err = $ERROR_INFO
@@ -816,17 +932,17 @@ RSpec.describe NiceHttp do
     end
 
     it "async_status" do
-      klass.host = "https://reqres.in"
+      klass.host = TEST_SERVER_URL
 
-      expect(klass.async_status).to eq ''
+      expect(klass.async_status).to eq ""
       http = klass.new
-      expect(http.async_status).to eq ''
-      klass.async_status = 'status'
-      expect(klass.async_status).to eq 'status'
+      expect(http.async_status).to eq ""
+      klass.async_status = "status"
+      expect(klass.async_status).to eq "status"
       http = klass.new
-      expect(http.async_status).to eq 'status'
-      http = klass.new(async_status: 'status2')
-      expect(http.async_status).to eq 'status2'
+      expect(http.async_status).to eq "status"
+      http = klass.new(async_status: "status2")
+      expect(http.async_status).to eq "status2"
 
       klass.async_status = 0
       klass.new rescue err = $ERROR_INFO
@@ -838,18 +954,18 @@ RSpec.describe NiceHttp do
       expect(err.message).to match /wrong async_status/i
     end
 
-    it 'async_completed' do
-      klass.host = "https://reqres.in"
+    it "async_completed" do
+      klass.host = TEST_SERVER_URL
 
-      expect(klass.async_completed).to eq ''
+      expect(klass.async_completed).to eq ""
       http = klass.new
-      expect(http.async_completed).to eq ''
-      klass.async_completed = 'completed'
-      expect(klass.async_completed).to eq 'completed'
+      expect(http.async_completed).to eq ""
+      klass.async_completed = "completed"
+      expect(klass.async_completed).to eq "completed"
       http = klass.new
-      expect(http.async_completed).to eq 'completed'
-      http = klass.new(async_completed: 'completed2')
-      expect(http.async_completed).to eq 'completed2'
+      expect(http.async_completed).to eq "completed"
+      http = klass.new(async_completed: "completed2")
+      expect(http.async_completed).to eq "completed2"
 
       klass.async_completed = 0
       klass.new rescue err = $ERROR_INFO
@@ -861,18 +977,18 @@ RSpec.describe NiceHttp do
       expect(err.message).to match /wrong async_completed/i
     end
 
-    it 'async_resource' do
-      klass.host = "https://reqres.in"
+    it "async_resource" do
+      klass.host = TEST_SERVER_URL
 
-      expect(klass.async_resource).to eq ''
+      expect(klass.async_resource).to eq ""
       http = klass.new
-      expect(http.async_resource).to eq ''
-      klass.async_resource = 'resource'
-      expect(klass.async_resource).to eq 'resource'
+      expect(http.async_resource).to eq ""
+      klass.async_resource = "resource"
+      expect(klass.async_resource).to eq "resource"
       http = klass.new
-      expect(http.async_resource).to eq 'resource'
-      http = klass.new(async_resource: 'resource2')
-      expect(http.async_resource).to eq 'resource2'
+      expect(http.async_resource).to eq "resource"
+      http = klass.new(async_resource: "resource2")
+      expect(http.async_resource).to eq "resource2"
 
       klass.async_resource = 0
       klass.new rescue err = $ERROR_INFO
@@ -883,14 +999,12 @@ RSpec.describe NiceHttp do
       expect(err.attribute).to eq :async_resource
       expect(err.message).to match /wrong async_resource/i
     end
-
   end
 
-  it 'returns also body as a copy of data for response' do
-    http = klass.new("https://reqres.in")
+  it "returns also body as a copy of data for response" do
+    http = klass.new(TEST_SERVER_URL)
     resp = http.get "/api/users?page=2"
     expect(resp.key?(:body)).to eq true
     expect(resp.body).to eq resp.data
   end
-
 end

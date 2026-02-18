@@ -36,6 +36,11 @@ RSpec.describe NiceHttp, "#utils" do
     expect(val).to eq nil
   end
 
+  it "returns nil when xml_string is nil" do
+    val = NiceHttpUtils.get_value_xml_tag("One", nil)
+    expect(val).to eq nil
+  end
+
   it "sets the value for the xml tag supplied" do
     xml = "<Example><One>Uno</One></Example>"
     val = NiceHttpUtils.set_value_xml_tag("One", xml, "Bob")

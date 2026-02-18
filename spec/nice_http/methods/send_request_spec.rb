@@ -3,7 +3,7 @@ require "nice_http"
 RSpec.describe NiceHttp, "#send_request" do
   before do
     NiceHttp.log_files = Hash.new()
-    @http = NiceHttp.new("https://reqres.in")
+    @http = NiceHttp.new(TEST_SERVER_URL)
   end
 
   it "returns error in case no method supplied on request hash" do
@@ -15,7 +15,7 @@ RSpec.describe NiceHttp, "#send_request" do
   end
 
   it "returns error in case no path supplied on request hash" do
-    resp = @http.send_request({method: :get})
+    resp = @http.send_request({ method: :get })
     expect(resp.class).to eq Hash
     expect(resp.fatal_error).to include "it needs to be supplied a Request Hash"
     expect(resp.code).to eq nil
@@ -23,7 +23,7 @@ RSpec.describe NiceHttp, "#send_request" do
   end
 
   it "returns error in case wrong method supplied on request hash" do
-    resp = @http.send_request({path: "/", method: :wrong})
+    resp = @http.send_request({ path: "/", method: :wrong })
     expect(resp.class).to eq Hash
     expect(resp.fatal_error).to include "it needs to be supplied a Request Hash"
     expect(resp.code).to eq nil
@@ -31,7 +31,7 @@ RSpec.describe NiceHttp, "#send_request" do
   end
 
   it "returns a good response in case of :get method" do
-    resp = @http.send_request({method: :get, path: "/api/users?page=2"})
+    resp = @http.send_request({ method: :get, path: "/api/users?page=2" })
     expect(resp.class).to eq Hash
     expect(resp.code).to eq 200
     expect(resp.message).to eq "OK"
@@ -80,14 +80,14 @@ RSpec.describe NiceHttp, "#send_request" do
   end
 
   it "returns a good response in case of :delete method" do
-    resp = @http.send_request({method: :delete, path: "/api/users?page=2"})
+    resp = @http.send_request({ method: :delete, path: "/api/users?page=2" })
     expect(resp.class).to eq Hash
     expect(resp.code).to eq 204
     expect(resp.message).to eq "No Content"
   end
 
   it "returns a good response in case of :head method" do
-    resp = @http.send_request({method: :head, path: "/api/users?page=2"})
+    resp = @http.send_request({ method: :head, path: "/api/users?page=2" })
     expect(resp.class).to eq Hash
     expect(resp.code).to eq 200
     expect(resp.message).to eq "OK"
@@ -100,7 +100,7 @@ RSpec.describe NiceHttp, "#send_request" do
       mock_response: {
         code: 200,
         message: "OK",
-        data: {a: "Android\xAE"},
+        data: { a: "Android\xAE" },
       },
     }
     @http.use_mocks = true

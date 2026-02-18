@@ -50,5 +50,7 @@ class NiceHttp
     @async_completed = ""
     @async_resource = ""
     @async_status = ""
+    @connection_retry_attempts = 3
+    @connection_retry_base_delay = 1.0
   end
 end

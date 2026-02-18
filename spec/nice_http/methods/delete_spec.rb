@@ -3,7 +3,7 @@ require "nice_http"
 RSpec.describe NiceHttp, "#delete" do
   before do
     NiceHttp.log_files = Hash.new()
-    @http = NiceHttp.new("https://reqres.in")
+    @http = NiceHttp.new(TEST_SERVER_URL)
   end
 
   it "accepts path as string parameter" do
@@ -12,7 +12,7 @@ RSpec.describe NiceHttp, "#delete" do
   end
 
   it "accepts Hash with key path" do
-    resp = @http.delete({path: "/api/users/2"})
+    resp = @http.delete({ path: "/api/users/2" })
     expect(resp.code).to eq 204
   end
 
@@ -32,26 +32,26 @@ RSpec.describe NiceHttp, "#delete" do
       mock_response: {
         code: 100,
         message: "mock",
-        data: {example: "mock"},
+        data: { example: "mock" },
       },
     }
     resp = @http.delete(request)
     expect(resp.class).to eq Hash
     expect(resp.code).to eq 100
     expect(resp.message).to eq "mock"
-    expect(resp.data.json).to eq ({example: "mock"})
+    expect(resp.data.json).to eq ({ example: "mock" })
   end
 
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
-    server = ENV['HOST_EXAMPLE_SINATRA']
+    server = ENV["HOST_EXAMPLE_SINATRA"]
     http = NiceHttp.new(server)
     http.auto_redirect = false
     req = {
       path: "/exampleRedirect",
-      data: {example: "example"},
+      data: { example: "example" },
     }
     resp = http.delete(req)
-    expect(resp.code).to be_in('300'..'399')
+    expect(resp.code).to be_in("300".."399")
   end
 
   it "detects wrong json when supplying wrong mock_response data" do
@@ -60,7 +60,7 @@ RSpec.describe NiceHttp, "#delete" do
       mock_response: {
         code: 200,
         message: "OK",
-        data: {a: "Android\xAE"},
+        data: { a: "Android\xAE" },
       },
     }
     @http.use_mocks = true
@@ -70,17 +70,15 @@ RSpec.describe NiceHttp, "#delete" do
   end
 
   it "accepts data to be part of the request to send" do
-    resp = @http.delete({path: "/api/users/2", data: [33]})
+    resp = @http.delete({ path: "/api/users/2", data: [33] })
     expect(resp.code).to eq 204
   end
 
   it "set the cookies when required" do
-    server = ENV['HOST_EXAMPLE_SINATRA']
+    server = ENV["HOST_EXAMPLE_SINATRA"]
     http = NiceHttp.new(server)
-    resp = http.delete('/setcookie')
+    resp = http.delete("/setcookie")
     expect(resp.key?(:'set-cookie')).to eq true
     expect(http.cookies["/"].key?("something")).to eq true
   end
-
-
 end
