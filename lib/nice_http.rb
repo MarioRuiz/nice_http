@@ -23,13 +23,15 @@ require_relative "nice_http/inherited"
 require_relative "nice_http/save_stats"
 require_relative "nice_http/close"
 require_relative "nice_http/initialize"
+require_relative "nice_http/validate_response"
 
 ######################################################
-# Attributes you can access using NiceHttp.the_attribute:  
-#   :host, :port, :ssl, :timeout, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,  
-#   :last_request, :last_response, :request_id, :use_mocks, :connections,  
+# Attributes you can access using NiceHttp.the_attribute:
+#   :host, :port, :ssl, :timeout, :headers, :debug, :log, :log_headers, :proxy_host, :proxy_port,
+#   :last_request, :last_response, :request_id, :use_mocks, :connections,
 #   :active, :auto_redirect, :values_for, :create_stats, :stats, :capture, :captured, :request, :requests,
-#   :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status
+#   :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status,
+#   :connection_retry_attempts, :connection_retry_base_delay
 #
 # @attr [String] host The host to be accessed
 # @attr [Integer] port The port number
@@ -38,12 +40,12 @@ require_relative "nice_http/initialize"
 # @attr [Hash] headers Contains the headers you will be using on your connection
 # @attr [Boolean] debug In case true shows all the details of the communication with the host
 # @attr [String] log_path The path where the logs will be stored. By default empty string.
-# @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".  
-#   :fix_file, will log the communication on nice_http.log. (default).  
-#   :no, will not generate any logs.  
-#   :screen, will print the logs on the screen.  
-#   :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.  
-#   :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log  
+# @attr [String, Symbol] log :fix_file, :no, :screen, :file, "path and file name".
+#   :fix_file, will log the communication on nice_http.log. (default).
+#   :no, will not generate any logs.
+#   :screen, will print the logs on the screen.
+#   :file, will be generated a log file with name: nice_http_YY-mm-dd-HHMMSS.log.
+#   :file_run, will generate a log file with the name where the object was created and extension .log, fex: myfile.rb.log
 #   String the path and file name where the logs will be stored.
 # @attr [String] log_file path and file name where the logs will be stored. (only reader)
 # @attr [Symbol] log_headers. :all, :partial, :none (default :all) If :all will log all the headers. If :partial will log the last 10 characters. If :none no headers.
@@ -61,10 +63,10 @@ require_relative "nice_http/initialize"
 # @attr [Hash] response Contains the full response hash
 # @attr [Integer] num_redirects Number of consecutive redirections managed
 # @attr [Hash] headers The updated headers of the communication
-# @attr [Hash] cookies Cookies set. The key is the path (String) where cookies are set and the value a Hash with pairs of cookie keys and values, example:  
+# @attr [Hash] cookies Cookies set. The key is the path (String) where cookies are set and the value a Hash with pairs of cookie keys and values, example:
 #   { '/' => { "cfid" => "d95adfas2550255", "amddom.settings" => "doom" } }
-# @attr [Logger] logger An instance of the Logger class where logs will be stored. You can access on anytime to store specific data, for example:  
-#   my_http.logger.info "add this to the log file"  
+# @attr [Logger] logger An instance of the Logger class where logs will be stored. You can access on anytime to store specific data, for example:
+#   my_http.logger.info "add this to the log file"
 #   @see https://ruby-doc.org/stdlib-2.5.0/libdoc/logger/rdoc/Logger.html
 # @attr [Hash] values_for The default values to set on the data in case not specified others
 # @attr [Boolean] create_stats If true, NiceHttp will create stats of the http communication and store them on NiceHttp.stats hash
@@ -101,7 +103,8 @@ class NiceHttp
     attr_accessor :host, :port, :ssl, :timeout, :headers, :debug, :log_path, :log, :proxy_host, :proxy_port, :log_headers,
                   :last_request, :last_response, :request, :request_id, :use_mocks, :connections,
                   :active, :auto_redirect, :log_files, :values_for, :create_stats, :stats, :capture, :captured, :requests,
-                  :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status
+                  :async_wait_seconds, :async_header, :async_completed, :async_resource, :async_status,
+                  :connection_retry_attempts, :connection_retry_base_delay
   end
 
   at_exit do

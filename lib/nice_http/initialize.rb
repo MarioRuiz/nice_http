@@ -33,6 +33,9 @@ class NiceHttp
   #             async_completed -- string (default empty string)
   #             async_resource -- string (default empty string)
   #             async_status -- string (default empty string)
+  #             connection_retry_attempts -- positive integer (default 3). When connection creation fails with "too many open files", retry up to this many times with backoff.
+  #             connection_retry_base_delay -- non-negative number, seconds (default 1.0). Base delay before each retry; jitter is added to avoid thundering herd.
+  # @note When connection creation fails with "too many open files" (EMFILE/ENFILE), the library retries up to connection_retry_attempts times with backoff. For sustained load or many threads, prefer reusing one connection per thread and calling close when done.
   # @example
   #   http2 = NiceHttp.new( host: "reqres.in", port: 443, ssl: true )
   # @example
@@ -69,7 +72,9 @@ class NiceHttp
     @async_completed = self.class.async_completed
     @async_resource = self.class.async_resource
     @async_status = self.class.async_status
-    
+    @connection_retry_attempts = self.class.connection_retry_attempts || 3
+    @connection_retry_base_delay = self.class.connection_retry_base_delay || 1.0
+
     #todo: set only the cookies for the current domain
     #key: path, value: hash with key is the name of the cookie and value the value
     # we set the default value for non existing keys to empty Hash {} so in case of merge there is no problem
@@ -86,7 +91,11 @@ class NiceHttp
       @port = args[:port] if args.keys.include?(:port)
       @ssl = args[:ssl] if args.keys.include?(:ssl)
       @timeout = args[:timeout] if args.keys.include?(:timeout)
-      @headers = args[:headers].dup if args.keys.include?(:headers)
+      # Keep object reference when it has .generate (e.g. nice_hash); otherwise dup to avoid mutating caller's hash
+      if args.keys.include?(:headers)
+        h = args[:headers]
+        @headers = (h.is_a?(Hash) && h.respond_to?(:generate)) ? h : h.dup
+      end
       @values_for = args[:values_for].dup if args.keys.include?(:values_for)
       @debug = args[:debug] if args.keys.include?(:debug)
       @log = args[:log] if args.keys.include?(:log)
@@ -100,7 +109,9 @@ class NiceHttp
       @async_header = args[:async_header] if args.keys.include?(:async_header)
       @async_completed = args[:async_completed] if args.keys.include?(:async_completed)
       @async_resource = args[:async_resource] if args.keys.include?(:async_resource)
-      @async_status = args[:async_status] if args.keys.include?(:async_status)      
+      @async_status = args[:async_status] if args.keys.include?(:async_status)
+      @connection_retry_attempts = args[:connection_retry_attempts] if args.keys.include?(:connection_retry_attempts)
+      @connection_retry_base_delay = args[:connection_retry_base_delay] if args.keys.include?(:connection_retry_base_delay)
     end
 
     log_filename = ""
@@ -175,7 +186,7 @@ class NiceHttp
       raise InfoMissing, :log
     end
     @log_file = log_filename
-    @logger.level = Logger::INFO    
+    @logger.level = Logger::INFO
 
     if @host.to_s != "" and (@host.start_with?("http:") or @host.start_with?("https:"))
       uri = URI.parse(@host)
@@ -199,28 +210,45 @@ class NiceHttp
     raise InfoMissing, :async_completed unless @async_completed.is_a?(String) or @async_completed.nil?
     raise InfoMissing, :async_resource unless @async_resource.is_a?(String) or @async_resource.nil?
     raise InfoMissing, :async_status unless @async_status.is_a?(String) or @async_status.nil?
-    
+    raise InfoMissing, :connection_retry_attempts unless @connection_retry_attempts.is_a?(Integer) && @connection_retry_attempts >= 1
+    raise InfoMissing, :connection_retry_base_delay unless @connection_retry_base_delay.is_a?(Numeric) && @connection_retry_base_delay >= 0
+
     begin
-      if !@proxy_host.nil? && !@proxy_port.nil?
-        @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)
-        @http.use_ssl = @ssl
-        @http.set_debug_output $stderr if @debug
-        @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        unless @timeout.nil?
-          @http.open_timeout = @timeout
-          @http.read_timeout = @timeout
+      attempt = 1
+      loop do
+        begin
+          if !@proxy_host.nil? && !@proxy_port.nil?
+            @http = Net::HTTP::Proxy(@proxy_host, @proxy_port).new(@host, @port)
+            @http.use_ssl = @ssl
+            @http.set_debug_output $stderr if @debug
+            @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+            unless @timeout.nil?
+              @http.open_timeout = @timeout
+              @http.read_timeout = @timeout
+            end
+            @http.start
+          else
+            @http = Net::HTTP.new(@host, @port)
+            @http.use_ssl = @ssl
+            @http.set_debug_output $stderr if @debug
+            @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+            unless @timeout.nil?
+              @http.open_timeout = @timeout
+              @http.read_timeout = @timeout
+            end
+            @http.start
+          end
+          break
+        rescue Exception => e
+          if connection_retryable_error?(e) && attempt < @connection_retry_attempts
+            delay = @connection_retry_base_delay + rand(0.25)
+            @logger.warn "(#{self.object_id}): Too many open files (attempt #{attempt}/#{@connection_retry_attempts}), retrying in #{delay.round(2)}s..."
+            sleep(delay)
+            attempt += 1
+          else
+            raise
+          end
         end
-        @http.start
-      else
-        @http = Net::HTTP.new(@host, @port)
-        @http.use_ssl = @ssl
-        @http.set_debug_output $stderr if @debug
-        @http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        unless @timeout.nil?
-          @http.open_timeout = @timeout
-          @http.read_timeout = @timeout
-        end
-        @http.start
       end
 
       @message_server = "(#{self.object_id}):"
@@ -241,7 +269,11 @@ class NiceHttp
       @auto_redirect = auto_redirect
       # for the case we have headers following nice_hash implementation
       @headers_orig = @headers.dup
-      @headers = @headers.generate
+      @headers = if @headers.is_a?(Hash) && @headers.respond_to?(:generate)
+          @headers.generate
+        else
+          @headers.dup
+        end
 
       self.class.active += 1
       self.class.connections.push(self)
@@ -251,4 +283,19 @@ class NiceHttp
       raise stack
     end
   end
+
+  ######################################################
+  # Returns true if the exception indicates file-descriptor exhaustion (too many open files).
+  # Used to decide whether to retry connection creation.
+  ######################################################
+  def connection_retryable_error?(e)
+    return true if e.is_a?(Errno::EMFILE) || e.is_a?(Errno::ENFILE)
+    return true if e.message.to_s.downcase.include?("too many open files")
+    c = e.cause
+    return true if c && (c.is_a?(Errno::EMFILE) || c.is_a?(Errno::ENFILE))
+    return true if c && c.message.to_s.downcase.include?("too many open files")
+    false
+  end
+
+  private :connection_retryable_error?
 end

@@ -3,7 +3,7 @@ require "nice_http"
 RSpec.describe NiceHttp, "#head" do
   before do
     NiceHttp.log_files = Hash.new()
-    @http = NiceHttp.new("https://reqres.in")
+    @http = NiceHttp.new(TEST_SERVER_URL)
   end
 
   it "accepts path as string parameter" do
@@ -13,7 +13,7 @@ RSpec.describe NiceHttp, "#head" do
   end
 
   it "accepts Hash with key path" do
-    resp = @http.head({path: "/api/users?page=2"})
+    resp = @http.head({ path: "/api/users?page=2" })
     expect(resp.code).to eq 200
     expect(resp.message).to eq "OK"
   end
@@ -53,23 +53,22 @@ RSpec.describe NiceHttp, "#head" do
   end
 
   it 'doesn\'t redirect when auto_redirect is false and http code is 30x' do
-    server = ENV['HOST_EXAMPLE_SINATRA']
+    server = ENV["HOST_EXAMPLE_SINATRA"]
     http = NiceHttp.new(server)
     http.auto_redirect = false
     req = {
       path: "/exampleRedirect",
-      data: {example: "example"},
+      data: { example: "example" },
     }
     resp = http.head(req)
     expect(resp.code.to_i).to be_in(300..399)
   end
 
   it "set the cookies when required" do
-    server = ENV['HOST_EXAMPLE_SINATRA']
+    server = ENV["HOST_EXAMPLE_SINATRA"]
     http = NiceHttp.new(server)
-    resp = http.head('/setcookie')
+    resp = http.head("/setcookie")
     expect(resp.key?(:'set-cookie')).to eq true
     expect(http.cookies["/"].key?("something")).to eq true
   end
-
 end

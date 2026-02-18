@@ -20,34 +20,37 @@ NiceHttp is able to use hashes as requests data and uses the Request Hash struct
 
 **On the next link you have a full example using nice_http and RSpec to test REST APIs, Uber API and Reqres API: https://github.com/MarioRuiz/api-testing-example**
 
-To be able to generate random requests take a look at the documentation for nice_hash gem: https://github.com/MarioRuiz/nice_hash
-
-Example that creates 1000 good random and unique requests to register an user and test that the validation of the fields are correct by the user was able to be registered. Send 800 requests where just one field is wrong and verify the user was not able to be created: https://gist.github.com/MarioRuiz/824d7a462b62fd85f02c1a09455deefb
+**Related gems:** NiceHttp uses [nice_hash](https://github.com/MarioRuiz/nice_hash) (v1.19+) for request/response hashes (e.g. `resp.data.json`, `set_values`, `nice_merge`) and for generating headers. [string_pattern](https://github.com/MarioRuiz/string_pattern) (v2.4+) is used by nice_hash for pattern-based string generation and validation. To generate random or pattern-based request data, see the [nice_hash documentation](https://github.com/MarioRuiz/nice_hash). Example: 1000 valid requests + 800 with one wrong field to test validation — [gist](https://gist.github.com/MarioRuiz/824d7a462b62fd85f02c1a09455deefb).
 
 # Table of Contents
 
-- [Installation](#Installation)
-- [A very simple first example](#A-very-simple-first-example)
-- [Create a connection](#Create-a-connection)
-- [Creating requests](#Creating-requests)
-- [Responses](#Responses)
-    - [Async Responses](#Async-Responses)
-- [Special settings](#Special-settings)
-- [Authentication requests](#Authentication-requests)
-    - [Basic Authentication](#Basic-Authentication)
-    - [OpenID](#OpenID)
-    - [OAuth2](#OAuth2)
-    - [JWT Token](#JWT-Token)
+- [NiceHttp](#nicehttp)
+- [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [A very simple first example](#a-very-simple-first-example)
+  - [Create a connection](#create-a-connection)
+  - [Creating requests](#creating-requests)
+  - [Responses](#responses)
+    - [Async responses](#async-responses)
+  - [Special settings](#special-settings)
+  - [Authentication requests](#authentication-requests)
+    - [Basic Authentication](#basic-authentication)
+    - [OpenID](#openid)
+    - [OAuth2](#oauth2)
+    - [JWT token](#jwt-token)
     - [lambda on headers](#lambda-on-headers)
-- [Http logs](#Http-logs)
-    - [Multithreading](#Multithreading)
-- [Http stats](#Http-stats)
-- [Tips](#Tips)
-    - [Download a file](#Download-a-file)
-    - [Send multipart content](#Send-multipart-content)
-    - [Send x-www-form-urlencoded](#Send-x-www-form-urlencoded)
-- [Contributing](#Contributing)
-- [License](#License)
+  - [Http logs](#http-logs)
+    - [Multithreading](#multithreading)
+  - [Http stats](#http-stats)
+  - [Testing with generated data](#testing-with-generated-data)
+  - [Validating API responses](#validating-api-responses)
+  - [Tips](#tips)
+    - [Download a file](#download-a-file)
+    - [Send multipart content](#send-multipart-content)
+    - [Send x-www-form-urlencoded](#send-x-www-form-urlencoded)
+  - [Running tests](#running-tests)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Installation
 
@@ -98,6 +101,9 @@ http3 = NiceHttp.new my_reqres_server
 
 ```
 
+
+**Connection errors ("Too many open files")**  
+If you see "Too many open files" when creating connections (e.g. with many threads), NiceHttp will retry connection creation a few times with backoff. You can set `NiceHttp.connection_retry_attempts` (default 3) and `NiceHttp.connection_retry_base_delay` (default 1.0 seconds), or pass `connection_retry_attempts` and `connection_retry_base_delay` in the options hash when creating a connection. For long-running or multi-threaded usage, prefer reusing one connection per thread and calling `close` when finished.
 
 You can specify all the defaults you will be using when creating connections by using the NiceHttp methods, in this example, http1 and http2 will be connecting to reqres.in with the default parameters and http3 to example.com:
 
@@ -748,6 +754,46 @@ NiceHttp.add_stats(:customer, :create, started, Time.now, customer_name)
 
 This will generate an items key that will contain an array of the values you added.
 
+## Testing with generated data
+
+When you build request hashes with [nice_hash](https://github.com/MarioRuiz/nice_hash) patterns (in `data`, `headers`, or `values_for`), you can:
+
+* **Reproducible tests:** Use `seed` so the same request is generated every time:
+  ```ruby
+  req = { path: "/api/users", data: { name: :"10-20:L", email: :"20-40:@" } }
+  resp = http.post req.generate(seed: 42)  # same payload every run
+  ```
+
+* **Batch generation:** Generate many different request hashes in one go (e.g. for load or boundary tests):
+  ```ruby
+  template = { path: "/api/users", data: { name: :"10-20:L", job: :"leader|developer" } }
+  requests = template.generate_n(5, :correct)  # 5 different hashes
+  requests.each { |r| http.post r }
+  ```
+
+* **UUIDs:** Use the `:uuid` shorthand (string_pattern 2.4+) in your request data:
+  ```ruby
+  resp = http.post(path: "/api/items", data: { id: :uuid, name: "Item" })
+  ```
+
+## Validating API responses
+
+You can validate JSON responses against a structure or patterns using [nice_hash](https://github.com/MarioRuiz/nice_hash):
+
+* **Structure comparison:** Check that the response has the expected keys and nested structure:
+  ```ruby
+  expected = { user: { name: "xxx", id: 1 } }
+  NiceHash.compare_structure(expected, resp.data.json)  # => true/false
+  ```
+
+* **Diff for assertions:** Get dot-notation differences for clearer failure messages:
+  ```ruby
+  diff = NiceHash.diff(expected, resp.data.json)
+  # => { "user.name" => { expected: "Alice", got: "Bob" } } or {}
+  ```
+
+* **Pattern validation:** If your expected structure uses nice_hash patterns (e.g. `:"10:N"`, ranges), use `validate` to check that response values match those patterns.
+
 ## Tips
 
 ### Download a file
@@ -794,6 +840,17 @@ Example posting a csv file:
       }
     }
 ```
+
+## Running tests
+
+Run the test suite with:
+
+```bash
+bundle install
+bundle exec rspec
+```
+
+By default, a **local Sinatra fake API** is started on ports 4567 and 4568 so specs do not depend on external services (reqres.in, Replit, example.com). Set `USE_FAKE_API=false` to use real external hosts instead (not recommended for CI).
 
 ## Contributing
 
