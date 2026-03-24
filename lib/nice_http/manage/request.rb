@@ -83,7 +83,16 @@ module NiceHttpManageRequest
       }
       headers_t["Cookie"] = cookies_to_set_str
 
-      method_s = caller[0].to_s().scan(/:in `(.*)'/).join
+      method_s = caller_locations(1, 10).map(&:base_label).find do |label|
+        %w[get post put patch delete head send_request].include?(label)
+      end
+      if method_s == "send_request" && arguments.size == 1 && arguments[0].kind_of?(Hash) && arguments[0].key?(:method)
+        method_s = arguments[0][:method].to_s
+      end
+      if method_s.to_s == ""
+        method_s = caller[0].to_s().scan(/:in `(.*)'/).join
+      end
+      method_s = "request" if method_s.to_s == ""
       @request[:method] = method_s.upcase
       self.class.request[:method] = @request[:method]
 

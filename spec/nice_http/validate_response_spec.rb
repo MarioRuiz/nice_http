@@ -48,7 +48,8 @@ RSpec.describe NiceHttp do
       expected = {}
       result = described_class.validate_response(resp, expected)
       expect(result[:ok]).to be false
-      expect(result[:error]).to be_present
+      expect(result[:error]).to be_a(String)
+      expect(result[:error]).not_to be_empty
     end
 
     it "accepts nested expected structure" do
