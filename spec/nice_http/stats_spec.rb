@@ -276,5 +276,22 @@ RSpec.describe NiceHttp do
       expect(klass.stats[:specific][:solo_name][:solo_state][:num]).to eq 1
       expect(klass.stats[:specific][:solo_name][:time_elapsed][:total]).to be >= 1
     end
+
+    it "uses current thread name as item when item is nil" do
+      klass.reset!
+      original_name = Thread.current.name
+      Thread.current.name = "spec-thread-name"
+      started = Time.now - 2
+      finished = Time.now
+
+      klass.add_stats(:thread_case, :ok, started, finished)
+
+      expect(klass.stats[:specific][:thread_case][:time_elapsed][:item_maximum]).to eq "spec-thread-name"
+      expect(klass.stats[:specific][:thread_case][:time_elapsed][:item_minimum]).to eq "spec-thread-name"
+      expect(klass.stats[:specific][:thread_case][:ok][:time_elapsed][:item_maximum]).to eq "spec-thread-name"
+      expect(klass.stats[:specific][:thread_case][:ok][:time_elapsed][:item_minimum]).to eq "spec-thread-name"
+    ensure
+      Thread.current.name = original_name
+    end
   end
 end
