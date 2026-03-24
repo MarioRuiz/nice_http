@@ -1,7 +1,7 @@
 # NiceHttp
 
 [![Gem Version](https://badge.fury.io/rb/nice_http.svg)](https://rubygems.org/gems/nice_http)
-[![Build Status](https://travis-ci.com/MarioRuiz/nice_http.svg?branch=master)](https://github.com/MarioRuiz/nice_http)
+[![CI](https://github.com/MarioRuiz/nice_http/actions/workflows/ci.yml/badge.svg)](https://github.com/MarioRuiz/nice_http/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/MarioRuiz/nice_http/badge.svg?branch=master)](https://coveralls.io/github/MarioRuiz/nice_http?branch=master)
 ![Gem](https://img.shields.io/gem/dt/nice_http)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/MarioRuiz/nice_http)
