@@ -598,6 +598,44 @@ RSpec.describe NiceHttp do
       http = klass.new
       expect { http.close; http.close }.not_to raise_error
     end
+
+    it "close handles nil @http and marks connection as closed" do
+      klass.host = "https://www.example.com"
+      http = klass.new
+      klass.active = 1
+      http.instance_variable_set(:@http, nil)
+      http.instance_variable_set(:@closed, false)
+
+      expect { http.close }.not_to raise_error
+      expect(http.instance_variable_get(:@closed)).to eq true
+      expect(klass.active).to eq 0
+    end
+
+    it "close handles finish exceptions without raising" do
+      klass.host = "https://www.example.com"
+      http = klass.new
+      klass.active = 1
+      broken_http = double("broken_http")
+      allow(broken_http).to receive(:finish).and_raise(StandardError.new("boom"))
+      http.instance_variable_set(:@http, broken_http)
+      http.instance_variable_set(:@closed, false)
+
+      expect { http.close }.not_to raise_error
+      expect(klass.active).to eq 0
+    end
+
+    it "close on already-closed connection does not try to finish again" do
+      klass.host = "https://www.example.com"
+      http = klass.new
+      klass.active = 1
+      already_closed_http = double("already_closed_http")
+      allow(already_closed_http).to receive(:finish).and_raise("should not be called")
+      http.instance_variable_set(:@http, already_closed_http)
+      http.instance_variable_set(:@closed, true)
+
+      expect { http.close }.not_to raise_error
+      expect(klass.active).to eq 0
+    end
   end
 
   describe "inherited" do
