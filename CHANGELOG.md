@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.10.1] - 2026-03-24
+
+### Fixed
+
+- Robust HTTP method detection in request management using `caller_locations` with fallback logic, fixing Ruby 3.4 compatibility for capture/stats method keys (`GET`, `POST`, etc.).
+
 ## [1.10.0] - 2026-02-13
 
 ### Added
