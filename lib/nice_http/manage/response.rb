@@ -90,12 +90,13 @@ module NiceHttpManageResponse
             value_orig = value
             if key.kind_of?(Symbol)
               if key == :code or key == :data or key == :header or key == :message
-                if key == :data and !@response[:'content-type'].to_s.include?("text/html")
-                  if key == :data and
-                     (!@response[:'content-type'].include?("text") and
-                      !@response[:'content-type'].include?("json") and
-                      !@response[:'content-type'].include?("xml") and
-                      !@response[:'content-type'].include?("charset=utf-8"))
+                content_type = @response[:'content-type'].to_s
+                if key == :data and !content_type.include?("text/html")
+                  if key == :data and content_type != "" and
+                     (!content_type.include?("text") and
+                      !content_type.include?("json") and
+                      !content_type.include?("xml") and
+                      !content_type.include?("charset=utf-8"))
                     message += "\n data: It's not text data so won't be in the logs."
                   else
                     begin

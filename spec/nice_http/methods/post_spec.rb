@@ -341,6 +341,20 @@ RSpec.describe NiceHttp, "#post" do
     expect(resp.data).to include "my lastname"
   end
 
+  it "keeps the response body when the connection is retried" do
+    calls = 0
+    @http.instance_variable_get(:@http).define_singleton_method(:post) do |_path, _data, _headers|
+      calls += 1
+      raise IOError, "closed" if calls == 1
+
+      { code: "200", message: "OK", header: { "content-type" => "text/plain" }, body: "retried-body" }
+    end
+
+    resp = @http.post(path: "/api/users", data: { name: "ada" })
+    expect(calls).to eq 2
+    expect(resp.data).to eq "retried-body"
+  end
+
   it "set the cookies when required" do
     server = ENV["HOST_EXAMPLE_SINATRA"]
     http = NiceHttp.new(server)

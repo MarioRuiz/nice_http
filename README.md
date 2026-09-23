@@ -20,7 +20,7 @@ NiceHttp is able to use hashes as requests data and uses the Request Hash struct
 
 **On the next link you have a full example using nice_http and RSpec to test REST APIs, Uber API and Reqres API: https://github.com/MarioRuiz/api-testing-example**
 
-**Related gems:** NiceHttp uses [nice_hash](https://github.com/MarioRuiz/nice_hash) (v1.19+) for request/response hashes (e.g. `resp.data.json`, `set_values`, `nice_merge`) and for generating headers. [string_pattern](https://github.com/MarioRuiz/string_pattern) (v2.4+) is used by nice_hash for pattern-based string generation and validation. To generate random or pattern-based request data, see the [nice_hash documentation](https://github.com/MarioRuiz/nice_hash). Example: 1000 valid requests + 800 with one wrong field to test validation — [gist](https://gist.github.com/MarioRuiz/824d7a462b62fd85f02c1a09455deefb).
+**Related gems:** NiceHttp uses [nice_hash](https://github.com/MarioRuiz/nice_hash) (v1.21+) for request/response hashes (e.g. `resp.data.json`, `set_values`, `nice_merge`) and for generating headers. [string_pattern](https://github.com/MarioRuiz/string_pattern) (v2.5+) is used by nice_hash for pattern-based string generation and validation. To generate random or pattern-based request data, see the [nice_hash documentation](https://github.com/MarioRuiz/nice_hash). Example: 1000 valid requests + 800 with one wrong field to test validation — [gist](https://gist.github.com/MarioRuiz/824d7a462b62fd85f02c1a09455deefb). Upgrading from nice_http 1.10: see [Compatibility with nice_hash 1.21](#compatibility-with-nice_hash-121).
 
 # Table of Contents
 
@@ -44,6 +44,7 @@ NiceHttp is able to use hashes as requests data and uses the Request Hash struct
   - [Http stats](#http-stats)
   - [Testing with generated data](#testing-with-generated-data)
   - [Validating API responses](#validating-api-responses)
+  - [Compatibility with nice_hash 1.21](#compatibility-with-nice_hash-121)
   - [Tips](#tips)
     - [Download a file](#download-a-file)
     - [Send multipart content](#send-multipart-content)
@@ -758,7 +759,7 @@ This will generate an items key that will contain an array of the values you add
 
 When you build request hashes with [nice_hash](https://github.com/MarioRuiz/nice_hash) patterns (in `data`, `headers`, or `values_for`), you can:
 
-* **Reproducible tests:** Use `seed` so the same request is generated every time:
+* **Reproducible tests:** Use `seed` so the same request is generated every time. Strings from a seed in nice_hash 1.19 will not match 1.21. `:uuid`, `:iban` and `:luhn` are not produced from the seed.
   ```ruby
   req = { path: "/api/users", data: { name: :"10-20:L", email: :"20-40:@" } }
   resp = http.post req.generate(seed: 42)  # same payload every run
@@ -771,10 +772,26 @@ When you build request hashes with [nice_hash](https://github.com/MarioRuiz/nice
   requests.each { |r| http.post r }
   ```
 
-* **UUIDs:** Use the `:uuid` shorthand (string_pattern 2.4+) in your request data:
+* **Shorthands on send:** A pattern symbol in `data`, in a nested hash, in an array of hashes, or in that request's headers is expanded on each call. Strings are left as written, so `"10:N"` is sent as the characters `10:N`. A symbol that is not a pattern, such as `:admin`, is sent as the text `"admin"`.
   ```ruby
-  resp = http.post(path: "/api/items", data: { id: :uuid, name: "Item" })
+  resp = http.post({
+    path: "/api/items",
+    data: {
+      id: :uuid,
+      email: :email,
+      iban: [:iban, "DE"],
+      card: [:luhn, 15],
+      tags: [:"3:L"],
+      age: 18..30,
+      created: DateTime,
+      active: Boolean,
+      token: /[A-Z0-9]{8}/,
+      code: "10:N",
+      role: :admin
+    }
+  })
   ```
+  The same values inside `values_for` are expanded after they are copied into `data`. Connection headers are still generated once, when the client is created, so a pattern there stays the same for every request on that client. A one-element pattern array in those headers becomes 1 to 5 strings for the life of the connection. A pattern header passed on a single request is generated again on the next request.
 
 ## Validating API responses
 
@@ -792,7 +809,23 @@ You can validate JSON responses against a structure or patterns using [nice_hash
   # => { "user.name" => { expected: "Alice", got: "Bob" } } or {}
   ```
 
-* **Pattern validation:** If your expected structure uses nice_hash patterns (e.g. `:"10:N"`, ranges), use `validate` to check that response values match those patterns.
+* **Pattern validation:** `NiceHttp.validate_response` compares the shape and, when the expected value is a pattern symbol, shorthand (`:uuid`, `:email`, `:iban`, `:luhn`), checksum pair (`[:iban, "DE"]`, `[:luhn, 15]`), one-element pattern array, range, regexp, `DateTime` or `Boolean`, checks that the response value matches. String keys and symbol keys are equivalent. A plain string in the expected structure is not treated as a pattern. A missing key still fails. `explain:` is present only when a pattern fails.
+  ```ruby
+  result = NiceHttp.validate_response(resp, { "id" => :uuid, email: :email }, explain: true)
+  result[:ok]          # => true / false
+  result[:explain]     # only when a pattern fails: { email: { valid:, errors:, message:, index: } }
+  ```
+
+## Compatibility with nice_hash 1.21
+
+nice_http 1.11 requires nice_hash 1.21 and string_pattern 2.5 (Ruby >= 3.0).
+
+* `generate(seed:)` / `generate_n(seed:)` do not repeat the strings from nice_hash 1.19. Do not assert `:uuid`, `:iban` or `:luhn` from a seed.
+* `StringPattern.block_list` matches literals. Set `StringPattern.block_list_regexp = true` when the list holds regular expressions.
+* A `Regexp` pattern must match the whole value.
+* `[:"3:L"]` generates 1 to 5 strings, including in connection headers.
+* Pattern symbols and shorthands in a request body or request header are expanded when the request is sent. `"10:N"` and `"a|b"` are not.
+* `validate_response` can return `ok: true` for string keys, and for pattern placeholders whose value matches, where 1.10 returned `ok: false`.
 
 ## Tips
 

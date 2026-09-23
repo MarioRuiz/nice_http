@@ -59,7 +59,8 @@ module NiceHttpHttpMethods
           @http.start()
           @headers_orig.each { |k, v| headers_t[k] = v.call if v.is_a?(Proc) and headers_t.key?(k) }
           @start_time_net = Time.now if @start_time_net.nil?
-          resp, data = @http.head(path, headers_t)
+          resp = @http.head(path, headers_t)
+          data = resp.body
         end
       end
       manage_response(resp, data)

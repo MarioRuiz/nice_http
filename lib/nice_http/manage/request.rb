@@ -11,7 +11,7 @@ module NiceHttpManageRequest
   ######################################################
   def manage_request(*arguments_param)    
     if arguments_param.size == 1 and arguments_param[0].kind_of?(Hash)
-      arguments = [arguments_param[0].deep_copy()]
+      arguments = [NiceHttpUtils.copy_request(arguments_param[0])]
     else
       arguments = arguments_param
     end    
@@ -146,16 +146,16 @@ module NiceHttpManageRequest
         values_for_orig = {}
         if @defaults_request.key?(:values_for) and @defaults_request.is_a?(Hash) and @defaults_request[:values_for].size > 0
           if arguments[0].include?(:values_for)
-            values_for_orig = arguments[0][:values_for].deep_copy
+            values_for_orig = NiceHttpUtils.copy_request(arguments[0][:values_for])
             arguments[0][:values_for] = @defaults_request[:values_for].nice_merge(arguments[0][:values_for])
           else
-            arguments[0][:values_for] = @defaults_request[:values_for].deep_copy
+            arguments[0][:values_for] = NiceHttpUtils.copy_request(@defaults_request[:values_for])
           end
         end
         
         if @values_for.size > 0
           if arguments[0][:values_for].nil?
-            arguments[0][:values_for] = @values_for.deep_copy
+            arguments[0][:values_for] = NiceHttpUtils.copy_request(@values_for)
           else
             arguments[0][:values_for] = @values_for.nice_merge(arguments[0][:values_for])
           end
@@ -186,13 +186,14 @@ module NiceHttpManageRequest
               }
             end
           elsif data.kind_of?(Hash)
-            data_orig = data.deep_copy
+            data_orig = NiceHttpUtils.copy_request(data)
             data.nice_merge!(@defaults_request[:data]) if @defaults_request.key?(:data)
             data = NiceHttpUtils.set_lambdas(data, data_orig)
 
             if arguments[0].include?(:values_for)
               data = data.set_values(arguments[0][:values_for])
             end
+            data = NiceHttpUtils.expand_patterns(data)
             data = data.to_json()
 
           elsif data.kind_of?(Array)
@@ -213,7 +214,7 @@ module NiceHttpManageRequest
               end
               data_arr.push(data_n)
             }
-            data = data_arr.to_json()
+            data = NiceHttpUtils.expand_patterns(data_arr).to_json()
           else
             @logger.fatal("Wrong format on request application/json, be sure is a Hash, Array of Hashes or JSON string")
             return :error, :error, :error
@@ -254,6 +255,7 @@ module NiceHttpManageRequest
         end
         data_s = data_s.to_s().gsub("<", "&lt;")
       end
+      headers_t = NiceHttpUtils.expand_patterns(headers_t) if headers_t.is_a?(Hash)
       if headers_t.keys.include?("Accept-Encoding")
         headers_t["Accept-Encoding"].gsub!("gzip", "") #removed so the response is in plain text
       end
